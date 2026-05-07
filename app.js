@@ -860,6 +860,8 @@ updateStatus = function(id, status) {
 // Keyboard shortcuts: N = new, Esc = close, D = dashboard, ? = help
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  // Ignore when Ctrl/Cmd/Alt is held (copy, paste, etc)
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key === 'n' || e.key === 'N') openAdd();
   if (e.key === 'Escape') { closeModal(); closeDetail(); }
   if (e.key === 'd') switchTab('dashboard');
