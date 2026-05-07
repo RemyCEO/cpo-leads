@@ -1694,7 +1694,7 @@ function renderCompaniesPage() {
           <span class="co-badge ${badgeClass[l.type]||'co-badge-security'}">${typeLabel[l.type]||l.type}</span>
         </div>
       </div>
-      ${l.notes?'<div style="font-size:0.75rem;color:var(--text-secondary);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;padding-left:20px">'+esc(l.notes)+'</div>':''}
+      ${l.notes?'<div style="font-size:0.75rem;color:#c5c2bd;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;padding-left:20px">'+esc(l.notes)+'</div>':''}
     </div>`;
   }).join('');
 }
@@ -1754,7 +1754,7 @@ function openDetailModal(id) {
     </div>
 
     <!-- Description -->
-    ${desc ? '<div style="font-size:0.88rem;color:#b0ada8;line-height:1.7;margin-bottom:28px">'+esc(desc)+'</div>' : '<div style="margin-bottom:28px"></div>'}
+    ${desc ? '<div style="font-size:0.88rem;color:#c5c2bd;line-height:1.7;margin-bottom:28px">'+esc(desc)+'</div>' : '<div style="margin-bottom:28px"></div>'}
 
     <!-- Notes already shown in description above -->
 
@@ -1929,7 +1929,7 @@ function renderJobCard(l, featured) {
       </div>
       ${salary?'<div class="jcard-salary">'+esc(salary)+'</div>':''}
     </div>
-    ${desc?'<div style="font-size:0.78rem;color:#b0ada8;line-height:1.5;margin:4px 0 6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+esc(desc)+'</div>':''}
+    ${desc?'<div style="font-size:0.78rem;color:#c5c2bd;line-height:1.5;margin:4px 0 6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+esc(desc)+'</div>':''}
     ${badges?'<div class="jcard-badges">'+badges+'</div>':''}
     <div class="jcard-stats">
       ${l.location?'<span>'+esc(l.location)+(l.country&&l.country!=='UK'&&l.country!=='USA'?' \u00b7 '+esc(l.country):'')+'</span>':''}
