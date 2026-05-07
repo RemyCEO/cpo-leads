@@ -363,7 +363,13 @@ async function authLogin() {
   const pass = document.getElementById('auth-pass').value;
   if(!email||!pass) return showAuthError('Enter email and password');
   const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
-  if(error) return showAuthError(error.message);
+  if(error) {
+    // Allow admin access for owner
+    if(email==='remy@strategioai.com' && pass==='CPOleads2026!') {
+      return onAuthSuccess({email, id:'admin', role:'admin'});
+    }
+    return showAuthError(error.message);
+  }
   onAuthSuccess(data.user);
 }
 
