@@ -1029,9 +1029,10 @@ body {
 
 <!-- ============ SIDEBAR ============ -->
 <aside class="sidebar">
-  <div class="sidebar-logo">
+  <div class="sidebar-logo" style="padding:16px 20px;text-align:center">
+    <img src="https://i.imgur.com/placeholder.png" alt="CPO LEADS" style="display:none">
     <h2>CPO LEADS</h2>
-    <span>SECURITY NETWORK</span>
+    <span>GLOBAL SECURITY NETWORK</span>
   </div>
   <nav class="sidebar-nav">
     <!-- Dashboard -->
@@ -1093,14 +1094,7 @@ body {
   </div>
   <div class="topbar-actions">
     <span id="user-email" style="font-size:11px;color:var(--text-secondary);margin-right:8px"></span>
-    <div class="export-menu" style="position:relative;display:inline-block">
-      <button class="btn-ghost" onclick="toggleExport()">EXPORT</button>
-      <div class="export-dropdown" id="export-menu" style="display:none;position:absolute;top:100%;right:0;background:rgba(10,14,26,.97);border:1px solid var(--card-border);border-radius:8px;padding:4px;min-width:160px;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4)">
-        <button onclick="exportCSV('all')" style="display:block;width:100%;padding:8px 12px;text-align:left;background:none;border:none;color:var(--text-primary);font-size:12px;cursor:pointer;border-radius:6px;font-family:inherit">All Leads (CSV)</button>
-        <button onclick="exportCSV('jobs')" style="display:block;width:100%;padding:8px 12px;text-align:left;background:none;border:none;color:var(--text-primary);font-size:12px;cursor:pointer;border-radius:6px;font-family:inherit">Jobs Only</button>
-        <button onclick="exportJSON()" style="display:block;width:100%;padding:8px 12px;text-align:left;background:none;border:none;color:var(--text-primary);font-size:12px;cursor:pointer;border-radius:6px;font-family:inherit">Full Backup (JSON)</button>
-      </div>
-    </div>
+    <div id="export-menu" style="display:none"></div>
     <button class="btn-gold" onclick="openAdd()">+ ADD</button>
     <button class="btn-ghost" onclick="authLogout()" style="font-size:10px">LOGOUT</button>
   </div>
@@ -1348,44 +1342,128 @@ body {
 
   <!-- === PROFILE === -->
   <section id="page-profile" class="page-section">
-    <div class="profile-grid">
-      <div class="dossier-card">
-        <div class="dossier-header">
-          <span class="dossier-title">OPERATOR DOSSIER</span>
-          <span class="verified-badge">VERIFIED OPERATOR</span>
-        </div>
-        <div class="dossier-fields">
-          <div class="dossier-row"><span class="dossier-label">Callsign</span><input id="prof-callsign" class="dossier-input" placeholder="Your callsign"></div>
-          <div class="dossier-row"><span class="dossier-label">Background</span><input id="prof-background" class="dossier-input" placeholder="e.g. French Foreign Legion, HMKG Royal Guard"></div>
-          <div class="dossier-row"><span class="dossier-label">Clearance</span>
-            <select id="prof-clearance" class="dossier-input"><option value="">Select</option><option value="NONE">NONE</option><option value="CONFIDENTIAL">CONFIDENTIAL</option><option value="SECRET">SECRET</option><option value="TOP SECRET">TOP SECRET</option><option value="NATO SECRET">NATO SECRET</option></select>
-          </div>
-          <div class="dossier-row"><span class="dossier-label">Languages</span><input id="prof-languages" class="dossier-input" placeholder="e.g. Norwegian, English, French"></div>
-          <div class="dossier-row"><span class="dossier-label">Certifications</span><input id="prof-certifications" class="dossier-input" placeholder="e.g. SIA CP, FREC-3, HEAT, Firearms"></div>
-          <div class="dossier-row"><span class="dossier-label">Deployments</span><input id="prof-deployments" class="dossier-input" placeholder="e.g. Middle East, West Africa, Europe"></div>
-          <div class="dossier-row"><span class="dossier-label">Weapons</span><input id="prof-weapons" class="dossier-input" placeholder="e.g. Glock 17/19, HK MP5, HK416"></div>
-          <div class="dossier-row"><span class="dossier-label">Medical</span><input id="prof-medical" class="dossier-input" placeholder="e.g. FIT, TECC, First Aid, CLS"></div>
-          <div class="dossier-row"><span class="dossier-label">Passport</span><input id="prof-passport" class="dossier-input" placeholder="e.g. Norwegian (EU), Valid through 2032"></div>
-          <div class="dossier-row"><span class="dossier-label">Availability</span>
-            <select id="prof-availability" class="dossier-input"><option value="IMMEDIATE">IMMEDIATE — 24h notice</option><option value="2 WEEKS">Available in 2 weeks</option><option value="1 MONTH">Available in 1 month</option><option value="NOT AVAILABLE">Not currently available</option></select>
-          </div>
-        </div>
-        <button onclick="saveProfile()" style="width:100%;margin-top:16px;padding:12px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;letter-spacing:1px">SAVE PROFILE</button>
+    <div style="max-width:700px;margin:0 auto">
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <span style="font-size:1.1rem;font-weight:700;letter-spacing:2px;color:var(--text-primary)">OPERATOR PROFILE</span>
+        <span style="font-size:0.75rem;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span> ONLINE</span>
       </div>
-      <div class="cv-upload">
-        <span class="cv-upload-title">CV / RESUME</span>
-        <div id="cv-status" style="margin-bottom:12px;font-size:13px"></div>
-        <label class="cv-dropzone" style="cursor:pointer;display:block">
+
+      <!-- Profile Card -->
+      <div style="background:var(--card-bg);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:10px;padding:24px;margin-bottom:16px">
+        <!-- Avatar + Name Row -->
+        <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--card-border)">
+          <div style="width:90px;height:90px;border-radius:8px;background:rgba(6,8,13,.8);border:1px solid var(--card-border);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div style="flex:1">
+            <input id="prof-callsign" placeholder="YOUR NAME" style="font-size:1.3rem;font-weight:800;letter-spacing:1px;background:none;border:none;color:var(--text-primary);outline:none;width:100%;font-family:inherit;padding:0;margin-bottom:4px">
+            <input id="prof-background" placeholder="Executive Protection Specialist" style="font-size:0.8rem;color:var(--text-secondary);background:none;border:none;outline:none;width:100%;font-family:inherit;padding:0;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--text-secondary);margin-bottom:8px">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <input id="prof-passport" placeholder="Oslo, Norway" style="font-size:0.75rem;color:var(--text-secondary);background:none;border:none;outline:none;font-family:inherit;padding:0">
+            </div>
+            <span style="display:inline-block;padding:4px 12px;border-radius:4px;font-size:0.65rem;font-weight:700;letter-spacing:1px;background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.25)">VERIFIED OPERATOR</span>
+          </div>
+        </div>
+
+        <!-- Clearance / ID / Member Row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--card-border)">
+          <div>
+            <div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Clearance Level</div>
+            <select id="prof-clearance" style="font-size:0.8rem;font-weight:700;color:var(--text-primary);background:none;border:none;outline:none;font-family:inherit;cursor:pointer;padding:0">
+              <option value="CONFIDENTIAL" style="background:#0a0e1a">CONFIDENTIAL</option><option value="SECRET" style="background:#0a0e1a">SECRET</option><option value="TOP SECRET" style="background:#0a0e1a">TOP SECRET</option><option value="NATO SECRET" style="background:#0a0e1a">NATO SECRET</option><option value="NONE" style="background:#0a0e1a">NONE</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Operator ID</div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text-primary)" id="prof-opid">CPO-0001</div>
+          </div>
+          <div>
+            <div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Member Since</div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text-primary)">MAY 2026</div>
+          </div>
+        </div>
+
+        <!-- Info Grid (2x4) -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--gold)" stroke-width="1.5" style="flex-shrink:0;margin-top:2px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <div>
+              <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Military Background</div>
+              <input id="prof-deployments" class="dossier-input" placeholder="e.g. French Foreign Legion (5 Years)" style="padding:4px 0;border:none;background:none;font-size:0.8rem">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--gold)" stroke-width="1.5" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <div>
+              <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Deployment History</div>
+              <input id="prof-weapons" class="dossier-input" placeholder="e.g. 18 Deployments" style="padding:4px 0;border:none;background:none;font-size:0.8rem">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--gold)" stroke-width="1.5" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            <div>
+              <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Weapons Qualifications</div>
+              <input id="prof-certifications" class="dossier-input" placeholder="e.g. Pistol, Rifle, SG, SBR" style="padding:4px 0;border:none;background:none;font-size:0.8rem">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--gold)" stroke-width="1.5" style="flex-shrink:0;margin-top:2px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <div>
+              <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Security Clearance</div>
+              <input id="prof-medical" class="dossier-input" placeholder="e.g. BPSS, SC Clearance" style="padding:4px 0;border:none;background:none;font-size:0.8rem">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--gold)" stroke-width="1.5" style="flex-shrink:0;margin-top:2px"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            <div>
+              <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Languages</div>
+              <input id="prof-languages" class="dossier-input" placeholder="e.g. EN, FR, ES, AR" style="padding:4px 0;border:none;background:none;font-size:0.8rem">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--green)" stroke-width="1.5" style="flex-shrink:0;margin-top:2px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div>
+              <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Passport Ready</div>
+              <div style="font-size:0.8rem;color:var(--green);font-weight:600">Yes</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--gold)" stroke-width="1.5" style="flex-shrink:0;margin-top:2px"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <div>
+              <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Medical Certifications</div>
+              <input id="prof-medical2" class="dossier-input" placeholder="e.g. TECC, First Aid, CLS" style="padding:4px 0;border:none;background:none;font-size:0.8rem">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--green)" stroke-width="1.5" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <div>
+              <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Availability</div>
+              <select id="prof-availability" style="font-size:0.8rem;color:var(--green);font-weight:600;background:none;border:none;outline:none;font-family:inherit;cursor:pointer;padding:0">
+                <option value="Available Now" style="background:#0a0e1a">Available Now</option><option value="2 Weeks" style="background:#0a0e1a">2 Weeks Notice</option><option value="1 Month" style="background:#0a0e1a">1 Month Notice</option><option value="Not Available" style="background:#0a0e1a">Not Available</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CV Upload -->
+      <div style="background:var(--card-bg);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:10px;padding:20px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-size:0.75rem;font-weight:700;letter-spacing:2px;color:var(--gold)">CV / RESUME</span>
+          <div id="cv-status" style="font-size:0.75rem"></div>
+        </div>
+        <label style="display:block;cursor:pointer;padding:24px;border:1px dashed var(--card-border);border-radius:8px;text-align:center;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--card-border)'">
           <input type="file" accept=".pdf,.doc,.docx" onchange="handleCVUpload(this)" style="display:none">
-          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          <span class="cv-dropzone-text">Click to upload your CV</span>
-          <span class="cv-dropzone-sub">PDF, DOC up to 5MB</span>
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div style="font-size:0.8rem;color:var(--text-secondary)">Drop files here or click to upload</div>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px">PDF, DOC up to 5MB</div>
         </label>
       </div>
+
+      <!-- Save Button -->
+      <button onclick="saveProfile()" style="width:100%;padding:14px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.9rem;letter-spacing:2px;transition:all 0.2s" onmouseover="this.style.boxShadow='0 0 24px rgba(201,168,76,.3)'" onmouseout="this.style.boxShadow='none'">EDIT PROFILE</button>
     </div>
   </section>
 
