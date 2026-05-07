@@ -50,6 +50,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .lead-card:active{transform:scale(.995)}
 .lead-info{flex:1;min-width:0}
 .lead-company{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Job cards */
+.job-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:all .15s;display:flex;flex-direction:column;gap:10px}
+.job-card:hover{background:var(--surface2);border-color:var(--accent);transform:translateY(-1px)}
+.job-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.job-title{font-weight:700;font-size:15px;flex:1;cursor:pointer}
+.job-title:hover{color:var(--accent)}
+.job-salary{color:var(--accent);font-weight:800;font-size:14px;white-space:nowrap}
+.job-row{display:flex;gap:12px;align-items:center;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.job-row span{display:inline-flex;align-items:center;gap:4px}
+.job-actions{display:flex;gap:8px;align-items:center;margin-top:4px}
+.btn-apply{background:var(--accent);color:#000;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:all .15s;border:none;cursor:pointer}
+.btn-apply:hover{background:var(--accent2);transform:scale(1.02)}
+.job-source{font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
 .lead-meta{font-size:12px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap}
 .lead-badges{display:flex;gap:6px;flex-shrink:0}
 .badge{padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
@@ -250,31 +264,82 @@ function extractSalary(notes) {
   return m ? m[0] : '';
 }
 
+function extractSource(l) {
+  const c = (l.company||'').toLowerCase();
+  if (c.includes('silent professionals')) return 'Silent Professionals';
+  if (c.includes('gdba') || c.includes('gavin de becker')) return 'GDBA';
+  if (c.includes('gardaworld') || c.includes('garda')) return 'GardaWorld';
+  if (c.includes('constellis')) return 'Constellis';
+  if (c.includes('crisis24')) return 'Crisis24';
+  if (c.includes('guildhall') || c.includes('gulftale')) return 'GulfTalent';
+  if (c.includes('nato') || c.includes('undss') || c.includes('unops') || c.includes('osce') || c.includes('interpol')) return 'Intl Org';
+  if ((l.notes||'').includes('LinkedIn')) return 'LinkedIn';
+  if ((l.notes||'').includes('Indeed')) return 'Indeed';
+  return '';
+}
+
+function getApplyUrl(l) {
+  if (!l.website) return '';
+  return l.website.startsWith('http') ? l.website : 'https://' + l.website;
+}
+
 function renderList(list) {
   const el = document.getElementById('leads');
   if (!list.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">${activeTab==='jobs'?'&#x1F4BC;':'&#x1F6E1;&#xFE0F;'}</div><div class="empty-text">${activeTab==='jobs'?'No job listings yet':'No companies yet'}</div></div>`;
+    el.innerHTML = `<div class="empty"><div class="empty-icon">${activeTab==='jobs'?'\u{1F4BC}':'\u{1F6E1}\uFE0F'}</div><div class="empty-text">${activeTab==='jobs'?'No job listings yet':'No companies yet'}</div></div>`;
     return;
   }
-  el.innerHTML = list.map(l => {
-    const salary = extractSalary(l.notes);
-    return `
-    <div class="lead-card" onclick="openDetail('${l.id}')">
-      <div class="status-dot" style="background:${statusColors[l.status]||'#64748b'}"></div>
-      <div class="lead-info">
-        <div class="lead-company">${esc(l.company)}</div>
-        <div class="lead-meta">
-          ${l.contact_person?'<span>'+esc(l.contact_person)+'</span>':''}
-          ${l.location?'<span>'+esc(l.location)+(l.country&&l.country!=='UK'&&l.country!=='USA'?' \u00b7 '+esc(l.country):'')+'</span>':''}
-          ${salary?'<span class="salary-tag">'+esc(salary)+'</span>':''}
+
+  if (activeTab === 'jobs') {
+    el.innerHTML = list.map(l => {
+      const salary = extractSalary(l.notes);
+      const source = extractSource(l);
+      const url = getApplyUrl(l);
+      const cleanTitle = esc(l.company).replace(/^.*?\u2014\s*/, '');
+      const companyName = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '';
+      return `
+      <div class="job-card">
+        <div class="job-header">
+          <div>
+            <div class="job-title" onclick="openDetail('${l.id}')">${cleanTitle || esc(l.company)}</div>
+            ${companyName ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${companyName}</div>` : ''}
+          </div>
+          ${salary ? `<div class="job-salary">${esc(salary)}</div>` : ''}
         </div>
-      </div>
-      <div class="lead-badges">
-        ${isJob(l)?'<span class="badge badge-job">JOB</span>':''}
-        <span class="badge ${typeBadge[l.type]||'badge-security'}">${typeLabels[l.type]||l.type}</span>
-      </div>
-    </div>`;
-  }).join('');
+        <div class="job-row">
+          ${l.location ? `<span>\u{1F4CD} ${esc(l.location)}${l.country && l.country!=='UK' && l.country!=='USA' ? ' \u00b7 '+esc(l.country) : ''}</span>` : ''}
+          ${source ? `<span class="job-source">${source}</span>` : ''}
+          <span style="color:${statusColors[l.status]||'#64748b'};font-weight:600">\u25CF ${statusLabels[l.status]||'New'}</span>
+        </div>
+        <div class="job-actions">
+          ${url ? `<a href="${url}" target="_blank" class="btn-apply" onclick="event.stopPropagation()">Apply \u2192</a>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="openDetail('${l.id}')" style="font-size:11px">Details</button>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();updateStatus('${l.id}','applied')" style="font-size:11px;color:var(--purple);border-color:rgba(168,85,247,.3)">Mark Applied</button>
+        </div>
+      </div>`;
+    }).join('');
+  } else {
+    el.innerHTML = list.map(l => `
+      <div class="lead-card" onclick="openDetail('${l.id}')">
+        <div class="status-dot" style="background:${statusColors[l.status]||'#64748b'}"></div>
+        <div class="lead-info">
+          <div class="lead-company">${esc(l.company)}</div>
+          <div class="lead-meta">
+            ${l.contact_person?'<span>'+esc(l.contact_person)+'</span>':''}
+            ${l.location?'<span>'+esc(l.location)+(l.country&&l.country!=='UK'&&l.country!=='USA'?' \u00b7 '+esc(l.country):'')+'</span>':''}
+          </div>
+        </div>
+        <div class="lead-badges">
+          <span class="badge ${typeBadge[l.type]||'badge-security'}">${typeLabels[l.type]||l.type}</span>
+        </div>
+      </div>`
+    ).join('');
+  }
+}
+
+function updateStatus(id, status) {
+  const idx = leads.findIndex(x=>x.id===id);
+  if (idx>=0) { leads[idx].status = status; leads[idx].updated_at = new Date().toISOString(); persist(); refresh(); }
 }
 
 function esc(s) { if(!s)return''; const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
