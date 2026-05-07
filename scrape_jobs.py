@@ -321,6 +321,77 @@ def scrape_gulftalent():
         time.sleep(2)
     return jobs
 
+def scrape_linkedin_company_posts():
+    """Scrape LinkedIn company pages that regularly post CP/EP jobs (uses Playwright)"""
+    jobs = []
+    pages = [
+        ("ODIN Security Consulting", "https://www.linkedin.com/company/odin-security-consulting-osc-worldwide/posts/"),
+        ("M.S Security Group", "https://www.linkedin.com/company/m-s-security-group/posts/"),
+    ]
+    for company_name, url in pages:
+        log(f"  Scraping {company_name} LinkedIn page...")
+        html = fetch_with_browser(url, wait_time=6)
+        if not html:
+            continue
+        # Extract post text blocks
+        import re as _re
+        posts = _re.findall(r'<span[^>]*dir="ltr"[^>]*>([\s\S]*?)</span>', html)
+        if not posts:
+            posts = _re.findall(r'class="[^"]*feed-shared-text[^"]*"[^>]*>([\s\S]*?)</div>', html)
+        for post_text in posts:
+            text = _re.sub(r'<[^>]+>', '', post_text).strip()
+            if len(text) < 30:
+                continue
+            text_lower = text.lower()
+            # Must be job-related
+            if not any(kw in text_lower for kw in ["hiring", "looking for", "position", "apply", "send your cv", "required", "recruiting", "vacancy", "we are seeking"]):
+                continue
+            if any(skip in text_lower for skip in ["data protection", "gdpr", "training course only"]):
+                continue
+            # Extract title
+            title = ""
+            for pat in [r'^([A-Z][A-Z\s&\-–/]+)(?:\n|$)', r'(?:hiring|position|role)[:\s]*([^\n]{10,60})', r'^([^\n]{10,80})']:
+                m = _re.search(pat, text)
+                if m:
+                    title = m.group(1).strip()
+                    if len(title) > 10:
+                        break
+            if not title or len(title) < 5:
+                continue
+            # Extract location
+            location = ""
+            for pat in [r'(?:Location|Based in|Location:)\s*([^\n]{3,40})', r'(Iraq|Dubai|London|UAE|Saudi|Qatar|Remote|USA|UK|France|Germany|Africa)']:
+                m = _re.search(pat, text, _re.IGNORECASE)
+                if m:
+                    location = m.group(1).strip()
+                    break
+            # Extract apply link
+            apply_url = ""
+            urls = _re.findall(r'https?://[^\s<>"\')\]]+', text)
+            for u in urls:
+                apply_url = u.rstrip('.')
+                break
+            jobs.append({
+                "title": title[:100],
+                "company": company_name,
+                "location": location,
+                "source": "LinkedIn Company Page",
+                "source_url": apply_url or url,
+                "country": guess_country(location),
+                "salary": "",
+                "notes": text[:250],
+            })
+        time.sleep(3)
+    # Deduplicate
+    seen = set()
+    unique = []
+    for j in jobs:
+        key = j["title"].lower()[:30]
+        if key not in seen:
+            seen.add(key)
+            unique.append(j)
+    return unique
+
 def scrape_linkedin_posts():
     """
     Scrape LinkedIn POSTS (not job listings) where people announce CP/EP work.
@@ -623,9 +694,19 @@ def main():
         log(f"  GULFTALENT FAILED: {e}")
         errors.append(f"GulfTalent: {e}")
 
+    # LinkedIn Company Pages (ODIN/OSC, M.S Security Group)
+    try:
+        log("Scraping LinkedIn Company Pages...")
+        li_company = scrape_linkedin_company_posts()
+        log(f"  Found {len(li_company)} jobs from company pages")
+        all_jobs.extend(li_company)
+    except Exception as e:
+        log(f"  LINKEDIN COMPANY PAGES FAILED: {e}")
+        errors.append(f"LinkedIn Company Pages: {e}")
+
     # LinkedIn Posts (people posting about jobs in groups/profiles)
     try:
-        log("Scraping LinkedIn Posts (Google)...")
+        log("Scraping LinkedIn Posts (Brave Search)...")
         li_posts = scrape_linkedin_posts()
         log(f"  Found {len(li_posts)} jobs from posts")
         all_jobs.extend(li_posts)
@@ -651,7 +732,7 @@ def main():
     # Summary
     log("-" * 40)
     log(f"SUMMARY:")
-    log(f"  Sources scraped: 6")
+    log(f"  Sources scraped: 7")
     log(f"  Total found: {len(all_jobs)}")
     log(f"  Unique: {len(unique)}")
     log(f"  New jobs added: {new_jobs}")
