@@ -1553,6 +1553,22 @@ body {
 <script src="app.js"></script>
 <script>
 // === BRIDGE: sidebar nav → app.js ===
+
+// Prevent click-through when user is selecting text
+function safeClick(fn) {
+  return function(e) {
+    const sel = window.getSelection();
+    if (sel && sel.toString().length > 0) return;
+    fn(e);
+  };
+}
+// Global helper for onclick attributes
+function cardClick(id) {
+  const sel = window.getSelection();
+  if (sel && sel.toString().length > 0) return;
+  openDetailModal(id);
+}
+
 const badgeClass = {security:'co-badge-security',management:'co-badge-management',agency:'co-badge-agency'};
 const typeLabel = {security:'Security',management:'Management',agency:'Agency'};
 const sColors = {ny:'#52504d',kontaktet:'#2980b9',applied:'#8e44ad',interview:'#D4AF37',offer:'#27ae60',rejected:'#c0392b'};
@@ -1586,7 +1602,7 @@ function renderCompaniesPage() {
   const el = document.getElementById('companies-list');
   el.innerHTML = companies.map(l => {
     const url = l.website ? (l.website.startsWith('http') ? l.website : 'https://'+l.website) : '';
-    return `<div class="co-card" onclick="openDetailModal('${l.id}')">
+    return `<div class="co-card" onclick="cardClick('${l.id}')">
       <div class="co-dot" style="background:${sColors[l.status]||'#52504d'}"></div>
       <div class="co-info">
         <div class="co-name">${esc(l.company)}</div>
@@ -1679,7 +1695,7 @@ renderList = function(list) {
       const url = getApplyUrl(l);
       const cleanTitle = esc(l.company).replace(/^.*?\u2014\s*/, '');
       const companyName = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '';
-      return `<div class="co-card" onclick="openDetailModal('${l.id}')">
+      return `<div class="co-card" onclick="cardClick('${l.id}')">
         <div class="co-dot" style="background:${sColors[l.status]||'#52504d'}"></div>
         <div class="co-info">
           <div class="co-name">${cleanTitle || esc(l.company)}</div>
