@@ -321,6 +321,152 @@ def scrape_gulftalent():
         time.sleep(2)
     return jobs
 
+def scrape_linkedin_posts():
+    """
+    Scrape LinkedIn POSTS (not job listings) where people announce CP/EP work.
+    Uses Google search to find public LinkedIn posts mentioning hiring/positions.
+    This catches recruiters posting in groups and on their profiles.
+    """
+    jobs = []
+    queries = [
+        'site:linkedin.com/posts "close protection" ("hiring" OR "looking for" OR "position" OR "contract" OR "available" OR "seeking")',
+        'site:linkedin.com/posts "executive protection" ("hiring" OR "opportunity" OR "role" OR "position available")',
+        'site:linkedin.com/posts "CPO" "bodyguard" ("hiring" OR "immediate" OR "contract" OR "rotation")',
+        'site:linkedin.com/feed "close protection" "hiring"',
+        'site:linkedin.com/groups "executive protection" ("vacancy" OR "hiring" OR "looking for")',
+    ]
+
+    for query in queries:
+        time.sleep(3)  # Be polite to Google
+        log(f"  Google searching LinkedIn posts...")
+        encoded = requests.utils.quote(query)
+        url = f"https://www.google.com/search?q={encoded}&num=20&tbs=qdr:w"  # Last week
+
+        # Google blocks simple requests too, use Playwright
+        html = fetch_with_browser(url, wait_selector='#search', wait_time=3)
+        if not html:
+            # Fallback: try with requests + different user agent
+            try:
+                r = requests.get(url, headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0",
+                    "Accept": "text/html,application/xhtml+xml",
+                    "Accept-Language": "en-US,en;q=0.5",
+                }, timeout=15)
+                if r.status_code == 200:
+                    html = r.text
+            except:
+                pass
+        if not html:
+            continue
+
+        # Use Brave Search (no CAPTCHA, works with simple HTTP)
+        encoded = requests.utils.quote(query.replace('site:linkedin.com/posts ', 'site:linkedin.com ').replace('site:linkedin.com/feed ', 'site:linkedin.com ').replace('site:linkedin.com/groups ', 'site:linkedin.com '))
+        brave_url = f"https://search.brave.com/search?q={encoded}&source=web"
+        try:
+            r = requests.get(brave_url, headers=HEADERS, timeout=15)
+            if r.status_code != 200:
+                continue
+            brave_html = r.text
+        except:
+            continue
+
+        # Parse Brave results - find LinkedIn links with surrounding text
+        # Extract title and snippet from Brave's svelte components
+        result_blocks = re.findall(r'<div[^>]*class="[^"]*snippet[^"]*svelte[^"]*"[^>]*>([\s\S]*?)</div>\s*</div>', brave_html)
+        link_results = re.findall(r'<a[^>]*href="(https://[^"]*linkedin\.com/(?:posts|pulse|feed)[^"]*)"[^>]*>([\s\S]*?)</a>', brave_html)
+
+        # Also get snippets near LinkedIn post links
+        all_snippets = []
+        for link_url, link_text in link_results:
+            link_text_clean = re.sub(r'<[^>]+>', '', link_text).strip()
+            # Find snippet text near this link
+            link_pos = brave_html.find(link_url)
+            if link_pos > 0:
+                nearby = brave_html[link_pos:link_pos+1000]
+                snippet_match = re.search(r'class="[^"]*snippet-description[^"]*"[^>]*>([\s\S]*?)</div>', nearby)
+                if not snippet_match:
+                    snippet_match = re.search(r'<p[^>]*>([\s\S]{20,300}?)</p>', nearby)
+                snippet_text = re.sub(r'<[^>]+>', '', snippet_match.group(1)).strip() if snippet_match else link_text_clean
+                all_snippets.append({'url': link_url, 'title': link_text_clean, 'snippet': snippet_text})
+
+        if not all_snippets:
+            continue
+        log(f"    Found {len(all_snippets)} LinkedIn post results")
+
+        for result in all_snippets:
+            url_part = result.get('url', '') if isinstance(result, dict) else result[0]
+            snippet = result.get('snippet', '') if isinstance(result, dict) else result[1]
+            google_title = result.get('title', '') if isinstance(result, dict) else ''
+            # Extract job-like info from the snippet
+            snippet_lower = snippet.lower()
+
+            # Skip if not actually about hiring/jobs
+            # Skip obvious non-job content
+            if any(skip in snippet_lower for skip in ["data protection officer", "child protection", "gdpr", "training program", "certification course"]):
+                continue
+
+            # For LinkedIn posts, the Google title IS the useful info
+            # Use google_title as primary, snippet as fallback
+            combined = (google_title + ' ' + snippet).strip()
+            combined_lower = combined.lower()
+
+            # Must contain at least one CP-related keyword
+            if not any(kw in combined_lower for kw in ["close protection", "executive protection", "bodyguard", "cpo", "ep agent", "security detail", "protective", "psd"]):
+                continue
+
+            # Build title from google_title or snippet
+            title = google_title if google_title and len(google_title) > 10 else ""
+            if not title:
+                first_sentence = snippet.split('.')[0].split('!')[0]
+                if len(first_sentence) > 10:
+                    title = first_sentence[:100]
+            if not title:
+                continue
+
+            # Extract location if mentioned
+            location = ""
+            loc_patterns = [
+                r'(?:in|based in|location[:\s])\s+([A-Z][a-z]+(?:\s*,\s*[A-Z][a-z]+)?)',
+                r'(Dubai|London|UAE|Abu Dhabi|Riyadh|Qatar|New York|Los Angeles|Miami|Singapore)',
+            ]
+            for pat in loc_patterns:
+                m = re.search(pat, snippet, re.IGNORECASE)
+                if m:
+                    location = clean(m.group(1))
+                    break
+
+            # Extract poster/company name from Google title
+            company = "LinkedIn Post"
+            gt = google_title or url_part
+            if ' - ' in gt:
+                company = gt.split(' - ')[0].strip()
+            elif ' | ' in gt:
+                company = gt.split(' | ')[0].strip()
+
+            # Build source URL
+            source_url = url_part if 'linkedin.com' in url_part else ""
+
+            jobs.append({
+                "title": title[:100],
+                "company": company[:100],
+                "location": location,
+                "source": "LinkedIn Posts",
+                "source_url": source_url,
+                "country": guess_country(location),
+                "salary": "",
+                "notes": snippet[:250],
+            })
+
+    # Deduplicate within this source
+    seen = set()
+    unique = []
+    for j in jobs:
+        key = j["title"].lower()[:30]
+        if key not in seen:
+            seen.add(key)
+            unique.append(j)
+    return unique
+
 # --- UTILITIES ---
 
 US_STATES = [", al", ", ak", ", az", ", ar", ", ca", ", co", ", ct", ", de", ", fl", ", ga", ", hi", ", id", ", il", ", in", ", ia", ", ks", ", ky", ", la", ", me", ", md", ", ma", ", mi", ", mn", ", ms", ", mo", ", mt", ", ne", ", nv", ", nh", ", nj", ", nm", ", ny", ", nc", ", nd", ", oh", ", ok", ", or", ", pa", ", ri", ", sc", ", sd", ", tn", ", tx", ", ut", ", vt", ", va", ", wa", ", wv", ", wi", ", wy", ", dc"]
@@ -477,6 +623,16 @@ def main():
         log(f"  GULFTALENT FAILED: {e}")
         errors.append(f"GulfTalent: {e}")
 
+    # LinkedIn Posts (people posting about jobs in groups/profiles)
+    try:
+        log("Scraping LinkedIn Posts (Google)...")
+        li_posts = scrape_linkedin_posts()
+        log(f"  Found {len(li_posts)} jobs from posts")
+        all_jobs.extend(li_posts)
+    except Exception as e:
+        log(f"  LINKEDIN POSTS FAILED: {e}")
+        errors.append(f"LinkedIn Posts: {e}")
+
     # Deduplicate
     unique = deduplicate(all_jobs)
     log(f"Total scraped: {len(all_jobs)} | Unique: {len(unique)}")
@@ -495,7 +651,7 @@ def main():
     # Summary
     log("-" * 40)
     log(f"SUMMARY:")
-    log(f"  Sources scraped: 5")
+    log(f"  Sources scraped: 6")
     log(f"  Total found: {len(all_jobs)}")
     log(f"  Unique: {len(unique)}")
     log(f"  New jobs added: {new_jobs}")
