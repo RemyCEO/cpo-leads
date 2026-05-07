@@ -111,6 +111,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .detail-value a{color:var(--accent);text-decoration:none}
 .detail-value a:hover{text-decoration:underline}
 
+/* Dashboard */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;padding:16px 20px}
+.dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.dash-card h3{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;font-weight:600}
+.dash-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.dash-bar-label{font-size:12px;color:var(--muted);width:80px;flex-shrink:0}
+.dash-bar-track{flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.dash-bar-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.dash-bar-count{font-size:12px;font-weight:700;width:30px;text-align:right}
+.dash-pipeline{display:flex;gap:4px;margin-top:8px}
+.dash-pipe-stage{flex:1;text-align:center;padding:10px 4px;background:var(--surface2);border-radius:8px}
+.dash-pipe-stage .pipe-val{font-size:20px;font-weight:800}
+.dash-pipe-stage .pipe-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+.dash-regions{display:flex;flex-wrap:wrap;gap:6px}
+.region-chip{padding:6px 12px;background:var(--surface2);border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.region-chip:hover{background:var(--accent);color:#000}
+.region-chip .region-count{opacity:.6;margin-left:4px}
+.sort-select{padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--fg);font-size:12px;outline:none;cursor:pointer}
+.sort-select:focus{border-color:var(--accent)}
+.quick-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.lead-card:hover .quick-actions{opacity:1}
+.quick-btn{padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .1s}
+.quick-btn:hover{background:var(--accent);color:#000;border-color:var(--accent)}
+.activity-log{margin-top:16px;border-top:1px solid var(--border);padding-top:12px}
+.activity-item{display:flex;gap:8px;align-items:flex-start;padding:6px 0;font-size:11px;color:var(--muted)}
+.activity-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:4px;flex-shrink:0}
+.export-menu{position:relative;display:inline-block}
+.export-dropdown{position:absolute;top:100%;right:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px;display:none;z-index:60;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.export-dropdown.open{display:block}
+.export-item{display:block;width:100%;padding:8px 12px;text-align:left;background:none;border:none;color:var(--fg);font-size:12px;cursor:pointer;border-radius:6px}
+.export-item:hover{background:var(--surface2)}
+
 @media(min-width:640px){
   .modal-bg{align-items:center}
   .modal{border-radius:16px;max-height:80vh}
@@ -123,6 +155,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 <div class="header">
   <h1>&#x1F6E1;&#xFE0F; <span>CPO</span> Leads</h1>
   <div class="header-actions">
+    <div class="export-menu">
+      <button class="btn btn-ghost btn-sm" onclick="toggleExport()">Export</button>
+      <div class="export-dropdown" id="export-menu">
+        <button class="export-item" onclick="exportCSV('all')">All Leads (CSV)</button>
+        <button class="export-item" onclick="exportCSV('companies')">Companies Only</button>
+        <button class="export-item" onclick="exportCSV('jobs')">Jobs Only</button>
+        <button class="export-item" onclick="exportJSON()">Full Backup (JSON)</button>
+      </div>
+    </div>
     <button class="btn btn-primary" onclick="openAdd()">+ Add</button>
   </div>
 </div>
@@ -130,9 +171,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 <div class="tabs">
   <div class="tab active" id="tab-companies" onclick="switchTab('companies')">Companies <span class="tab-count" id="count-companies">0</span></div>
   <div class="tab" id="tab-jobs" onclick="switchTab('jobs')">Job Listings <span class="tab-count" id="count-jobs">0</span></div>
+  <div class="tab" id="tab-saved" onclick="switchTab('saved')">Saved <span class="tab-count" id="count-saved">0</span></div>
+  <div class="tab" id="tab-guide" onclick="switchTab('guide')">Guide</div>
+  <div class="tab" id="tab-dashboard" onclick="switchTab('dashboard')">Dashboard</div>
+  <div class="tab" id="tab-strategy" onclick="switchTab('strategy')">Strategy</div>
 </div>
 
 <div class="stats" id="stats"></div>
+<div id="dashboard-view" style="display:none"></div>
+<div id="strategy-view" style="display:none"></div>
+<div id="guide-view" style="display:none;padding:20px;max-width:800px;margin:0 auto"></div>
+<div id="saved-view" style="display:none"></div>
+<div id="list-view">
 <div style="padding:0 20px 8px;position:relative">
   <input type="text" id="global-search" placeholder="Search everything — companies, jobs, locations, notes..." oninput="globalSearch(this.value)" style="width:100%;padding:12px 16px 12px 40px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--fg);font-size:14px;outline:none">
   <span style="position:absolute;left:32px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none">&#x1F50D;</span>
@@ -155,8 +205,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
     <option value="offer">Offer</option>
     <option value="rejected">Rejected</option>
   </select>
+  <select id="filter-country" onchange="applyFilters()" class="sort-select">
+    <option value="">All regions</option>
+    <option value="UK">UK</option>
+    <option value="USA">USA</option>
+    <option value="UAE">UAE / Gulf</option>
+    <option value="Europe">Europe</option>
+    <option value="Africa">Africa</option>
+    <option value="Asia">Asia-Pacific</option>
+    <option value="LATAM">Latin America</option>
+    <option value="International">International</option>
+  </select>
+  <select id="sort-by" onchange="applyFilters()" class="sort-select">
+    <option value="priority">Sort: Priority</option>
+    <option value="salary">Sort: Salary</option>
+    <option value="date">Sort: Newest</option>
+    <option value="name">Sort: A-Z</option>
+    <option value="status">Sort: Status</option>
+  </select>
 </div>
 <div class="leads" id="leads"></div>
+</div><!-- /list-view -->
 
 <!-- Add/Edit modal -->
 <div class="modal-bg" id="modal-bg" onclick="closeModal()">
@@ -416,20 +485,145 @@ document.addEventListener('keydown', e => {
 
 function switchTab(tab) {
   activeTab = tab;
-  document.getElementById('tab-companies').classList.toggle('active', tab === 'companies');
-  document.getElementById('tab-jobs').classList.toggle('active', tab === 'jobs');
-  refresh();
+  ['companies','jobs','saved','guide','dashboard','strategy'].forEach(t => {
+    const el = document.getElementById('tab-'+t);
+    if(el) el.classList.toggle('active', tab === t);
+  });
+  document.getElementById('list-view').style.display = (tab==='companies'||tab==='jobs') ? '' : 'none';
+  document.getElementById('saved-view').style.display = tab==='saved' ? '' : 'none';
+  document.getElementById('guide-view').style.display = tab==='guide' ? '' : 'none';
+  document.getElementById('dashboard-view').style.display = tab==='dashboard' ? '' : 'none';
+  document.getElementById('strategy-view').style.display = tab==='strategy' ? '' : 'none';
+  document.getElementById('stats').style.display = (tab==='guide') ? 'none' : '';
+  if(tab==='dashboard') renderDashboard();
+  else if(tab==='strategy') renderStrategy();
+  else if(tab==='saved') renderSaved();
+  else if(tab==='guide') renderGuide();
+  else refresh();
+}
+
+function toggleSaved(id) {
+  const idx = leads.findIndex(x=>x.id===id);
+  if(idx>=0) { leads[idx].saved = !leads[idx].saved; persist(); }
+}
+
+function renderSaved() {
+  const el = document.getElementById('saved-view');
+  const saved = leads.filter(l => l.saved);
+  document.getElementById('count-saved').textContent = saved.length;
+  if(!saved.length) {
+    el.innerHTML = '<div class="empty" style="padding:60px 20px"><div class="empty-icon" style="font-size:40px;opacity:.5">\u2606</div><div class="empty-text">No saved jobs yet.<br><span style="font-size:12px;color:var(--muted)">Click the star on any job or company to save it here.</span></div></div>';
+    return;
+  }
+  el.innerHTML = '<div style="padding:12px 20px"><h2 style="font-size:16px;margin-bottom:4px">Saved (' + saved.length + ')</h2><p style="font-size:12px;color:var(--muted)">Jobs and companies you\'re interested in applying to</p></div><div class="leads" style="padding:0 20px 100px">' +
+    saved.map(l => {
+      const salary = extractSalary(l.notes);
+      const job = isJob(l);
+      const url = l.website ? (l.website.startsWith('http') ? l.website : 'https://'+l.website) : '';
+      return `<div class="job-card">
+        <div class="job-header">
+          <div>
+            <div class="job-title" onclick="openDetail('${l.id}')">${esc(l.company)}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">${l.location?esc(l.location):''}${l.country?' \u00b7 '+esc(l.country):''}</div>
+          </div>
+          ${salary?'<div class="job-salary">'+esc(salary)+'</div>':''}
+        </div>
+        <div class="job-actions">
+          ${url?'<a href="'+url+'" target="_blank" class="btn-apply" onclick="event.stopPropagation()">Apply \u2192</a>':''}
+          <button class="btn btn-ghost btn-sm" onclick="openDetail('${l.id}')" style="font-size:11px">Details</button>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleSaved('${l.id}');renderSaved()" style="font-size:11px;color:var(--red);border-color:rgba(239,68,68,.3)">Remove</button>
+          <span class="badge ${job?'badge-job':typeBadge[l.type]||'badge-security'}" style="margin-left:auto">${job?'JOB':typeLabels[l.type]||l.type}</span>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+}
+
+function renderGuide() {
+  const el = document.getElementById('guide-view');
+  el.innerHTML = `
+    <h1 style="font-size:28px;font-weight:800;margin-bottom:8px">How to Land a Close Protection Job</h1>
+    <p style="color:var(--muted);margin-bottom:32px">The no-BS insider guide. Built from real operator experience.</p>
+
+    <div style="display:flex;flex-direction:column;gap:20px">
+    ${[
+      {title:'1. Where the Jobs Actually Live',icon:'\u{1F4CD}',content:'<b>Use these:</b> Silent Professionals, Circuit Magazine job board, EP Wired, BBA jobs, ASIS, IPSB, Close Protection World forum.<br><br><b>Skip:</b> Indeed and LinkedIn alone are graveyards for CP apps \u2014 80% of real CP work circulates through closed networks, WhatsApp groups, and direct referrals.<br><br><b>Red flags:</b> Any group asking upfront fees, "training first" schemes, or vague principal descriptions.<br><br><b>Quick Win:</b> Register on Silent Professionals and Circuit Magazine today \u2014 these two sources alone cover 60% of posted EP work.'},
+      {title:'2. The CV That Gets Opened',icon:'\u{1F4C4}',content:'<b>Format:</b> 2 pages max. Page 1: contact, summary, key certs, last 3 roles. Page 2: full career, training, languages.<br><br><b>Certs that matter:</b> SIA CP (UK), FPOS-I, HEAT/SSAFE, ASIS CPP/PSP, advanced driving (Tony Scotti, BSR). FAA Part 107 for drone surveillance is increasingly valued.<br><br><b>What gets you binned:</b> Photos in tactical gear, "operator" language, inflated claims, listing references publicly.<br><br><b>Quick Win:</b> Put "References from [named principal type] available on request" \u2014 signals discretion.'},
+      {title:'3. The Cold Outreach Playbook',icon:'\u{2709}',content:'<b>Find the right person:</b> Operations Manager, Head of Recruitment, Director of Protective Services \u2014 NOT info@ inbox.<br><br><b>Email structure:</b> Subject: "Experienced CPO \u2014 [Region] availability". Body: 3 lines max value prop + soft close. No attachments on first contact.<br><br><b>Follow-up:</b> 3 touches over 3 weeks, then park. Never chase more than that.<br><br><b>Quick Win:</b> Research 5 target companies on LinkedIn/Companies House today, find the right contact, send a tailored 3-line email.'},
+      {title:'4. The Recruiter Game',icon:'\u{1F465}',content:'<b>Family office recruiters:</b> Greycoat Lumleys, Tiger Recruitment, Polo & Tweed, Oplu, Bespoke Britannia \u2014 each operates differently. Register with all of them.<br><br><b>Stay top-of-mind:</b> Send a short monthly "availability email" \u2014 3 lines: current status, availability dates, any new certs/experience.<br><br><b>Reality check:</b> Recruiters earn from placement, not from you. Manage expectations. Never pay upfront fees.<br><br><b>Quick Win:</b> Email your CV to Greycoat Lumleys (info@greycoatlumleys.co.uk) and Tiger (info@tiger-recruitment.co.uk) today.'},
+      {title:'5. Networking That Generates Work',icon:'\u{1F91D}',content:'<b>Events worth the flight:</b> Security & Counter Terror Expo (London), ISC East/West (US), Intersec Dubai, Milipol Paris.<br><br><b>The 80/20 rule:</b> 80% of CP jobs come from people you\\'ve worked alongside. Invest in those relationships.<br><br><b>Referral script:</b> "Hey [name], I\\'m looking at [company]. Do you know anyone on their team? Would appreciate an intro if it makes sense."<br><br><b>Quick Win:</b> Message 3 former colleagues today and ask what they\\'re working on. Relationships before transactions.'},
+      {title:'6. Building a Brand That Brings Work',icon:'\u{1F464}',content:'<b>LinkedIn:</b> Discreet headline (e.g. "Close Protection | International Operations"), suit photo, short summary signaling discretion and competence. No plate carriers.<br><br><b>"Boring is professional":</b> Principals hire operators who don\\'t seek attention. No tactical Instagram, no "operator" content.<br><br><b>Quick Win:</b> Update your LinkedIn headline and summary today. Remove any tactical photos.'},
+      {title:'7. Geography & Market Rates (2026)',icon:'\u{1F30D}',content:'<b>Where the money is NOW:</b><br>\u2022 UAE/Saudi: $500\u2013800/day (NEOM, Red Sea projects hiring heavily)<br>\u2022 USA corporate: $130\u2013165K/yr (tech, finance, UHNW)<br>\u2022 London family office: \u00a355\u201380K/yr + benefits<br>\u2022 Hostile environment: $800\u20132,000/day (maritime anti-piracy tops)<br>\u2022 LATAM contract: $450\u2013800/day<br><br><b>Saturated:</b> UK domestic event security, generic venue work.<br><br><b>Quick Win:</b> Search GulfTalent and Silent Professionals for your target region today.'},
+      {title:'8. The Interview & Vetting Stage',icon:'\u{1F50D}',content:'<b>Background checks:</b> Expect 2\u20136 weeks. Some markets require polygraph (US government contracts).<br><br><b>The principal interview:</b> If you meet the protectee, be calm, professional, minimal. They\\'re assessing whether they\\'d be comfortable with you 24/7.<br><br><b>Questions to ask THEM:</b> Rotation pattern, team structure, escalation protocols, equipment provided, insurance coverage.<br><br><b>Quick Win:</b> Prepare a clean 1-page "operations resume" for principal meetings \u2014 no military jargon, just calm competence.'},
+      {title:'9. First 90 Days = Next 10 Years',icon:'\u{1F3AF}',content:'<b>The quiet professional reputation:</b> Show up early, kit squared away, zero drama, zero social media from the detail. This is what gets you recommended.<br><br><b>How referrals work:</b> Principals and estate managers talk to each other. One good contract opens 3 more. One bad day can close a region.<br><br><b>Avoid the bottom:</b> Don\\'t take lowball day-rate contracts just to stay busy. They attract bad teams and worse clients.<br><br><b>Quick Win:</b> On your current/next contract, focus on being the person the team lead calls first for the next job.'},
+      {title:'10. Honest Realities',icon:'\u26A0\uFE0F',content:'<b>The industry is small.</b> Burning one bridge can close an entire region. Professionalism is non-negotiable.<br><br><b>Nepotism is real.</b> Accept it. Build your own network instead of fighting it.<br><br><b>Dry seasons happen.</b> Keep 6 months of runway minimum. Don\\'t panic-take bad contracts.<br><br><b>Everything comes from YOUR pocket:</b> Insurance, kit, training, travel to interviews. Budget accordingly.<br><br><b>Mental health:</b> Long rotations are hard. Plan decompression. This isn\\'t weakness \u2014 it\\'s operational readiness.'}
+    ].map(s => `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">${s.icon} ${s.title}</h3>
+        <div style="font-size:13px;line-height:1.7;color:var(--muted)">${s.content}</div>
+      </div>
+    `).join('')}
+    </div>
+
+    <div style="margin-top:32px;background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:24px">
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--accent)">First 30 Days Action Plan</h2>
+      <div style="font-size:13px;line-height:2;color:var(--muted)">
+        <b style="color:var(--fg)">Week 1:</b><br>
+        1. Register: Silent Professionals, Circuit Magazine, CloseProtectionJobs.com<br>
+        2. Update LinkedIn (discreet headline, suit photo)<br>
+        3. Email CV to: Greycoat Lumleys, Tiger, Polo & Tweed, Oplu<br>
+        4. Register on careers.un.org + nato.taleo.net<br>
+        5. Apply to 3 active listings from Job Listings tab<br><br>
+        <b style="color:var(--fg)">Week 2:</b><br>
+        6. Cold outreach to 5 target companies (use playbook above)<br>
+        7. Register on GulfTalent + Impactpool<br>
+        8. Email Intelligent Protection + Infinite Risks + CourtesyMasters<br>
+        9. Apply to GDBA, Constellis, GardaWorld portals<br>
+        10. Message 3 former colleagues for referrals<br><br>
+        <b style="color:var(--fg)">Week 3:</b><br>
+        11. Follow up on week 1 outreach (2nd touch)<br>
+        12. Apply to 5 more job listings<br>
+        13. Research family office recruiters for your target market<br>
+        14. Set LinkedIn job alerts for target keywords<br><br>
+        <b style="color:var(--fg)">Week 4:</b><br>
+        15. Final follow-up on unanswered outreach (3rd touch)<br>
+        16. Send availability email to all registered recruiters<br>
+        17. Review and update saved jobs list<br>
+        18. Plan next month\\'s targets based on responses<br><br>
+        <b style="color:var(--fg)">Ongoing:</b> Check job boards daily. Send monthly availability emails. Keep saved list current.
+      </div>
+    </div>
+  `;
+}
+
+const regionMap = {
+  'UK':['UK','United Kingdom','England','Scotland','Wales'],
+  'USA':['USA','US','United States'],
+  'UAE':['UAE','Dubai','Qatar','Saudi','Saudi Arabia','Bahrain','Kuwait','Oman'],
+  'Europe':['Belgium','France','Germany','Netherlands','Switzerland','Austria','Poland','Italy','Spain','Norway','Denmark','Sweden','Finland','Ireland','Portugal','Greece','Czech','Hungary','Romania'],
+  'Africa':['Ghana','Nigeria','Kenya','South Africa','DRC','Angola','Mozambique','Tanzania','Uganda','Ethiopia','Sudan','Somalia','Egypt','Libya','Morocco','Tunisia'],
+  'Asia':['Singapore','Japan','China','Hong Kong','India','Philippines','Indonesia','Thailand','Vietnam','Australia','New Zealand','Myanmar','East Asia'],
+  'LATAM':['Colombia','Argentina','El Salvador','Guatemala','Brazil','Mexico','Chile','Peru','Ecuador','Panama','Costa Rica'],
+  'International':['International','Global','Globalt']
+};
+
+function matchRegion(l, region) {
+  if(!region) return true;
+  const countries = regionMap[region] || [region];
+  const haystack = [l.country, l.location].filter(Boolean).join(' ');
+  return countries.some(c => haystack.toLowerCase().includes(c.toLowerCase()));
 }
 
 function getFiltered() {
   const search = document.getElementById('search').value.toLowerCase();
   const type = document.getElementById('filter-type').value;
   const status = document.getElementById('filter-status').value;
+  const country = document.getElementById('filter-country').value;
   return leads.filter(l => {
     if (activeTab === 'jobs' && !isJob(l)) return false;
     if (activeTab === 'companies' && isJob(l)) return false;
     if (type && l.type !== type) return false;
     if (status && l.status !== status) return false;
+    if (country && !matchRegion(l, country)) return false;
     if (search) {
       const hay = [l.company,l.contact_person,l.location,l.country,l.notes].filter(Boolean).join(' ').toLowerCase();
       if (!hay.includes(search)) return false;
@@ -453,11 +647,26 @@ function renderStats() {
   // Update tab counts
   document.getElementById('count-companies').textContent = leads.filter(l => !isJob(l)).length;
   document.getElementById('count-jobs').textContent = leads.filter(l => isJob(l)).length;
+  document.getElementById('count-saved').textContent = leads.filter(l => l.saved).length;
+}
+
+function parseSalaryNum(notes) {
+  if(!notes) return 0;
+  const m = notes.match(/[\$\£]([\d,]+)/);
+  return m ? parseInt(m[1].replace(/,/g,'')) : 0;
 }
 
 function applyFilters() {
   const filtered = getFiltered();
-  filtered.sort((a,b) => (priorityOrder[a.priority]||1) - (priorityOrder[b.priority]||1));
+  const sortBy = document.getElementById('sort-by').value;
+  if(sortBy==='salary') filtered.sort((a,b) => parseSalaryNum(b.notes) - parseSalaryNum(a.notes));
+  else if(sortBy==='date') filtered.sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+  else if(sortBy==='name') filtered.sort((a,b) => (a.company||'').localeCompare(b.company||''));
+  else if(sortBy==='status') {
+    const so={ny:0,kontaktet:1,applied:2,interview:3,offer:4,rejected:5};
+    filtered.sort((a,b) => (so[a.status]||0) - (so[b.status]||0));
+  }
+  else filtered.sort((a,b) => (priorityOrder[a.priority]||1) - (priorityOrder[b.priority]||1));
   renderList(filtered);
 }
 
@@ -518,6 +727,7 @@ function renderList(list) {
           ${url ? `<a href="${url}" target="_blank" class="btn-apply" onclick="event.stopPropagation()">Apply \u2192</a>` : ''}
           <button class="btn btn-ghost btn-sm" onclick="openDetail('${l.id}')" style="font-size:11px">Details</button>
           <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();updateStatus('${l.id}','applied')" style="font-size:11px;color:var(--purple);border-color:rgba(168,85,247,.3)">Mark Applied</button>
+          <button onclick="event.stopPropagation();toggleSaved('${l.id}');applyFilters();updateSavedCount()" style="background:none;border:none;cursor:pointer;font-size:18px;margin-left:auto;opacity:${l.saved?'1':'.4'};transition:opacity .15s" title="${l.saved?'Unsave':'Save for later'}">${l.saved?'\u2605':'\u2606'}</button>
         </div>
       </div>`;
     }).join('');
@@ -533,11 +743,16 @@ function renderList(list) {
           </div>
         </div>
         <div class="lead-badges">
+          <button onclick="event.stopPropagation();toggleSaved('${l.id}');applyFilters();updateSavedCount()" style="background:none;border:none;cursor:pointer;font-size:16px;opacity:${l.saved?'1':'.4'};transition:opacity .15s" title="${l.saved?'Unsave':'Save'}">${l.saved?'\u2605':'\u2606'}</button>
           <span class="badge ${typeBadge[l.type]||'badge-security'}">${typeLabels[l.type]||l.type}</span>
         </div>
       </div>`
     ).join('');
   }
+}
+
+function updateSavedCount() {
+  document.getElementById('count-saved').textContent = leads.filter(l=>l.saved).length;
 }
 
 function updateStatus(id, status) {
@@ -666,11 +881,251 @@ function refresh() {
   applyFilters();
 }
 
-// Keyboard shortcuts: N = new, Esc = close
+// === EXPORT ===
+function toggleExport() {
+  document.getElementById('export-menu').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if(!e.target.closest('.export-menu')) document.getElementById('export-menu').classList.remove('open');
+});
+
+function exportCSV(filter) {
+  let data = leads;
+  if(filter==='companies') data = leads.filter(l=>!isJob(l));
+  else if(filter==='jobs') data = leads.filter(l=>isJob(l));
+  const headers = ['Company','Type','Category','Status','Priority','Location','Country','Website','Email','Phone','Contact','Notes','Created'];
+  const rows = data.map(l=>[l.company,l.type,l.category||'company',l.status,l.priority,l.location,l.country,l.website,l.email,l.phone,l.contact_person,l.notes,l.created_at].map(v=>'"'+(v||'').replace(/"/g,'""')+'"'));
+  const csv = [headers.join(','), ...rows.map(r=>r.join(','))].join('\n');
+  downloadFile('cpo_leads_'+filter+'_'+new Date().toISOString().slice(0,10)+'.csv', csv, 'text/csv');
+  document.getElementById('export-menu').classList.remove('open');
+}
+
+function exportJSON() {
+  downloadFile('cpo_leads_backup_'+new Date().toISOString().slice(0,10)+'.json', JSON.stringify(leads,null,2), 'application/json');
+  document.getElementById('export-menu').classList.remove('open');
+}
+
+function downloadFile(name, content, type) {
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=name; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// === DASHBOARD ===
+function renderDashboard() {
+  const companies = leads.filter(l=>!isJob(l));
+  const jobs = leads.filter(l=>isJob(l));
+  const all = leads;
+
+  // Status breakdown
+  const statusCounts = {};
+  all.forEach(l => { const s=statusLabels[l.status]||'New'; statusCounts[s]=(statusCounts[s]||0)+1; });
+  const maxStatus = Math.max(...Object.values(statusCounts),1);
+
+  // Region breakdown
+  const regionCounts = {};
+  all.forEach(l => {
+    let region = 'Other';
+    for(const [r,countries] of Object.entries(regionMap)) {
+      if(matchRegion(l,r)){region=r;break;}
+    }
+    regionCounts[region]=(regionCounts[region]||0)+1;
+  });
+
+  // Type breakdown
+  const typeCounts = {};
+  all.forEach(l => { const t=typeLabels[l.type]||l.type; typeCounts[t]=(typeCounts[t]||0)+1; });
+
+  // Priority breakdown
+  const priCounts = {hot:0,medium:0,low:0};
+  all.forEach(l => { priCounts[l.priority||'medium']++; });
+
+  // Salary stats for jobs
+  const salaries = jobs.map(j=>parseSalaryNum(j.notes)).filter(s=>s>0);
+  const avgSalary = salaries.length ? Math.round(salaries.reduce((a,b)=>a+b,0)/salaries.length) : 0;
+  const maxSalary = salaries.length ? Math.max(...salaries) : 0;
+
+  // Top salary jobs
+  const topJobs = [...jobs].filter(j=>parseSalaryNum(j.notes)>0).sort((a,b)=>parseSalaryNum(b.notes)-parseSalaryNum(a.notes)).slice(0,5);
+
+  const el = document.getElementById('dashboard-view');
+  el.innerHTML = `
+  <div class="dash-grid">
+    <div class="dash-card">
+      <h3>Application Pipeline</h3>
+      <div class="dash-pipeline">
+        <div class="dash-pipe-stage"><div class="pipe-val" style="color:#64748b">${statusCounts['New']||0}</div><div class="pipe-label">New</div></div>
+        <div class="dash-pipe-stage"><div class="pipe-val" style="color:#3b82f6">${statusCounts['Contacted']||0}</div><div class="pipe-label">Contacted</div></div>
+        <div class="dash-pipe-stage"><div class="pipe-val" style="color:#a855f7">${statusCounts['Applied']||0}</div><div class="pipe-label">Applied</div></div>
+        <div class="dash-pipe-stage"><div class="pipe-val" style="color:#f59e0b">${statusCounts['Interview']||0}</div><div class="pipe-label">Interview</div></div>
+        <div class="dash-pipe-stage"><div class="pipe-val" style="color:#22c55e">${statusCounts['Offer']||0}</div><div class="pipe-label">Offer</div></div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:16px">
+        <div style="text-align:center;flex:1"><div style="font-size:28px;font-weight:800;color:var(--accent)">${companies.length}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Companies</div></div>
+        <div style="text-align:center;flex:1"><div style="font-size:28px;font-weight:800;color:var(--amber)">${jobs.length}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Job Listings</div></div>
+        <div style="text-align:center;flex:1"><div style="font-size:28px;font-weight:800;color:var(--red)">${priCounts.hot}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Hot Priority</div></div>
+      </div>
+    </div>
+
+    <div class="dash-card">
+      <h3>By Region</h3>
+      <div class="dash-regions">
+        ${Object.entries(regionCounts).sort((a,b)=>b[1]-a[1]).map(([r,c])=>
+          `<div class="region-chip" onclick="document.getElementById('filter-country').value='${r}';switchTab('companies')">${r}<span class="region-count">${c}</span></div>`
+        ).join('')}
+      </div>
+    </div>
+
+    <div class="dash-card">
+      <h3>Status Breakdown</h3>
+      ${Object.entries(statusCounts).sort((a,b)=>b[1]-a[1]).map(([s,c])=>{
+        const color = statusColors[Object.keys(statusLabels).find(k=>statusLabels[k]===s)||'ny']||'#64748b';
+        return `<div class="dash-bar"><span class="dash-bar-label">${s}</span><div class="dash-bar-track"><div class="dash-bar-fill" style="width:${Math.round(c/maxStatus*100)}%;background:${color}"></div></div><span class="dash-bar-count" style="color:${color}">${c}</span></div>`;
+      }).join('')}
+    </div>
+
+    <div class="dash-card">
+      <h3>Salary Intel</h3>
+      ${salaries.length ? `
+        <div style="display:flex;gap:16px;margin-bottom:16px">
+          <div style="flex:1;text-align:center"><div style="font-size:24px;font-weight:800;color:var(--accent)">$${avgSalary.toLocaleString()}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Avg Salary</div></div>
+          <div style="flex:1;text-align:center"><div style="font-size:24px;font-weight:800;color:var(--accent)">$${maxSalary.toLocaleString()}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Highest</div></div>
+        </div>
+        <h3 style="margin-top:12px">Top Paying</h3>
+        ${topJobs.map(j=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(j.company)}</span><span style="color:var(--accent);font-weight:700;font-size:12px;margin-left:8px">${extractSalary(j.notes)}</span></div>`).join('')}
+      ` : '<div style="color:var(--muted);font-size:13px">No salary data in job listings</div>'}
+    </div>
+
+    <div class="dash-card">
+      <h3>By Type</h3>
+      ${Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]).map(([t,c])=>{
+        const pct = Math.round(c/all.length*100);
+        return `<div class="dash-bar"><span class="dash-bar-label">${t}</span><div class="dash-bar-track"><div class="dash-bar-fill" style="width:${pct}%;background:var(--accent)"></div></div><span class="dash-bar-count">${c}</span></div>`;
+      }).join('')}
+    </div>
+
+    <div class="dash-card">
+      <h3>Quick Actions</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="switchTab('jobs')" style="justify-content:center">Browse ${jobs.length} Job Listings</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filter-status').value='ny';switchTab('companies')" style="justify-content:center">Review New Companies (${statusCounts['New']||0})</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('sort-by').value='salary';switchTab('jobs')" style="justify-content:center">Jobs by Salary</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV('all')" style="justify-content:center">Export All Data</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// === STRATEGY VIEW ===
+function renderStrategy() {
+  const companies = leads.filter(l=>!isJob(l));
+  const jobs = leads.filter(l=>isJob(l));
+  const hotCompanies = companies.filter(l=>l.priority==='hot');
+  const newCompanies = companies.filter(l=>l.status==='ny');
+  const hotJobs = jobs.filter(l=>l.priority==='hot');
+
+  // Best fit scoring
+  const fitKeywords = ['legion','royal guard','trilingual','french','norwegian','royal family','uhnw','hnwi','diplomatic','nato','military','multinational'];
+  function fitScore(l) {
+    const hay = [l.company,l.notes].filter(Boolean).join(' ').toLowerCase();
+    return fitKeywords.reduce((sc,kw) => sc + (hay.includes(kw)?1:0), 0);
+  }
+  const bestFit = [...companies].map(c=>({...c,fit:fitScore(c)})).filter(c=>c.fit>0).sort((a,b)=>b.fit-a.fit).slice(0,10);
+
+  const el = document.getElementById('strategy-view');
+  el.innerHTML = `
+  <div class="dash-grid">
+    <div class="dash-card" style="grid-column:1/-1">
+      <h3>Your Profile Match Score</h3>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Companies ranked by how well they match your profile: French Foreign Legion + Norwegian Royal Guard + trilingual + royal/HNWI experience</div>
+      ${bestFit.map((c,i)=>`
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="switchTab('companies');setTimeout(()=>openDetail('${c.id}'),100)">
+          <span style="font-size:20px;font-weight:800;color:var(--accent);width:30px">#${i+1}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:14px">${esc(c.company)}</div>
+            <div style="font-size:11px;color:var(--muted)">${c.location?esc(c.location):''} ${c.country?'· '+esc(c.country):''}</div>
+          </div>
+          <div style="display:flex;gap:4px">${'*'.repeat(c.fit).split('').map(()=>'<span style="color:var(--accent)">&#9733;</span>').join('')}</div>
+          <span style="font-size:11px;color:${statusColors[c.status]||'#64748b'};font-weight:600">${statusLabels[c.status]||'New'}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="dash-card">
+      <h3>This Week's Priorities</h3>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">${hotCompanies.filter(c=>c.status==='ny').length} hot companies still untouched</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${hotCompanies.filter(c=>c.status==='ny').slice(0,8).map(c=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--surface2);border-radius:6px;cursor:pointer" onclick="switchTab('companies');setTimeout(()=>openDetail('${c.id}'),100)">
+            <div style="width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0"></div>
+            <span style="font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.company)}</span>
+            <span style="font-size:10px;color:var(--muted)">${c.location?esc(c.location):''}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="dash-card">
+      <h3>Immediate Job Opportunities</h3>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">${hotJobs.filter(j=>j.status==='ny').length} hot jobs you haven't applied to</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${hotJobs.filter(j=>j.status==='ny').slice(0,8).map(j=>{
+          const salary = extractSalary(j.notes);
+          return `
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--surface2);border-radius:6px;cursor:pointer" onclick="switchTab('jobs');setTimeout(()=>openDetail('${j.id}'),100)">
+            <span style="font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(j.company)}</span>
+            ${salary?`<span style="color:var(--accent);font-weight:700;font-size:11px">${esc(salary)}</span>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="dash-card">
+      <h3>Action Plan Summary</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+        <div style="padding:12px;background:rgba(239,68,68,.08);border-radius:8px;border-left:3px solid var(--red)">
+          <strong style="color:var(--red)">Urgent:</strong> ${hotJobs.filter(j=>j.status==='ny').length} hot jobs + ${hotCompanies.filter(c=>c.status==='ny').length} hot companies need action
+        </div>
+        <div style="padding:12px;background:rgba(34,197,94,.08);border-radius:8px;border-left:3px solid var(--accent)">
+          <strong style="color:var(--accent)">Pipeline:</strong> ${Object.entries({Contacted:leads.filter(l=>l.status==='kontaktet').length,Applied:leads.filter(l=>l.status==='applied').length,Interview:leads.filter(l=>l.status==='interview').length}).filter(([_,c])=>c>0).map(([s,c])=>c+' '+s).join(', ')||'Empty - start reaching out!'}
+        </div>
+        <div style="padding:12px;background:rgba(59,130,246,.08);border-radius:8px;border-left:3px solid var(--blue)">
+          <strong style="color:var(--blue)">Focus regions:</strong> ${Object.entries(regionMap).map(([r])=>({r,c:leads.filter(l=>matchRegion(l,r)&&l.priority==='hot').length})).filter(x=>x.c>0).sort((a,b)=>b.c-a.c).slice(0,3).map(x=>x.r+' ('+x.c+')').join(', ')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// === ACTIVITY LOG ===
+const ACTIVITY_KEY = 'cp_activity_log';
+let activityLog = JSON.parse(localStorage.getItem(ACTIVITY_KEY)||'[]');
+
+function logActivity(leadId, action, detail) {
+  activityLog.unshift({leadId, action, detail, time: new Date().toISOString()});
+  if(activityLog.length>500) activityLog = activityLog.slice(0,500);
+  localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activityLog));
+}
+
+// Wrap updateStatus to log
+const _origUpdateStatus = updateStatus;
+updateStatus = function(id, status) {
+  const l = leads.find(x=>x.id===id);
+  if(l) logActivity(id, 'status_change', `${l.company}: ${statusLabels[l.status]||l.status} → ${statusLabels[status]||status}`);
+  _origUpdateStatus(id, status);
+};
+
+// Keyboard shortcuts: N = new, Esc = close, D = dashboard, ? = help
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
   if (e.key === 'n' || e.key === 'N') openAdd();
   if (e.key === 'Escape') { closeModal(); closeDetail(); }
+  if (e.key === 'd') switchTab('dashboard');
+  if (e.key === 'j') switchTab('jobs');
+  if (e.key === 'c') switchTab('companies');
+  if (e.key === 's') switchTab('strategy');
+  if (e.key === '?') alert('Keyboard shortcuts:\n\nN = New lead\n/ = Global search\nC = Companies\nJ = Jobs\nD = Dashboard\nS = Strategy\nEsc = Close panel');
 });
 
 refresh();
