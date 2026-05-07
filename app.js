@@ -213,16 +213,18 @@ document.addEventListener('keydown', e => {
 
 function switchTab(tab) {
   activeTab = tab;
+  // Safe element toggle — won't crash if element missing
+  function showEl(id, show) { const el = document.getElementById(id); if(el) el.style.display = show ? '' : 'none'; }
   ['companies','jobs','saved','guide','dashboard','strategy'].forEach(t => {
     const el = document.getElementById('tab-'+t);
     if(el) el.classList.toggle('active', tab === t);
   });
-  document.getElementById('list-view').style.display = (tab==='companies'||tab==='jobs') ? '' : 'none';
-  document.getElementById('saved-view').style.display = tab==='saved' ? '' : 'none';
-  document.getElementById('guide-view').style.display = tab==='guide' ? '' : 'none';
-  document.getElementById('dashboard-view').style.display = tab==='dashboard' ? '' : 'none';
-  document.getElementById('strategy-view').style.display = tab==='strategy' ? '' : 'none';
-  document.getElementById('stats').style.display = (tab==='guide') ? 'none' : '';
+  showEl('list-view', tab==='companies'||tab==='jobs');
+  showEl('saved-view', tab==='saved');
+  showEl('guide-view', tab==='guide');
+  showEl('dashboard-view', tab==='dashboard');
+  showEl('strategy-view', tab==='strategy');
+  showEl('stats', tab!=='guide');
   if(tab==='dashboard') renderDashboard();
   else if(tab==='strategy') renderStrategy();
   else if(tab==='saved') renderSaved();
@@ -855,5 +857,60 @@ document.addEventListener('keydown', e => {
   if (e.key === 's') switchTab('strategy');
   if (e.key === '?') alert('Keyboard shortcuts:\n\nN = New lead\n/ = Global search\nC = Companies\nJ = Jobs\nD = Dashboard\nS = Strategy\nEsc = Close panel');
 });
+
+// === OPERATOR PROFILE ===
+const PROFILE_KEY = 'cp_operator_profile';
+const CV_KEY = 'cp_operator_cv';
+
+function loadProfile() { return JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}'); }
+
+function saveProfile() {
+  const fields = ['callsign','background','clearance','languages','certifications','deployments','weapons','medical','passport','availability'];
+  const profile = {};
+  fields.forEach(f => {
+    const el = document.getElementById('prof-'+f);
+    if(el) profile[f] = el.value;
+  });
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  alert('Profile saved!');
+}
+
+function renderProfile() {
+  const profile = loadProfile();
+  const fields = ['callsign','background','clearance','languages','certifications','deployments','weapons','medical','passport','availability'];
+  fields.forEach(f => {
+    const el = document.getElementById('prof-'+f);
+    if(el && profile[f]) el.value = profile[f];
+  });
+  const cvData = localStorage.getItem(CV_KEY);
+  const cvStatus = document.getElementById('cv-status');
+  if(cvStatus) {
+    cvStatus.innerHTML = cvData ?
+      '<span style="color:var(--green)">CV: ' + JSON.parse(cvData).name + '</span> <button onclick="downloadCV()" style="margin-left:8px;padding:4px 12px;background:none;border:1px solid var(--card-border);border-radius:4px;color:var(--gold);cursor:pointer;font-size:11px;font-family:inherit">Download</button> <button onclick="removeCV()" style="margin-left:4px;padding:4px 12px;background:none;border:1px solid rgba(231,76,60,.3);border-radius:4px;color:var(--red);cursor:pointer;font-size:11px;font-family:inherit">Remove</button>' :
+      '<span style="color:var(--text-secondary)">No CV uploaded</span>';
+  }
+}
+
+function handleCVUpload(input) {
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 5*1024*1024) { alert('Max 5MB'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    localStorage.setItem(CV_KEY, JSON.stringify({name:file.name, type:file.type, data:e.target.result}));
+    renderProfile();
+  };
+  reader.readAsDataURL(file);
+}
+
+function downloadCV() {
+  const cv = JSON.parse(localStorage.getItem(CV_KEY)||'null');
+  if(!cv) return;
+  const a = document.createElement('a'); a.href = cv.data; a.download = cv.name; a.click();
+}
+
+function removeCV() {
+  if(confirm('Remove uploaded CV?')) { localStorage.removeItem(CV_KEY); renderProfile(); }
+}
 
 refresh();
