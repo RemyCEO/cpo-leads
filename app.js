@@ -32,10 +32,8 @@ async function authLogin() {
   const email = document.getElementById('auth-email').value.trim();
   const pass = document.getElementById('auth-pass').value;
   if(!email||!pass) return showAuthError('Enter email and password');
-  // Owner admin bypass — before Supabase call
-  if(email==='remy@strategioai.com' && pass==='CPOleads2026!') {
-    return onAuthSuccess({email, id:'admin', role:'admin'});
-  }
+  // Owner bypass
+  if(email==='remy@strategioai.com'&&pass==='CPOleads2026!'){return onAuthSuccess({email,id:'admin',role:'admin'});}
   try {
     const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
     if(error) return showAuthError(error.message);

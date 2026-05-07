@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CPO LEADS — Global Security Opportunities Network</title>
+<link rel="icon" type="image/png" href="cpo_leads_logo.png">
+<meta name="description" content="Elite intelligence and recruitment platform for close protection operators and security professionals worldwide.">
+<meta property="og:title" content="CPO LEADS — Global Security Opportunities Network">
+<meta property="og:description" content="Access vetted contracts, threat intel, and operator networks worldwide.">
+<meta property="og:image" content="cpo_leads_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -42,6 +47,22 @@ body {
   --red: #e74c3c;
   --amber: #f0a030;
   --blue: #3a8fd4;
+  /* Compat aliases for app.js rendering */
+  --bg: #06080d;
+  --bg2: #0a0e1a;
+  --surface: rgba(15,20,30,0.8);
+  --surface2: rgba(20,26,40,0.9);
+  --border: rgba(201,168,76,0.12);
+  --border-hover: rgba(201,168,76,0.3);
+  --fg: #e8e6e3;
+  --muted: #7a7770;
+  --dim: #52504d;
+  --accent: #C9A84C;
+  --accent2: #8B7635;
+  --purple: #8e44ad;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --gold-dim: rgba(201,168,76,0.15);
 }
 
 /* ===== ANIMATIONS ===== */
@@ -1131,27 +1152,27 @@ body {
       </div>
     </div>
 
-    <!-- Stat Cards -->
-    <div class="stats-grid">
+    <!-- Stat Cards (dynamic) -->
+    <div class="stats-grid" id="dash-stats">
       <div class="stat-card">
         <div class="stat-label">RISK LEVEL</div>
         <div class="stat-value amber">ELEVATED</div>
-        <div class="stat-sub">Global threat index updated 2h ago</div>
+        <div class="stat-sub">Global threat index</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">ACTIVE CONTRACTS</div>
-        <div class="stat-value">128</div>
-        <div class="stat-sub"><span class="up">+12</span> this week</div>
+        <div class="stat-label">ACTIVE JOBS</div>
+        <div class="stat-value" id="ds-jobs">0</div>
+        <div class="stat-sub">Open positions</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">NEW OPPORTUNITIES</div>
-        <div class="stat-value">32</div>
-        <div class="stat-sub"><span class="up">+8</span> in last 24h</div>
+        <div class="stat-label">COMPANIES</div>
+        <div class="stat-value" id="ds-companies">0</div>
+        <div class="stat-sub">Verified employers</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">VERIFIED EMPLOYERS</div>
-        <div class="stat-value">245</div>
-        <div class="stat-sub">Across 47 countries</div>
+        <div class="stat-label">SAVED</div>
+        <div class="stat-value" id="ds-saved">0</div>
+        <div class="stat-sub">Your watchlist</div>
       </div>
     </div>
 
@@ -1714,9 +1735,27 @@ renderList = function(list) {
   }
 };
 
+// Update dashboard stats from real data
+function updateDashStats() {
+  const j = document.getElementById('ds-jobs');
+  const c = document.getElementById('ds-companies');
+  const s = document.getElementById('ds-saved');
+  if(j && typeof leads!=='undefined') j.textContent = leads.filter(l=>isJob(l)).length;
+  if(c && typeof leads!=='undefined') c.textContent = leads.filter(l=>!isJob(l)).length;
+  if(s && typeof leads!=='undefined') s.textContent = leads.filter(l=>l.saved).length;
+}
+
+// Run on load + whenever page switches to dashboard
+const _origSwitchPage = switchPage;
+switchPage = function(pageId, el) {
+  _origSwitchPage(pageId, el);
+  if(pageId === 'dashboard') updateDashStats();
+  if(pageId === 'profile' && typeof renderProfile === 'function') renderProfile();
+};
+
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-  // Default to dashboard, app.js refresh() already ran
+  updateDashStats();
 });
 </script>
 
