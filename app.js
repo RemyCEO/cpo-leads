@@ -1,3 +1,16 @@
+// --- COMPANY OF THE MONTH ---
+const COMPANY_OF_MONTH = {
+  name: "Gavin de Becker & Associates",
+  short: "GDBA",
+  tagline: "The gold standard in executive protection since 1978",
+  positions: 22,
+  salaryRange: "$75K \u2013 $130K",
+  offices: "40+",
+  description: "Founded by 3x Presidential appointee. Protects the world\u2019s most prominent families. Military and law enforcement experience valued. Immediate openings across LA, NYC, DC, Miami, Seattle, and more.",
+  applyUrl: "https://gdba.com/open-positions/",
+  filterKey: "Gavin de Becker"
+};
+
 // --- SUPABASE AUTH ---
 const SB_URL = 'https://afrcpiheobzauwyftksr.supabase.co';
 const SB_KEY = 'sb_publishable_fJWFqpHxoux8-FfxuEZH0Q_UxlBylC6';
