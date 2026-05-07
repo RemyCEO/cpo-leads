@@ -912,6 +912,47 @@ body {
 }
 .dossier-row { display: flex; align-items: center; gap: 12px; }
 
+/* ===== PREMIUM JOB CARDS ===== */
+.jcard{background:var(--card-bg);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:8px;padding:16px 18px;transition:all .25s;cursor:pointer;position:relative;overflow:hidden}
+.jcard:hover{border-color:var(--card-border-hover);transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,168,76,.08)}
+.jcard.tier1{border-left:3px solid var(--gold);background:linear-gradient(135deg,rgba(201,168,76,.04),transparent)}
+.jcard.tier1:hover{box-shadow:0 8px 32px rgba(201,168,76,.15)}
+.jcard.tier2{border-left:3px solid rgba(201,168,76,.3)}
+.jcard.tier3{border-left:3px solid rgba(201,168,76,.08)}
+.jcard.stale{opacity:.65}
+.jcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+.jcard-title{font-weight:700;font-size:0.95rem;line-height:1.3;flex:1;transition:color .15s}
+.jcard:hover .jcard-title{color:var(--gold)}
+.jcard-salary{font-size:1.1rem;font-weight:900;color:var(--gold-bright);text-shadow:0 0 12px rgba(201,168,76,.3);white-space:nowrap;flex-shrink:0}
+.jcard-company{font-size:0.75rem;color:var(--text-secondary);margin-bottom:6px}
+.jcard-cred{font-size:0.65rem;color:var(--text-muted);margin-top:2px;font-style:italic}
+.jcard-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.jbadge{padding:2px 8px;border-radius:3px;font-size:0.6rem;font-weight:700;letter-spacing:0.5px;text-transform:uppercase}
+.jbadge-contract{background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.2)}
+.jbadge-fulltime{background:rgba(62,207,142,.12);color:var(--green);border:1px solid rgba(62,207,142,.2)}
+.jbadge-rotation{background:rgba(58,143,212,.12);color:var(--blue);border:1px solid rgba(58,143,212,.2)}
+.jbadge-urgent{background:rgba(231,76,60,.15);color:#e74c3c;border:1px solid rgba(231,76,60,.25);animation:pulse 2s infinite}
+.jbadge-new{background:rgba(62,207,142,.12);color:var(--green);border:1px solid rgba(62,207,142,.2)}
+.jbadge-verified{background:rgba(201,168,76,.08);color:var(--gold);border:1px solid rgba(201,168,76,.15)}
+.jbadge-exclusive{background:rgba(142,68,173,.12);color:#bb8fce;border:1px solid rgba(142,68,173,.2)}
+.jcard-stats{display:flex;gap:12px;align-items:center;font-size:0.7rem;color:var(--text-secondary);padding-top:8px;border-top:1px solid rgba(201,168,76,.06);margin-top:8px;flex-wrap:wrap}
+.jcard-stats span{display:flex;align-items:center;gap:4px}
+.jcard-actions{display:flex;gap:8px;align-items:center;margin-top:10px}
+.jcard-apply{padding:6px 16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:5px;font-size:0.75rem;font-weight:700;text-decoration:none;cursor:pointer;font-family:inherit;transition:all .2s;letter-spacing:0.5px}
+.jcard-apply:hover{box-shadow:0 0 16px rgba(201,168,76,.3);transform:scale(1.02);text-decoration:none}
+/* Progress bar */
+.jprog{display:flex;gap:2px;align-items:center}
+.jprog-dot{width:6px;height:6px;border-radius:50%;background:rgba(201,168,76,.15);transition:background .2s}
+.jprog-dot.active{background:var(--gold)}
+.jprog-dot.done{background:var(--green)}
+/* Top picks */
+.top-picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px}
+.top-pick-label{font-size:0.7rem;font-weight:700;letter-spacing:2px;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.top-pick-label::after{content:'';flex:1;height:1px;background:rgba(201,168,76,.15)}
+/* Skeleton */
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel{background:linear-gradient(90deg,rgba(15,20,30,.8) 25%,rgba(20,26,40,.9) 50%,rgba(15,20,30,.8) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+
 /* Company/job cards in new layout */
 .co-card {
   display: flex;
@@ -1700,40 +1741,150 @@ switchTab = function(tab) {
   switchPage(pageId, navEl);
 };
 
-// Jobs view: render into #leads when jobs page active
+// === COMPANY CREDIBILITY DATABASE ===
+const companyCredibility = {
+  'silent professionals':'Military veteran network \u00b7 US-based \u00b7 Gold standard sourcing',
+  'gavin de becker':'Gold standard EP \u00b7 40+ offices \u00b7 Presidential appointee founded',
+  'gardaworld':'World\'s largest private security \u00b7 132K+ staff \u00b7 25 countries',
+  'constellis':'8,700+ staff \u00b7 50 countries \u00b7 Military Friendly Gold',
+  'crisis24':'GardaWorld subsidiary \u00b7 Global EP \u00b7 170+ countries',
+  'allied universal':'800K+ staff \u00b7 Largest US security \u00b7 NYSE listed',
+  'control risks':'Est. 1975 \u00b7 Global risk consultancy \u00b7 1,000-5,000 staff',
+  'nato':'North Atlantic Treaty Org \u00b7 31 member states \u00b7 Government grade',
+  'bytedance':'Tech giant \u00b7 TikTok parent \u00b7 150K+ employees',
+  'morgan stanley':'Fortune 500 \u00b7 Global financial \u00b7 Director-level EP',
+  'amazon':'FAANG \u00b7 1.5M+ employees \u00b7 Global protective services',
+  'paypal':'Fintech leader \u00b7 30K+ staff \u00b7 Senior EP management',
+  'hp':'Fortune 500 \u00b7 Tech hardware \u00b7 Corporate EP program',
+  'brookings':'Top think tank \u00b7 Washington DC \u00b7 Director level',
+  'interpol':'194 member countries \u00b7 International law enforcement',
+  'undss':'UN security \u00b7 131 countries \u00b7 Field operations',
+};
+
+function getCredibility(company) {
+  const c = (company||'').toLowerCase();
+  for(const [key,val] of Object.entries(companyCredibility)) {
+    if(c.includes(key)) return val;
+  }
+  return '';
+}
+
+function getSalaryNum(notes) {
+  if(!notes) return 0;
+  const perDay = notes.match(/\$([\d,]+)\/day/);
+  if(perDay) return parseInt(perDay[1].replace(/,/g,''))*260;
+  const perYear = notes.match(/\$([\d,]+)[Kk]?\/yr/);
+  if(perYear) return parseInt(perYear[1].replace(/,/g,''));
+  const plain = notes.match(/\$([\d,]+)/);
+  if(plain) return parseInt(plain[1].replace(/,/g,''));
+  return 0;
+}
+
+function getTier(notes) {
+  const s = getSalaryNum(notes);
+  const perDay = notes && notes.match(/\$([\d,]+)\/day/);
+  const dayRate = perDay ? parseInt(perDay[1].replace(/,/g,'')) : 0;
+  if(dayRate >= 800 || s >= 130000) return 'tier1';
+  if(dayRate >= 400 || s >= 80000) return 'tier2';
+  return 'tier3';
+}
+
+function getContractBadges(l) {
+  const n = ((l.notes||'')+(l.company||'')).toLowerCase();
+  const badges = [];
+  if(n.includes('immediate')||n.includes('urgent')) badges.push('<span class="jbadge jbadge-urgent">URGENT</span>');
+  if(n.includes('full-time')||n.includes('full time')) badges.push('<span class="jbadge jbadge-fulltime">FULL-TIME</span>');
+  else if(n.includes('rotation')) badges.push('<span class="jbadge jbadge-rotation">ROTATION</span>');
+  else if(n.includes('contract')||n.includes('/day')) badges.push('<span class="jbadge jbadge-contract">CONTRACT</span>');
+  // Freshness
+  const age = (Date.now() - new Date(l.created_at).getTime())/(1000*60*60);
+  if(age < 24) badges.push('<span class="jbadge jbadge-new">JUST IN</span>');
+  else if(age < 72) badges.push('<span class="jbadge jbadge-new">NEW</span>');
+  // Source badges
+  if(n.includes('active listing')) badges.push('<span class="jbadge jbadge-verified">VERIFIED</span>');
+  return badges.join('');
+}
+
+function getFreshness(l) {
+  const h = (Date.now() - new Date(l.created_at).getTime())/(1000*60*60);
+  if(h < 24) return '<span style="color:var(--green)">Just posted</span>';
+  if(h < 72) return '<span style="color:var(--green)">' + Math.floor(h/24) + 'd ago</span>';
+  if(h < 336) return Math.floor(h/24) + 'd ago';
+  if(h < 720) return Math.floor(h/168) + 'w ago';
+  return '';
+}
+
+function getProgressDots(status) {
+  const stages = ['ny','kontaktet','applied','interview','offer'];
+  const idx = stages.indexOf(status);
+  return '<div class="jprog">' + stages.map((_,i) =>
+    '<div class="jprog-dot'+(i<=idx?(idx>=4?' done':' active'):'')+'"></div>'
+  ).join('') + '</div>';
+}
+
+// Jobs view: premium cards
 const _origRenderList = renderList;
 renderList = function(list) {
   const el = document.getElementById('leads');
   if (!el) return;
   if (!list.length) {
-    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary)">No results</div>';
+    const total = leads.filter(l=>isJob(l)).length;
+    el.innerHTML = '<div style="text-align:center;padding:60px 20px"><div style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:8px">No matches for this filter</div><div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.6">We track <strong style="color:var(--gold)">'+total+'</strong> active opportunities across <strong style="color:var(--gold)">7 global regions</strong>.<br>Try adjusting your filters or check back \u2014 new listings are added every 12 hours.</div></div>';
     return;
   }
   if (activeTab === 'jobs') {
-    el.innerHTML = list.map(l => {
-      const salary = extractSalary(l.notes);
-      const source = extractSource(l);
-      const url = getApplyUrl(l);
-      const cleanTitle = esc(l.company).replace(/^.*?\u2014\s*/, '');
-      const companyName = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '';
-      return `<div class="co-card" onclick="cardClick('${l.id}')">
-        <div class="co-dot" style="background:${sColors[l.status]||'#52504d'}"></div>
-        <div class="co-info">
-          <div class="co-name">${cleanTitle || esc(l.company)}</div>
-          <div class="co-meta">${companyName?companyName+' &middot; ':''}${l.location?esc(l.location):''}${l.country&&l.country!=='UK'&&l.country!=='USA'?' &middot; '+esc(l.country):''} ${source?'&middot; '+source:''}</div>
-        </div>
-        <div class="co-actions">
-          ${salary?'<span class="co-salary">'+esc(salary)+'</span>':''}
-          ${url?'<a href="'+url+'" target="_blank" class="co-link" onclick="event.stopPropagation()">Apply</a>':''}
-          <button class="co-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters()" style="opacity:${l.saved?'1':'.35'}">${l.saved?'\u2605':'\u2606'}</button>
-          <span class="co-badge co-badge-job">JOB</span>
-        </div>
-      </div>`;
-    }).join('');
+    // Top Picks (first 3 highest salary)
+    const topPicks = [...list].sort((a,b)=>getSalaryNum(b.notes)-getSalaryNum(a.notes)).slice(0,3).filter(l=>getSalaryNum(l.notes)>0);
+    let html = '';
+    if(topPicks.length && !document.getElementById('search').value) {
+      html += '<div class="top-pick-label">TOP PICKS FOR YOU</div><div class="top-picks">';
+      html += topPicks.map(l => renderJobCard(l, true)).join('');
+      html += '</div>';
+    }
+    html += list.map(l => renderJobCard(l, false)).join('');
+    el.innerHTML = html;
   } else {
     _origRenderList(list);
   }
 };
+
+function renderJobCard(l, featured) {
+  const salary = extractSalary(l.notes);
+  const source = extractSource(l);
+  const url = getApplyUrl(l);
+  const cleanTitle = esc(l.company).replace(/^.*?\u2014\s*/, '');
+  const companyName = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '';
+  const tier = getTier(l.notes);
+  const cred = getCredibility(l.company);
+  const badges = getContractBadges(l);
+  const fresh = getFreshness(l);
+  const age = (Date.now()-new Date(l.created_at).getTime())/(1000*60*60);
+  const stale = age > 720;
+
+  return `<div class="jcard ${tier}${stale?' stale':''}" onclick="cardClick('${l.id}')">
+    <div class="jcard-top">
+      <div style="flex:1;min-width:0">
+        <div class="jcard-title">${cleanTitle || esc(l.company)}</div>
+        <div class="jcard-company">${companyName||source||''}</div>
+        ${cred?'<div class="jcard-cred">'+cred+'</div>':''}
+      </div>
+      ${salary?'<div class="jcard-salary">'+esc(salary)+'</div>':''}
+    </div>
+    ${badges?'<div class="jcard-badges">'+badges+'</div>':''}
+    <div class="jcard-stats">
+      ${l.location?'<span>'+esc(l.location)+(l.country&&l.country!=='UK'&&l.country!=='USA'?' \u00b7 '+esc(l.country):'')+'</span>':''}
+      ${salary?'<span style="color:var(--gold)">'+esc(salary)+'</span>':''}
+      ${fresh?'<span>'+fresh+'</span>':''}
+      <span style="color:${sColors[l.status]||'#52504d'}">${sLabels[l.status]||'New'}</span>
+      ${getProgressDots(l.status)}
+    </div>
+    <div class="jcard-actions">
+      ${url?'<a href="'+url+'" target="_blank" class="jcard-apply" onclick="event.stopPropagation()">APPLY</a>':''}
+      <button class="co-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters()" style="opacity:${l.saved?'1':'.35'};font-size:16px">${l.saved?'\u2605':'\u2606'}</button>
+      ${source?'<span style="font-size:0.6rem;color:var(--text-muted);margin-left:auto">via '+source+'</span>':''}
+    </div>
+  </div>`;
+}
 
 // Update dashboard stats from real data
 function updateDashStats() {
