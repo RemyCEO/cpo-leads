@@ -1756,14 +1756,7 @@ function openDetailModal(id) {
     <!-- Description -->
     ${desc ? '<div style="font-size:0.88rem;color:var(--text-secondary);line-height:1.7;margin-bottom:28px">'+esc(desc)+'</div>' : '<div style="margin-bottom:28px"></div>'}
 
-    <!-- Intel Notes (collapsible) -->
-    ${l.notes ? `
-    <div style="margin-bottom:24px">
-      <button onclick="const el=document.getElementById('intel-expand');const arr=this.querySelector('span');if(el.style.display==='none'){el.style.display='block';arr.textContent='\u25B2'}else{el.style.display='none';arr.textContent='\u25BC'}" style="background:none;border:none;color:var(--text-muted);font-size:0.75rem;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;padding:0;transition:color .15s" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">
-        Show intel notes <span>\u25BC</span>
-      </button>
-      <div id="intel-expand" style="display:none;margin-top:10px;font-size:0.8rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;padding:14px;background:rgba(6,8,13,.5);border-radius:8px;border:1px solid var(--card-border)">${esc(l.notes)}</div>
-    </div>` : ''}
+    <!-- Notes already shown in description above -->
 
     <!-- Action Bar -->
     <div style="display:flex;gap:8px;padding-top:20px;border-top:1px solid var(--card-border)">
