@@ -342,10 +342,15 @@ function expandSeed(s){
   return{id:uid(),company:s.c,type:s.t,website:s.w||null,location:s.l||null,country:s.co||null,priority:s.p||'medium',notes:s.n||null,category:s.j?'job':'company',status:'ny',contact_person:s.cp||null,email:s.e||null,phone:s.ph||null,created_at:now,updated_at:now};
 }
 
-let leads = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-if (!leads || leads.length === 0) {
+const SEED_VERSION = 3;
+let leads;
+if (localStorage.getItem('cp_seed_version') !== String(SEED_VERSION)) {
   leads = SEED_DATA.map(expandSeed);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
+  localStorage.setItem('cp_seed_version', String(SEED_VERSION));
+} else {
+  leads = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  if (!leads.length) { leads = SEED_DATA.map(expandSeed); localStorage.setItem(STORAGE_KEY, JSON.stringify(leads)); }
 }
 let activeTab = 'companies';
 
