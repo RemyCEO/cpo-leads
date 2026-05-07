@@ -405,10 +405,50 @@ async function authLogout() {
   document.getElementById('auth-overlay').style.display = 'flex';
 }
 
-function onAuthSuccess(user) {
+async function onAuthSuccess(user) {
   currentUser = user;
   document.getElementById('auth-overlay').style.display = 'none';
   document.getElementById('user-email').textContent = user.email;
+  // Load fresh scraped jobs from Supabase and merge with seed data
+  await loadScrapedJobs();
+}
+
+async function loadScrapedJobs() {
+  try {
+    const {data, error} = await sb.from('job_listings').select('*').order('scraped_at', {ascending: false}).limit(200);
+    if (error || !data || !data.length) return;
+    const now = new Date().toISOString();
+    let added = 0;
+    for (const j of data) {
+      // Check if already in local leads by title+company
+      const exists = leads.some(l => l.company.toLowerCase().includes(j.company?.toLowerCase() || '???') && l.company.toLowerCase().includes(j.title?.toLowerCase().substring(0,20) || '???'));
+      if (exists) continue;
+      leads.push({
+        id: j.id || uid(),
+        company: (j.company || '') + ' \u2014 ' + (j.title || ''),
+        type: 'security',
+        website: j.source_url || '',
+        location: j.location || '',
+        country: j.country || '',
+        priority: 'medium',
+        notes: (j.salary ? j.salary + '. ' : '') + 'Source: ' + (j.source || '') + '. ACTIVE LISTING.',
+        category: 'job',
+        status: 'ny',
+        contact_person: null,
+        email: null,
+        phone: null,
+        saved: false,
+        created_at: j.scraped_at || now,
+        updated_at: j.scraped_at || now,
+      });
+      added++;
+    }
+    if (added > 0) {
+      persist();
+      refresh();
+      console.log('Loaded ' + added + ' fresh jobs from Supabase');
+    }
+  } catch(e) { console.error('Failed to load scraped jobs:', e); }
 }
 
 // Check session on load
@@ -574,7 +614,7 @@ function expandSeed(s){
   return{id:uid(),company:s.c,type:s.t,website:s.w||null,location:s.l||null,country:s.co||null,priority:s.p||'medium',notes:s.n||null,category:s.j?'job':'company',status:'ny',contact_person:s.cp||null,email:s.e||null,phone:s.ph||null,created_at:now,updated_at:now};
 }
 
-const SEED_VERSION = 4;
+const SEED_VERSION = 5;
 let leads;
 if (localStorage.getItem('cp_seed_version') !== String(SEED_VERSION)) {
   leads = SEED_DATA.map(expandSeed);
