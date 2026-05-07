@@ -1,0 +1,41 @@
+name: CPO Leads Job Scraper
+
+on:
+  schedule:
+    - cron: '0 6,18 * * *'  # Runs at 06:00 and 18:00 UTC daily
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install requests playwright
+          playwright install chromium
+
+      - name: Run scraper
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          # Override the hardcoded keys with env vars
+          sed -i "s|SUPABASE_URL = .*|SUPABASE_URL = \"$SUPABASE_URL\"|" scrape_jobs.py
+          sed -i "s|SUPABASE_KEY = .*|SUPABASE_KEY = \"$SUPABASE_KEY\"|" scrape_jobs.py
+          python scrape_jobs.py
+
+      - name: Upload log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrape-log-${{ github.run_number }}
+          path: scrape_log.txt
+          retention-days: 7
