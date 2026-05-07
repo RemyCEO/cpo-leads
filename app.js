@@ -898,9 +898,28 @@ function renderProfile() {
   const cvData = localStorage.getItem(CV_KEY);
   const cvStatus = document.getElementById('cv-status');
   if(cvStatus) {
-    cvStatus.innerHTML = cvData ?
-      '<span style="color:var(--green)">CV: ' + JSON.parse(cvData).name + '</span> <button onclick="downloadCV()" style="margin-left:8px;padding:4px 12px;background:none;border:1px solid var(--card-border);border-radius:4px;color:var(--gold);cursor:pointer;font-size:11px;font-family:inherit">Download</button> <button onclick="removeCV()" style="margin-left:4px;padding:4px 12px;background:none;border:1px solid rgba(231,76,60,.3);border-radius:4px;color:var(--red);cursor:pointer;font-size:11px;font-family:inherit">Remove</button>' :
-      '<span style="color:var(--text-secondary)">No CV uploaded</span>';
+    if(cvData) {
+      const cv = JSON.parse(cvData);
+      const isPDF = cv.type === 'application/pdf' || cv.name.toLowerCase().endsWith('.pdf');
+      cvStatus.innerHTML = `
+        <div style="padding:14px;background:rgba(62,207,142,.05);border:1px solid rgba(62,207,142,.2);border-radius:8px;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#3ecf8e" stroke-width="1.5" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:0.8rem;font-weight:600;color:#3ecf8e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cv.name}</div>
+              <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px">Uploaded successfully</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button onclick="viewCV()" style="flex:1;padding:8px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:5px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.75rem">OPEN CV</button>
+            <button onclick="downloadCV()" style="padding:8px 12px;background:none;border:1px solid var(--card-border);border-radius:5px;color:var(--gold);cursor:pointer;font-family:inherit;font-size:0.75rem">Download</button>
+            <button onclick="removeCV()" style="padding:8px 12px;background:none;border:1px solid rgba(231,76,60,.2);border-radius:5px;color:#e74c3c;cursor:pointer;font-family:inherit;font-size:0.75rem">Remove</button>
+          </div>
+          ${isPDF ? '<iframe src="'+cv.data+'" style="width:100%;height:300px;border:none;border-radius:6px;margin-top:10px;background:#fff"></iframe>' : ''}
+        </div>`;
+    } else {
+      cvStatus.innerHTML = '<span style="color:var(--text-secondary);font-size:0.75rem">No CV uploaded yet</span>';
+    }
   }
 }
 
@@ -916,6 +935,12 @@ function handleCVUpload(input) {
   reader.readAsDataURL(file);
 }
 
+function viewCV() {
+  const cv = JSON.parse(localStorage.getItem(CV_KEY)||'null');
+  if(!cv) return;
+  window.open(cv.data, '_blank');
+}
+
 function downloadCV() {
   const cv = JSON.parse(localStorage.getItem(CV_KEY)||'null');
   if(!cv) return;
@@ -924,6 +949,29 @@ function downloadCV() {
 
 function removeCV() {
   if(confirm('Remove uploaded CV?')) { localStorage.removeItem(CV_KEY); renderProfile(); }
+}
+
+// Profile photo
+const PHOTO_KEY = 'cp_operator_photo';
+
+function handlePhotoUpload(input) {
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 2*1024*1024) { alert('Max 2MB'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    localStorage.setItem(PHOTO_KEY, e.target.result);
+    updateProfilePhotos();
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateProfilePhotos() {
+  const photo = localStorage.getItem(PHOTO_KEY);
+  document.querySelectorAll('.op-avatar').forEach(el => {
+    if(photo) { el.src = photo; }
+    else { el.src = 'operator_avatar.png'; }
+  });
 }
 
 refresh();

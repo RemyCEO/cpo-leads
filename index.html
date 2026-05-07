@@ -1140,7 +1140,7 @@ body {
   <div class="sidebar-footer" style="cursor:pointer" onclick="switchPage('profile',document.querySelector('.nav-item[data-page=profile]'))">
     <div style="display:flex;align-items:center;gap:10px">
       <div style="width:36px;height:36px;border-radius:6px;overflow:hidden;border:1px solid rgba(201,168,76,.2);flex-shrink:0">
-        <img src="operator_avatar.png" alt="" style="width:100%;height:100%;object-fit:cover">
+        <img src="operator_avatar.png" alt="" class="op-avatar" style="width:100%;height:100%;object-fit:cover">
       </div>
       <div style="flex:1;min-width:0">
         <div class="operator-label" id="sidebar-name" style="font-size:0.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">OPERATOR</div>
@@ -1482,6 +1482,19 @@ body {
           <span style="font-size:0.7rem;display:flex;align-items:center;gap:6px;color:var(--green)"><span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block"></span> ONLINE</span>
         </div>
         <div style="padding:24px 20px;display:flex;flex-direction:column;gap:16px">
+          <!-- Photo -->
+          <div style="display:flex;align-items:center;gap:16px">
+            <label style="cursor:pointer;position:relative;flex-shrink:0" title="Click to upload photo">
+              <input type="file" accept="image/*" onchange="handlePhotoUpload(this)" style="display:none">
+              <div style="width:64px;height:64px;border-radius:10px;overflow:hidden;border:2px solid rgba(201,168,76,.2);transition:border-color .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='rgba(201,168,76,.2)'">
+                <img src="operator_avatar.png" alt="" class="op-avatar" style="width:100%;height:100%;object-fit:cover">
+              </div>
+              <div style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#06080d" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+              </div>
+            </label>
+            <div style="font-size:0.7rem;color:var(--text-muted);line-height:1.4">Click photo to upload<br>your own picture</div>
+          </div>
           <!-- Name -->
           <div>
             <label style="font-size:0.6rem;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600;display:block;margin-bottom:4px">Full Name</label>
@@ -1969,6 +1982,7 @@ switchPage = function(pageId, el) {
 // Init
 document.addEventListener('DOMContentLoaded', () => {
   updateDashStats();
+  if(typeof updateProfilePhotos==='function') updateProfilePhotos();
 });
 </script>
 
