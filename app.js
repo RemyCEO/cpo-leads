@@ -885,7 +885,7 @@ function saveProfile() {
     if(el) profile[f] = el.value;
   });
   localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-  alert('Profile saved!');
+  showToast('Profile saved');
 }
 
 function renderProfile() {
@@ -972,6 +972,25 @@ function updateProfilePhotos() {
     if(photo) { el.src = photo; }
     else { el.src = 'operator_avatar.png'; }
   });
+}
+
+// Toast notification
+function showToast(msg) {
+  let t = document.getElementById('app-toast');
+  if(!t) {
+    t = document.createElement('div');
+    t.id = 'app-toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);padding:12px 28px;background:rgba(15,20,30,.95);backdrop-filter:blur(12px);border:1px solid rgba(201,168,76,.3);border-radius:8px;color:#C9A84C;font-size:0.85rem;font-weight:600;font-family:Inter,system-ui,sans-serif;letter-spacing:0.5px;z-index:9999;opacity:0;transition:all .3s ease;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.4)';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(20px)';
+  }, 2500);
 }
 
 refresh();
