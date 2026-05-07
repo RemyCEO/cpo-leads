@@ -1,0 +1,168 @@
+{
+  "name": "CPO Leads - Daily Job Scraper",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{"field": "hours", "hoursInterval": 12}]
+        }
+      },
+      "id": "trigger",
+      "name": "Every 12 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=%22executive+protection%22+OR+%22close+protection%22+OR+%22bodyguard%22&location=&sortBy=DD&start=0",
+        "options": {
+          "response": {"response": {"fullResponse": true}},
+          "timeout": 30000
+        }
+      },
+      "id": "linkedin",
+      "name": "LinkedIn Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.indeed.com/jobs?q=%22executive+protection%22+OR+%22close+protection%22+OR+%22bodyguard%22&sort=date&fromage=1",
+        "options": {
+          "response": {"response": {"fullResponse": true}},
+          "timeout": 30000
+        }
+      },
+      "id": "indeed",
+      "name": "Indeed Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://silentprofessionals.org/jobs/?search_keywords=executive+protection&search_location=&search_categories%5B%5D=",
+        "options": {
+          "response": {"response": {"fullResponse": true}},
+          "timeout": 30000
+        }
+      },
+      "id": "silentpro",
+      "name": "Silent Professionals",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse LinkedIn guest API response\nconst html = $input.first().json.body || '';\nconst jobs = [];\nconst regex = /<a[^>]*class=\"[^\"]*base-card__full-link[^\"]*\"[^>]*href=\"([^\"]+)\"[^>]*>[\\s\\S]*?<span[^>]*class=\"[^\"]*sr-only[^\"]*\">([^<]+)<\\/span>[\\s\\S]*?<h4[^>]*class=\"[^\"]*base-search-card__subtitle[^\"]*\"[^>]*>\\s*<a[^>]*>([^<]+)<\\/a>[\\s\\S]*?<span[^>]*class=\"[^\"]*job-search-card__location[^\"]*\">([^<]+)<\\/span>/gi;\nlet m;\nwhile ((m = regex.exec(html)) !== null) {\n  const url = m[1].split('?')[0];\n  const title = m[2].trim();\n  const company = m[3].trim();\n  const location = m[4].trim();\n  if (title && company) {\n    jobs.push({title, company, location, source: 'LinkedIn', source_url: url, country: '', salary: '', notes: 'Scraped from LinkedIn'});\n  }\n}\nreturn jobs.map(j => ({json: j}));"
+      },
+      "id": "parse_linkedin",
+      "name": "Parse LinkedIn",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Indeed HTML response\nconst html = $input.first().json.body || '';\nconst jobs = [];\nconst titleRegex = /<h2[^>]*class=\"[^\"]*jobTitle[^\"]*\"[^>]*>[\\s\\S]*?<span[^>]*>([^<]+)<\\/span>/gi;\nconst companyRegex = /<span[^>]*data-testid=\"company-name\"[^>]*>([^<]+)<\\/span>/gi;\nconst locationRegex = /<div[^>]*data-testid=\"text-location\"[^>]*>([^<]+)<\\/div>/gi;\nconst titles = [...html.matchAll(/<span[^>]*id=\"jobTitle-[^\"]*\"[^>]*>([^<]+)<\\/span>/gi)].map(m => m[1].trim());\nconst companies = [...html.matchAll(/<span[^>]*data-testid=\"company-name\"[^>]*>([^<]+)<\\/span>/gi)].map(m => m[1].trim());\nconst locations = [...html.matchAll(/<div[^>]*data-testid=\"text-location\"[^>]*>([^<]+)<\\/div>/gi)].map(m => m[1].trim());\nfor (let i = 0; i < titles.length; i++) {\n  jobs.push({title: titles[i], company: companies[i]||'', location: locations[i]||'', source: 'Indeed', source_url: 'https://www.indeed.com', country: '', salary: '', notes: 'Scraped from Indeed'});\n}\nreturn jobs.map(j => ({json: j}));"
+      },
+      "id": "parse_indeed",
+      "name": "Parse Indeed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Silent Professionals HTML\nconst html = $input.first().json.body || '';\nconst jobs = [];\nconst regex = /<a[^>]*href=\"(https:\\/\\/silentprofessionals\\.org\\/jobs\\/[^\"]+)\"[^>]*class=\"[^\"]*job_listing-clickbox[^\"]*\"[^>]*>[\\s\\S]*?<\\/a>|<h3[^>]*>([^<]+)<\\/h3>/gi;\n// Simpler approach: find job titles and links\nconst titleMatches = [...html.matchAll(/<a[^>]*href=\"(https:\\/\\/silentprofessionals\\.org\\/jobs\\/[^\"]+)\"[^>]*>\\s*([^<]+)\\s*<\\/a>/gi)];\nfor (const m of titleMatches) {\n  const url = m[1];\n  const title = m[2].trim();\n  if (title && title.length > 5 && !title.includes('Silent') && !title.includes('Home')) {\n    jobs.push({title, company: 'Silent Professionals', location: '', source: 'Silent Professionals', source_url: url, country: '', salary: '', notes: 'Scraped from Silent Professionals'});\n  }\n}\nreturn jobs.slice(0, 20).map(j => ({json: j}));"
+      },
+      "id": "parse_silentpro",
+      "name": "Parse Silent Pro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 600]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {},
+        "options": {}
+      },
+      "id": "merge",
+      "name": "Merge All Jobs",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [880, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Deduplicate and clean\nconst seen = new Set();\nconst clean = [];\nfor (const item of $input.all()) {\n  const j = item.json;\n  const key = (j.title + '|' + j.company + '|' + j.source).toLowerCase();\n  if (!seen.has(key) && j.title) {\n    seen.add(key);\n    // Determine country from location\n    let country = '';\n    const loc = (j.location || '').toLowerCase();\n    if (loc.includes(', uk') || loc.includes('london') || loc.includes('surrey')) country = 'UK';\n    else if (loc.includes('dubai') || loc.includes('uae') || loc.includes('abu dhabi')) country = 'UAE';\n    else if (/\\b[A-Z]{2}\\b/.test(j.location) || loc.includes('usa') || loc.includes('united states')) country = 'USA';\n    clean.push({json: {...j, country: country || j.country || ''}});\n  }\n}\nreturn clean;"
+      },
+      "id": "dedup",
+      "name": "Deduplicate & Clean",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://afrcpiheobzauwyftksr.supabase.co/rest/v1/job_listings",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "apikey", "value": "={{$credentials.httpHeaderAuth.value}}"},
+            {"name": "Prefer", "value": "resolution=ignore-duplicates,return=minimal"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($input.all().map(i => i.json)) }}",
+        "options": {}
+      },
+      "id": "supabase_insert",
+      "name": "Insert to Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1320, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {"id": "msg", "name": "message", "value": "=CPO Leads scraper completed. Found {{ $input.all().length }} new jobs.", "type": "string"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "summary",
+      "name": "Summary",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1540, 400]
+    }
+  ],
+  "connections": {
+    "Every 12 Hours": {"main": [[{"node": "LinkedIn Jobs", "type": "main", "index": 0}, {"node": "Indeed Jobs", "type": "main", "index": 0}, {"node": "Silent Professionals", "type": "main", "index": 0}]]},
+    "LinkedIn Jobs": {"main": [[{"node": "Parse LinkedIn", "type": "main", "index": 0}]]},
+    "Indeed Jobs": {"main": [[{"node": "Parse Indeed", "type": "main", "index": 0}]]},
+    "Silent Professionals": {"main": [[{"node": "Parse Silent Pro", "type": "main", "index": 0}]]},
+    "Parse LinkedIn": {"main": [[{"node": "Merge All Jobs", "type": "main", "index": 0}]]},
+    "Parse Indeed": {"main": [[{"node": "Merge All Jobs", "type": "main", "index": 1}]]},
+    "Parse Silent Pro": {"main": [[{"node": "Merge All Jobs", "type": "main", "index": 0}]]},
+    "Merge All Jobs": {"main": [[{"node": "Deduplicate & Clean", "type": "main", "index": 0}]]},
+    "Deduplicate & Clean": {"main": [[{"node": "Insert to Supabase", "type": "main", "index": 0}]]},
+    "Insert to Supabase": {"main": [[{"node": "Summary", "type": "main", "index": 0}]]}
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
