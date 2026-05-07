@@ -1206,106 +1206,49 @@ body {
         </div>
       </div>
 
-      <!-- World Map -->
-      <div class="card map-container">
+      <!-- Active Regions Mini Widget -->
+      <div class="card" style="position:relative;overflow:hidden">
         <div class="card-header">
-          <span class="card-title">GLOBAL OPERATIONS MAP</span>
+          <span class="card-title">ACTIVE REGIONS</span>
           <span class="card-badge live">LIVE</span>
         </div>
-        <!-- SVG Dot Matrix World Map -->
-        <svg class="world-map" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="mapGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="rgba(201,168,76,0.05)"/>
-              <stop offset="100%" stop-color="transparent"/>
-            </radialGradient>
-          </defs>
-          <rect fill="url(#mapGlow)" width="800" height="400"/>
-          <!-- North America -->
-          <g fill="rgba(201,168,76,0.25)">
-            <circle cx="150" cy="100" r="2"/><circle cx="160" cy="100" r="2"/><circle cx="170" cy="100" r="2"/><circle cx="180" cy="100" r="2"/>
-            <circle cx="140" cy="110" r="2"/><circle cx="150" cy="110" r="2"/><circle cx="160" cy="110" r="2"/><circle cx="170" cy="110" r="2"/><circle cx="180" cy="110" r="2"/><circle cx="190" cy="110" r="2"/>
-            <circle cx="130" cy="120" r="2"/><circle cx="140" cy="120" r="2"/><circle cx="150" cy="120" r="2"/><circle cx="160" cy="120" r="2"/><circle cx="170" cy="120" r="2"/><circle cx="180" cy="120" r="2"/><circle cx="190" cy="120" r="2"/><circle cx="200" cy="120" r="2"/>
-            <circle cx="130" cy="130" r="2"/><circle cx="140" cy="130" r="2"/><circle cx="150" cy="130" r="2"/><circle cx="160" cy="130" r="2"/><circle cx="170" cy="130" r="2"/><circle cx="180" cy="130" r="2"/><circle cx="190" cy="130" r="2"/>
-            <circle cx="140" cy="140" r="2"/><circle cx="150" cy="140" r="2"/><circle cx="160" cy="140" r="2"/><circle cx="170" cy="140" r="2"/><circle cx="180" cy="140" r="2"/>
-            <circle cx="150" cy="150" r="2"/><circle cx="160" cy="150" r="2"/><circle cx="170" cy="150" r="2"/><circle cx="180" cy="150" r="2"/>
-            <circle cx="160" cy="160" r="2"/><circle cx="170" cy="160" r="2"/><circle cx="180" cy="160" r="2"/>
-          </g>
-          <!-- South America -->
-          <g fill="rgba(201,168,76,0.2)">
-            <circle cx="210" cy="210" r="2"/><circle cx="220" cy="210" r="2"/><circle cx="230" cy="210" r="2"/>
-            <circle cx="200" cy="220" r="2"/><circle cx="210" cy="220" r="2"/><circle cx="220" cy="220" r="2"/><circle cx="230" cy="220" r="2"/><circle cx="240" cy="220" r="2"/>
-            <circle cx="200" cy="230" r="2"/><circle cx="210" cy="230" r="2"/><circle cx="220" cy="230" r="2"/><circle cx="230" cy="230" r="2"/><circle cx="240" cy="230" r="2"/><circle cx="250" cy="230" r="2"/>
-            <circle cx="210" cy="240" r="2"/><circle cx="220" cy="240" r="2"/><circle cx="230" cy="240" r="2"/><circle cx="240" cy="240" r="2"/><circle cx="250" cy="240" r="2"/>
-            <circle cx="210" cy="250" r="2"/><circle cx="220" cy="250" r="2"/><circle cx="230" cy="250" r="2"/><circle cx="240" cy="250" r="2"/>
-            <circle cx="220" cy="260" r="2"/><circle cx="230" cy="260" r="2"/><circle cx="240" cy="260" r="2"/>
-            <circle cx="220" cy="270" r="2"/><circle cx="230" cy="270" r="2"/>
-            <circle cx="220" cy="280" r="2"/><circle cx="230" cy="280" r="2"/>
-            <circle cx="230" cy="290" r="2"/>
-          </g>
-          <!-- Europe -->
-          <g fill="rgba(201,168,76,0.3)">
-            <circle cx="370" cy="90" r="2"/><circle cx="380" cy="90" r="2"/><circle cx="390" cy="90" r="2"/>
-            <circle cx="360" cy="100" r="2"/><circle cx="370" cy="100" r="2"/><circle cx="380" cy="100" r="2"/><circle cx="390" cy="100" r="2"/><circle cx="400" cy="100" r="2"/>
-            <circle cx="350" cy="110" r="2"/><circle cx="360" cy="110" r="2"/><circle cx="370" cy="110" r="2"/><circle cx="380" cy="110" r="2"/><circle cx="390" cy="110" r="2"/><circle cx="400" cy="110" r="2"/><circle cx="410" cy="110" r="2"/>
-            <circle cx="350" cy="120" r="2"/><circle cx="360" cy="120" r="2"/><circle cx="370" cy="120" r="2"/><circle cx="380" cy="120" r="2"/><circle cx="390" cy="120" r="2"/><circle cx="400" cy="120" r="2"/><circle cx="410" cy="120" r="2"/><circle cx="420" cy="120" r="2"/>
-            <circle cx="360" cy="130" r="2"/><circle cx="370" cy="130" r="2"/><circle cx="380" cy="130" r="2"/><circle cx="390" cy="130" r="2"/><circle cx="400" cy="130" r="2"/><circle cx="410" cy="130" r="2"/>
-            <circle cx="370" cy="140" r="2"/><circle cx="380" cy="140" r="2"/><circle cx="390" cy="140" r="2"/><circle cx="400" cy="140" r="2"/>
-          </g>
-          <!-- Africa -->
-          <g fill="rgba(201,168,76,0.2)">
-            <circle cx="380" cy="170" r="2"/><circle cx="390" cy="170" r="2"/><circle cx="400" cy="170" r="2"/><circle cx="410" cy="170" r="2"/>
-            <circle cx="370" cy="180" r="2"/><circle cx="380" cy="180" r="2"/><circle cx="390" cy="180" r="2"/><circle cx="400" cy="180" r="2"/><circle cx="410" cy="180" r="2"/><circle cx="420" cy="180" r="2"/>
-            <circle cx="370" cy="190" r="2"/><circle cx="380" cy="190" r="2"/><circle cx="390" cy="190" r="2"/><circle cx="400" cy="190" r="2"/><circle cx="410" cy="190" r="2"/><circle cx="420" cy="190" r="2"/><circle cx="430" cy="190" r="2"/>
-            <circle cx="370" cy="200" r="2"/><circle cx="380" cy="200" r="2"/><circle cx="390" cy="200" r="2"/><circle cx="400" cy="200" r="2"/><circle cx="410" cy="200" r="2"/><circle cx="420" cy="200" r="2"/><circle cx="430" cy="200" r="2"/>
-            <circle cx="380" cy="210" r="2"/><circle cx="390" cy="210" r="2"/><circle cx="400" cy="210" r="2"/><circle cx="410" cy="210" r="2"/><circle cx="420" cy="210" r="2"/>
-            <circle cx="380" cy="220" r="2"/><circle cx="390" cy="220" r="2"/><circle cx="400" cy="220" r="2"/><circle cx="410" cy="220" r="2"/>
-            <circle cx="390" cy="230" r="2"/><circle cx="400" cy="230" r="2"/><circle cx="410" cy="230" r="2"/>
-            <circle cx="390" cy="240" r="2"/><circle cx="400" cy="240" r="2"/>
-            <circle cx="400" cy="250" r="2"/>
-          </g>
-          <!-- Middle East -->
-          <g fill="rgba(201,168,76,0.35)">
-            <circle cx="440" cy="140" r="2"/><circle cx="450" cy="140" r="2"/><circle cx="460" cy="140" r="2"/><circle cx="470" cy="140" r="2"/>
-            <circle cx="440" cy="150" r="2"/><circle cx="450" cy="150" r="2"/><circle cx="460" cy="150" r="2"/><circle cx="470" cy="150" r="2"/><circle cx="480" cy="150" r="2"/>
-            <circle cx="450" cy="160" r="2"/><circle cx="460" cy="160" r="2"/><circle cx="470" cy="160" r="2"/><circle cx="480" cy="160" r="2"/>
-            <circle cx="460" cy="170" r="2"/><circle cx="470" cy="170" r="2"/>
-          </g>
-          <!-- Asia -->
-          <g fill="rgba(201,168,76,0.2)">
-            <circle cx="500" cy="100" r="2"/><circle cx="510" cy="100" r="2"/><circle cx="520" cy="100" r="2"/><circle cx="530" cy="100" r="2"/><circle cx="540" cy="100" r="2"/><circle cx="550" cy="100" r="2"/><circle cx="560" cy="100" r="2"/>
-            <circle cx="490" cy="110" r="2"/><circle cx="500" cy="110" r="2"/><circle cx="510" cy="110" r="2"/><circle cx="520" cy="110" r="2"/><circle cx="530" cy="110" r="2"/><circle cx="540" cy="110" r="2"/><circle cx="550" cy="110" r="2"/><circle cx="560" cy="110" r="2"/><circle cx="570" cy="110" r="2"/><circle cx="580" cy="110" r="2"/>
-            <circle cx="490" cy="120" r="2"/><circle cx="500" cy="120" r="2"/><circle cx="510" cy="120" r="2"/><circle cx="520" cy="120" r="2"/><circle cx="530" cy="120" r="2"/><circle cx="540" cy="120" r="2"/><circle cx="550" cy="120" r="2"/><circle cx="560" cy="120" r="2"/><circle cx="570" cy="120" r="2"/><circle cx="580" cy="120" r="2"/><circle cx="590" cy="120" r="2"/><circle cx="600" cy="120" r="2"/>
-            <circle cx="500" cy="130" r="2"/><circle cx="510" cy="130" r="2"/><circle cx="520" cy="130" r="2"/><circle cx="530" cy="130" r="2"/><circle cx="540" cy="130" r="2"/><circle cx="550" cy="130" r="2"/><circle cx="560" cy="130" r="2"/><circle cx="570" cy="130" r="2"/><circle cx="580" cy="130" r="2"/><circle cx="590" cy="130" r="2"/><circle cx="600" cy="130" r="2"/>
-            <circle cx="510" cy="140" r="2"/><circle cx="520" cy="140" r="2"/><circle cx="530" cy="140" r="2"/><circle cx="540" cy="140" r="2"/><circle cx="550" cy="140" r="2"/><circle cx="560" cy="140" r="2"/><circle cx="570" cy="140" r="2"/><circle cx="580" cy="140" r="2"/><circle cx="590" cy="140" r="2"/>
-            <circle cx="530" cy="150" r="2"/><circle cx="540" cy="150" r="2"/><circle cx="550" cy="150" r="2"/><circle cx="560" cy="150" r="2"/><circle cx="570" cy="150" r="2"/>
-            <circle cx="540" cy="160" r="2"/><circle cx="550" cy="160" r="2"/><circle cx="560" cy="160" r="2"/>
-            <circle cx="550" cy="170" r="2"/><circle cx="560" cy="170" r="2"/>
-          </g>
-          <!-- Australia -->
-          <g fill="rgba(201,168,76,0.15)">
-            <circle cx="590" cy="250" r="2"/><circle cx="600" cy="250" r="2"/><circle cx="610" cy="250" r="2"/><circle cx="620" cy="250" r="2"/>
-            <circle cx="580" cy="260" r="2"/><circle cx="590" cy="260" r="2"/><circle cx="600" cy="260" r="2"/><circle cx="610" cy="260" r="2"/><circle cx="620" cy="260" r="2"/><circle cx="630" cy="260" r="2"/>
-            <circle cx="580" cy="270" r="2"/><circle cx="590" cy="270" r="2"/><circle cx="600" cy="270" r="2"/><circle cx="610" cy="270" r="2"/><circle cx="620" cy="270" r="2"/><circle cx="630" cy="270" r="2"/>
-            <circle cx="590" cy="280" r="2"/><circle cx="600" cy="280" r="2"/><circle cx="610" cy="280" r="2"/><circle cx="620" cy="280" r="2"/>
-            <circle cx="600" cy="290" r="2"/><circle cx="610" cy="290" r="2"/>
-          </g>
-        </svg>
-        <!-- Radar Overlay -->
-        <div class="map-radar">
-          <div class="radar-ring r1"></div>
-          <div class="radar-ring r2"></div>
-          <div class="radar-ring r3"></div>
-          <div class="radar-sweep"></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 2s infinite"></div>
+            <span style="font-size:0.8rem;flex:1">Middle East</span>
+            <span style="font-size:0.7rem;color:var(--red);font-weight:600">HIGH RISK</span>
+            <span style="font-size:0.7rem;color:var(--text-muted)">14 contracts</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite .3s"></div>
+            <span style="font-size:0.8rem;flex:1">West Africa</span>
+            <span style="font-size:0.7rem;color:var(--amber);font-weight:600">ELEVATED</span>
+            <span style="font-size:0.7rem;color:var(--text-muted)">8 contracts</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite .6s"></div>
+            <span style="font-size:0.8rem;flex:1">United Kingdom</span>
+            <span style="font-size:0.7rem;color:var(--green);font-weight:600">STABLE</span>
+            <span style="font-size:0.7rem;color:var(--text-muted)">22 contracts</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);animation:pulse 2s infinite .9s"></div>
+            <span style="font-size:0.8rem;flex:1">USA / Americas</span>
+            <span style="font-size:0.7rem;color:var(--green);font-weight:600">STABLE</span>
+            <span style="font-size:0.7rem;color:var(--text-muted)">31 contracts</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 2s infinite 1.2s"></div>
+            <span style="font-size:0.8rem;flex:1">Ukraine / Eastern Europe</span>
+            <span style="font-size:0.7rem;color:var(--red);font-weight:600">HIGH RISK</span>
+            <span style="font-size:0.7rem;color:var(--text-muted)">5 contracts</span>
+          </div>
         </div>
-        <!-- Pulsing Dots -->
-        <div class="map-dot d1"></div>
-        <div class="map-dot d2"></div>
-        <div class="map-dot d3 red"></div>
-        <div class="map-dot d4"></div>
-        <div class="map-dot d5"></div>
-        <div class="map-dot d6"></div>
-        <div class="map-dot d7 red"></div>
+        <!-- Subtle radar animation in corner -->
+        <div style="position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;border:1px solid rgba(201,168,76,.15);overflow:hidden">
+          <div style="position:absolute;top:50%;left:50%;width:50%;height:1px;background:linear-gradient(90deg,var(--gold),transparent);transform-origin:left;animation:radarSweep 4s linear infinite"></div>
+          <div style="position:absolute;top:50%;left:50%;width:2px;height:2px;border-radius:50%;background:var(--gold);transform:translate(-50%,-50%)"></div>
+        </div>
       </div>
 
       <!-- Recommended -->
