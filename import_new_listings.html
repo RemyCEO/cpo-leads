@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Import New Listings — CPO Leads</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#09090b;--surface:#18181b;--surface2:#27272a;--border:#3f3f46;--fg:#fafafa;--muted:#a1a1aa;--accent:#22c55e;--accent2:#16a34a;--red:#ef4444;--amber:#f59e0b}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--fg);min-height:100vh;padding:20px}
+h1{font-size:22px;font-weight:700;margin-bottom:4px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:24px}
+.toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#000}.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{background:var(--surface2);color:var(--fg)}
+.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(239,68,68,.3)}.btn-danger:hover{background:rgba(239,68,68,.1)}
+.counter{font-size:13px;color:var(--muted);margin-left:auto}
+.listing{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;transition:all .15s}
+.listing:hover{border-color:var(--accent)}
+.listing.selected{border-color:var(--accent);background:rgba(34,197,94,.05)}
+.listing input[type=checkbox]{margin-top:4px;accent-color:var(--accent);width:16px;height:16px;cursor:pointer}
+.listing-info{flex:1;min-width:0}
+.listing-title{font-weight:600;font-size:14px}
+.listing-meta{font-size:12px;color:var(--muted);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap}
+.listing-meta span{display:inline-flex;align-items:center;gap:4px}
+.source-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:2px 8px;border-radius:4px;background:var(--surface2);color:var(--muted)}
+.salary{color:var(--accent);font-weight:700;font-size:13px;white-space:nowrap}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:.5}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:12px 24px;border-radius:10px;font-weight:600;font-size:14px;display:none;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.toast.show{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--muted);margin-bottom:24px;cursor:pointer;transition:all .2s}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:rgba(34,197,94,.03)}
+</style>
+</head>
+<body>
+
+<h1>Import New Listings</h1>
+<p class="subtitle">Load new_listings.json from the daily scraper, review, and import selected listings to CPO Leads.</p>
+
+<div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+  Drop <strong>new_listings.json</strong> here or click to browse
+  <input type="file" id="file-input" accept=".json" style="display:none" onchange="loadFile(this.files[0])">
+</div>
+
+<div class="toolbar" id="toolbar" style="display:none">
+  <button class="btn btn-ghost" onclick="selectAll()">Select All</button>
+  <button class="btn btn-ghost" onclick="selectNone()">Deselect All</button>
+  <button class="btn btn-ghost" onclick="selectNew()">Select New Only</button>
+  <button class="btn btn-primary" onclick="importSelected()" id="import-btn">Import Selected (0)</button>
+  <span class="counter" id="counter"></span>
+</div>
+
+<div id="listings"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CPO_STORAGE_KEY = 'cp_leads_data';
+let newListings = [];
+
+// Drag and drop
+const dropZone = document.getElementById('drop-zone');
+['dragenter','dragover'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('dragover'); }));
+['dragleave','drop'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.remove('dragover'); }));
+dropZone.addEventListener('drop', ev => { if(ev.dataTransfer.files.length) loadFile(ev.dataTransfer.files[0]); });
+
+function loadFile(file) {
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      newListings = JSON.parse(e.target.result);
+      renderListings();
+      document.getElementById('toolbar').style.display = 'flex';
+      dropZone.style.display = 'none';
+    } catch(err) {
+      showToast('Invalid JSON file');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Also try to auto-load from same directory
+fetch('new_listings.json').then(r => r.json()).then(data => {
+  if(data && data.length) {
+    newListings = data;
+    renderListings();
+    document.getElementById('toolbar').style.display = 'flex';
+    dropZone.innerHTML = `<strong>Auto-loaded ${data.length} listings</strong> from new_listings.json`;
+  }
+}).catch(() => {});
+
+function getExistingUrls() {
+  const existing = JSON.parse(localStorage.getItem(CPO_STORAGE_KEY) || '[]');
+  return new Set(existing.map(l => l.website).filter(Boolean));
+}
+
+function renderListings() {
+  const el = document.getElementById('listings');
+  const existingUrls = getExistingUrls();
+
+  if(!newListings.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">&#x1F4CB;</div><div>No listings to import</div></div>';
+    return;
+  }
+
+  document.getElementById('counter').textContent = `${newListings.length} listings loaded`;
+
+  el.innerHTML = newListings.map((l, i) => {
+    const isDuplicate = existingUrls.has(l.url);
+    return `
+    <div class="listing ${isDuplicate ? '' : 'selected'}" id="listing-${i}" onclick="toggleListing(${i})">
+      <input type="checkbox" ${isDuplicate ? '' : 'checked'} id="cb-${i}" onclick="event.stopPropagation();updateCount()">
+      <div class="listing-info">
+        <div class="listing-title">${esc(l.title)}${isDuplicate ? ' <span style="color:var(--amber);font-size:11px">(DUPLICATE)</span>' : ''}</div>
+        <div class="listing-meta">
+          ${l.company ? `<span>${esc(l.company)}</span>` : ''}
+          ${l.location ? `<span>&#x1F4CD; ${esc(l.location)}</span>` : ''}
+          ${l.date_found ? `<span>${l.date_found}</span>` : ''}
+          <span class="source-badge">${esc(l.source || 'Unknown')}</span>
+        </div>
+      </div>
+      ${l.salary ? `<div class="salary">${esc(l.salary)}</div>` : ''}
+    </div>`;
+  }).join('');
+  updateCount();
+}
+
+function toggleListing(i) {
+  const cb = document.getElementById('cb-'+i);
+  cb.checked = !cb.checked;
+  document.getElementById('listing-'+i).classList.toggle('selected', cb.checked);
+  updateCount();
+}
+
+function selectAll() { newListings.forEach((_,i) => { document.getElementById('cb-'+i).checked = true; document.getElementById('listing-'+i).classList.add('selected'); }); updateCount(); }
+function selectNone() { newListings.forEach((_,i) => { document.getElementById('cb-'+i).checked = false; document.getElementById('listing-'+i).classList.remove('selected'); }); updateCount(); }
+function selectNew() {
+  const existingUrls = getExistingUrls();
+  newListings.forEach((l,i) => {
+    const isNew = !existingUrls.has(l.url);
+    document.getElementById('cb-'+i).checked = isNew;
+    document.getElementById('listing-'+i).classList.toggle('selected', isNew);
+  });
+  updateCount();
+}
+
+function updateCount() {
+  const count = newListings.filter((_,i) => document.getElementById('cb-'+i).checked).length;
+  document.getElementById('import-btn').textContent = `Import Selected (${count})`;
+}
+
+function importSelected() {
+  const selected = newListings.filter((_,i) => document.getElementById('cb-'+i).checked);
+  if(!selected.length) { showToast('No listings selected'); return; }
+
+  const existing = JSON.parse(localStorage.getItem(CPO_STORAGE_KEY) || '[]');
+  const existingUrls = new Set(existing.map(l => l.website).filter(Boolean));
+  let imported = 0;
+
+  selected.forEach(l => {
+    if(existingUrls.has(l.url)) return;
+    const uid = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+    existing.unshift({
+      id: uid,
+      company: l.title || l.company,
+      type: 'security',
+      category: 'job',
+      website: l.url || null,
+      location: l.location || null,
+      country: guessCountry(l.location),
+      priority: 'medium',
+      notes: [l.salary ? `Salary: ${l.salary}` : '', `Source: ${l.source}`, `Found: ${l.date_found}`].filter(Boolean).join('. ') + '. ACTIVE LISTING.',
+      status: 'ny',
+      contact_person: null,
+      email: null,
+      phone: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+    imported++;
+  });
+
+  localStorage.setItem(CPO_STORAGE_KEY, JSON.stringify(existing));
+  showToast(`Imported ${imported} listings to CPO Leads!`);
+}
+
+function guessCountry(location) {
+  if(!location) return 'International';
+  const l = location.toLowerCase();
+  if(l.includes('uk') || l.includes('london') || l.includes('england')) return 'UK';
+  if(l.includes('usa') || l.includes('us') || l.includes('texas') || l.includes('california') || l.includes('new york')) return 'USA';
+  if(l.includes('uae') || l.includes('dubai') || l.includes('qatar') || l.includes('saudi')) return 'UAE';
+  if(l.includes('iraq') || l.includes('baghdad')) return 'Iraq';
+  if(l.includes('ukraine') || l.includes('kyiv')) return 'Ukraine';
+  if(l.includes('sudan')) return 'Sudan';
+  if(l.includes('nigeria')) return 'Nigeria';
+  if(l.includes('congo') || l.includes('drc')) return 'DRC';
+  return 'International';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function esc(s) { if(!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+</script>
+</body>
+</html>
