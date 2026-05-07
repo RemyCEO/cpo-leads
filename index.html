@@ -23,10 +23,11 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: #0a0e1a; }
-::-webkit-scrollbar-thumb { background: #2a2520; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #C9A84C; }
+::-webkit-scrollbar-thumb { background: rgba(201,168,76,.25); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,.5); }
+* { scrollbar-width: thin; scrollbar-color: rgba(201,168,76,.25) #0a0e1a; }
 
 /* ===== CSS VARIABLES ===== */
 :root {
@@ -1426,6 +1427,40 @@ body {
         </div>
       </div>
     </div>
+
+    <!-- Newest Jobs (dynamically populated) -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <span class="card-title">NEWEST JOBS</span>
+        <span style="font-size:0.65rem;color:var(--gold);cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'))">VIEW ALL</span>
+      </div>
+      <div id="dash-newest" style="display:flex;flex-direction:column"></div>
+    </div>
+
+    <script>
+    // Populate newest jobs on dashboard
+    function updateNewestJobs() {
+      const el = document.getElementById('dash-newest');
+      if(!el || typeof leads === 'undefined') return;
+      const jobs = leads.filter(l => isJob(l)).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||'')).slice(0,5);
+      el.innerHTML = jobs.map(l => {
+        const salary = extractSalary(l.notes);
+        const title = esc(l.company).replace(/^.*?\u2014\s*/, '');
+        const company = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(201,168,76,.06);cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(201,168,76,.03)'" onmouseout="this.style.background='transparent'" onclick="cardClick('${l.id}')">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 2s infinite"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:0.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title||esc(l.company)}</div>
+            <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px">${company?company+' &middot; ':''}${l.location?esc(l.location):''}</div>
+          </div>
+          ${salary?'<span style="color:var(--gold);font-weight:800;font-size:0.8rem;white-space:nowrap">'+esc(salary)+'</span>':''}
+        </div>`;
+      }).join('') || '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:0.75rem">No jobs yet</div>';
+    }
+    // Run after data loads
+    document.addEventListener('DOMContentLoaded', () => { setTimeout(updateNewestJobs, 500); });
+    </script>
+
   </section>
 
   <!-- === PROFILE === -->
@@ -1531,7 +1566,7 @@ body {
 <div id="list-view" style="display:none"></div>
 
 <!-- ============ ADD/EDIT MODAL ============ -->
-<div id="modal-bg" style="position:fixed;inset:0;background:rgba(6,8,13,.7);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center">
+<div id="modal-bg" class="detail-modal-bg" onclick="closeModal()" style="z-index:250">
   <div onclick="event.stopPropagation()" style="background:rgba(10,14,26,.97);border:1px solid var(--card-border);border-radius:12px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;margin:20px;animation:fadeInUp .25s ease">
     <h2 id="modal-title" style="font-size:16px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:20px">NEW ENTRY</h2>
     <input type="hidden" id="edit-id">
@@ -1858,7 +1893,7 @@ function updateDashStats() {
 const _origSwitchPage = switchPage;
 switchPage = function(pageId, el) {
   _origSwitchPage(pageId, el);
-  if(pageId === 'dashboard') updateDashStats();
+  if(pageId === 'dashboard') { updateDashStats(); if(typeof updateNewestJobs==='function') updateNewestJobs(); }
   if(pageId === 'profile' && typeof renderProfile === 'function') renderProfile();
 };
 

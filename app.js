@@ -537,7 +537,7 @@ function openEdit(id) {
   document.getElementById('modal-bg').classList.add('open');
 }
 
-function closeModal() { document.getElementById('modal-bg').classList.remove('open'); }
+function closeModal() { const m=document.getElementById('modal-bg'); if(m){m.classList.remove('open');} }
 
 function save() {
   const company = document.getElementById('f-company').value.trim();
