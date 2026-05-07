@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>CPO Leads</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#09090b;--surface:#18181b;--surface2:#27272a;--border:#3f3f46;--fg:#fafafa;--muted:#a1a1aa;--accent:#22c55e;--accent2:#16a34a;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--amber:#f59e0b;--radius:12px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--fg);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* Header */
+.header{position:sticky;top:0;z-index:50;background:rgba(9,9,11,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:20px;font-weight:700;letter-spacing:-.3px}
+.header h1 span{color:var(--accent)}
+.header-actions{display:flex;gap:8px}
+
+/* Tabs */
+.tabs{display:flex;gap:0;padding:0 20px;border-bottom:1px solid var(--border)}
+.tab{padding:12px 20px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;user-select:none}
+.tab:hover{color:var(--fg)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab .tab-count{background:var(--surface2);padding:1px 7px;border-radius:10px;font-size:11px;margin-left:6px}
+.tab.active .tab-count{background:rgba(34,197,94,.15);color:var(--accent)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:var(--accent);color:#000}.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{background:var(--surface2);color:var(--fg)}
+.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(239,68,68,.3)}.btn-danger:hover{background:rgba(239,68,68,.1)}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:16px 20px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+.stat-val{font-size:22px;font-weight:800}
+.stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+/* Filters */
+.filters{display:flex;gap:8px;padding:0 20px 12px;flex-wrap:wrap}
+.filters input,.filters select{padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--fg);font-size:13px;outline:none}
+.filters input:focus,.filters select:focus{border-color:var(--accent)}
+.filters input{flex:1;min-width:160px}
+
+/* Lead cards */
+.leads{padding:0 20px 100px;display:flex;flex-direction:column;gap:6px}
+.lead-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px}
+.lead-card:hover{background:var(--surface2);border-color:var(--accent);transform:translateY(-1px)}
+.lead-card:active{transform:scale(.995)}
+.lead-info{flex:1;min-width:0}
+.lead-company{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lead-meta{font-size:12px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap}
+.lead-badges{display:flex;gap:6px;flex-shrink:0}
+.badge{padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.badge-security{background:rgba(59,130,246,.15);color:#60a5fa}
+.badge-management{background:rgba(168,85,247,.15);color:#c084fc}
+.badge-agency{background:rgba(34,197,94,.15);color:#4ade80}
+.badge-job{background:rgba(245,158,11,.15);color:#fbbf24}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.salary-tag{font-size:11px;color:var(--accent);font-weight:700}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:24px;animation:slideUp .2s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal h2{font-size:18px;margin-bottom:20px;font-weight:700}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.field label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.field input,.field select,.field textarea{padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font-size:14px;outline:none;font-family:inherit}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.field textarea{resize:vertical;min-height:60px}
+.field-row{display:flex;gap:8px}
+.field-row .field{flex:1}
+
+/* Empty */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:.5}
+.empty-text{font-size:14px}
+
+/* Detail panel */
+.detail-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:100;display:none}
+.detail-bg.open{display:block}
+.detail{position:fixed;top:0;right:0;bottom:0;width:100%;max-width:420px;background:var(--surface);border-left:1px solid var(--border);z-index:101;overflow-y:auto;padding:24px;display:none;animation:slideLeft .2s ease}
+.detail.open{display:block}
+@keyframes slideLeft{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+.detail-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.detail-header h2{font-size:18px;font-weight:700;flex:1}
+.close-btn{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:4px}
+.close-btn:hover{color:var(--fg)}
+.detail-section{margin-bottom:16px}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(63,63,70,.5)}
+.detail-row:last-child{border:none}
+.detail-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.detail-value{font-size:14px;text-align:right}
+.detail-value a{color:var(--accent);text-decoration:none}
+.detail-value a:hover{text-decoration:underline}
+
+@media(min-width:640px){
+  .modal-bg{align-items:center}
+  .modal{border-radius:16px;max-height:80vh}
+  .stats{grid-template-columns:repeat(5,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>&#x1F6E1;&#xFE0F; <span>CPO</span> Leads</h1>
+  <div class="header-actions">
+    <button class="btn btn-primary" onclick="openAdd()">+ Add</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" id="tab-companies" onclick="switchTab('companies')">Companies <span class="tab-count" id="count-companies">0</span></div>
+  <div class="tab" id="tab-jobs" onclick="switchTab('jobs')">Job Listings <span class="tab-count" id="count-jobs">0</span></div>
+</div>
+
+<div class="stats" id="stats"></div>
+<div class="filters">
+  <input type="text" id="search" placeholder="Search company, person, location..." oninput="applyFilters()">
+  <select id="filter-type" onchange="applyFilters()">
+    <option value="">All types</option>
+    <option value="security">Security</option>
+    <option value="management">Management</option>
+    <option value="agency">Agency</option>
+  </select>
+  <select id="filter-status" onchange="applyFilters()">
+    <option value="">All statuses</option>
+    <option value="ny">New</option>
+    <option value="kontaktet">Contacted</option>
+    <option value="applied">Applied</option>
+    <option value="interview">Interview</option>
+    <option value="offer">Offer</option>
+    <option value="rejected">Rejected</option>
+  </select>
+</div>
+<div class="leads" id="leads"></div>
+
+<!-- Add/Edit modal -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2 id="modal-title">New lead</h2>
+    <input type="hidden" id="edit-id">
+    <div class="field"><label>Company *</label><input id="f-company" type="text" placeholder="Company name"></div>
+    <div class="field"><label>Category</label>
+      <select id="f-category"><option value="company">Company</option><option value="job">Job Listing</option></select>
+    </div>
+    <div class="field"><label>Type</label>
+      <select id="f-type"><option value="security">Security Firm</option><option value="management">Management / Tour Security</option><option value="agency">Recruiter / Agency</option></select>
+    </div>
+    <div class="field"><label>Contact Person</label><input id="f-contact" type="text" placeholder="Name"></div>
+    <div class="field-row">
+      <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="email@company.com"></div>
+      <div class="field"><label>Phone</label><input id="f-phone" type="text" placeholder="+44..."></div>
+    </div>
+    <div class="field"><label>Website / Apply URL</label><input id="f-website" type="text" placeholder="www.company.com"></div>
+    <div class="field-row">
+      <div class="field"><label>Location</label><input id="f-location" type="text" placeholder="London"></div>
+      <div class="field"><label>Country</label><input id="f-country" type="text" value="UK"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Status</label>
+        <select id="f-status"><option value="ny">New</option><option value="kontaktet">Contacted</option><option value="applied">Applied</option><option value="interview">Interview</option><option value="offer">Offer</option><option value="rejected">Rejected</option></select>
+      </div>
+      <div class="field"><label>Priority</label>
+        <select id="f-priority"><option value="medium">Medium</option><option value="hot">Hot</option><option value="low">Low</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="f-notes" rows="3" placeholder="Salary, requirements, details..."></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" onclick="save()" style="flex:1">Save</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail panel -->
+<div class="detail-bg" id="detail-bg" onclick="closeDetail()"></div>
+<div class="detail" id="detail"></div>
+
+<script>
+const STORAGE_KEY = 'cp_leads_data';
+let leads = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let activeTab = 'companies';
+
+const typeLabels = {security:'Security',management:'Management',agency:'Agency'};
+const typeBadge = {security:'badge-security',management:'badge-management',agency:'badge-agency'};
+const statusColors = {ny:'#64748b',kontaktet:'#3b82f6',applied:'#a855f7',interview:'#f59e0b',offer:'#22c55e',rejected:'#ef4444','s\u00f8kt':'#a855f7',tilbud:'#22c55e',avslag:'#ef4444'};
+const statusLabels = {ny:'New',kontaktet:'Contacted',applied:'Applied',interview:'Interview',offer:'Offer',rejected:'Rejected','s\u00f8kt':'Applied',tilbud:'Offer',avslag:'Rejected'};
+const priorityOrder = {hot:0,medium:1,low:2};
+
+function isJob(l) { return l.category === 'job' || (l.notes && l.notes.includes('AKTIV STILLING')); }
+
+function persist() { localStorage.setItem(STORAGE_KEY, JSON.stringify(leads)); }
+function uid() { return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('tab-companies').classList.toggle('active', tab === 'companies');
+  document.getElementById('tab-jobs').classList.toggle('active', tab === 'jobs');
+  refresh();
+}
+
+function getFiltered() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const type = document.getElementById('filter-type').value;
+  const status = document.getElementById('filter-status').value;
+  return leads.filter(l => {
+    if (activeTab === 'jobs' && !isJob(l)) return false;
+    if (activeTab === 'companies' && isJob(l)) return false;
+    if (type && l.type !== type) return false;
+    if (status && l.status !== status) return false;
+    if (search) {
+      const hay = [l.company,l.contact_person,l.location,l.country,l.notes].filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function renderStats() {
+  const el = document.getElementById('stats');
+  const filtered = getFiltered();
+  const total = filtered.length;
+  const byStatus = {};
+  filtered.forEach(l => { const s = statusLabels[l.status]||l.status||'New'; byStatus[s] = (byStatus[s]||0)+1; });
+  const chips = [
+    {label:'Total',val:total,color:'var(--accent)'},
+    ...Object.entries(byStatus).map(([s,c])=>({label:s,val:c,color:statusColors[Object.keys(statusLabels).find(k=>statusLabels[k]===s)||'ny']||'var(--fg)'}))
+  ];
+  el.innerHTML = chips.map(c=>`<div class="stat"><div class="stat-val" style="color:${c.color}">${c.val}</div><div class="stat-label">${c.label}</div></div>`).join('');
+
+  // Update tab counts
+  document.getElementById('count-companies').textContent = leads.filter(l => !isJob(l)).length;
+  document.getElementById('count-jobs').textContent = leads.filter(l => isJob(l)).length;
+}
+
+function applyFilters() {
+  const filtered = getFiltered();
+  filtered.sort((a,b) => (priorityOrder[a.priority]||1) - (priorityOrder[b.priority]||1));
+  renderList(filtered);
+}
+
+function extractSalary(notes) {
+  if (!notes) return '';
+  const m = notes.match(/\$[\d,.]+[Kk]?(?:\/(?:yr|year|dag|day|hr|t))?(?:\s*[-\u2013]\s*\$[\d,.]+[Kk]?(?:\/(?:yr|year|dag|day|hr|t))?)?|\u00a3[\d,.]+[Kk]?(?:\/(?:yr|year))?(?:\s*[-\u2013]\s*\u00a3[\d,.]+[Kk]?(?:\/(?:yr|year))?)?/);
+  return m ? m[0] : '';
+}
+
+function renderList(list) {
+  const el = document.getElementById('leads');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">${activeTab==='jobs'?'&#x1F4BC;':'&#x1F6E1;&#xFE0F;'}</div><div class="empty-text">${activeTab==='jobs'?'No job listings yet':'No companies yet'}</div></div>`;
+    return;
+  }
+  el.innerHTML = list.map(l => {
+    const salary = extractSalary(l.notes);
+    return `
+    <div class="lead-card" onclick="openDetail('${l.id}')">
+      <div class="status-dot" style="background:${statusColors[l.status]||'#64748b'}"></div>
+      <div class="lead-info">
+        <div class="lead-company">${esc(l.company)}</div>
+        <div class="lead-meta">
+          ${l.contact_person?'<span>'+esc(l.contact_person)+'</span>':''}
+          ${l.location?'<span>'+esc(l.location)+(l.country&&l.country!=='UK'&&l.country!=='USA'?' \u00b7 '+esc(l.country):'')+'</span>':''}
+          ${salary?'<span class="salary-tag">'+esc(salary)+'</span>':''}
+        </div>
+      </div>
+      <div class="lead-badges">
+        ${isJob(l)?'<span class="badge badge-job">JOB</span>':''}
+        <span class="badge ${typeBadge[l.type]||'badge-security'}">${typeLabels[l.type]||l.type}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function esc(s) { if(!s)return''; const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
+
+function openAdd() {
+  document.getElementById('modal-title').textContent = activeTab === 'jobs' ? 'New Job Listing' : 'New Company';
+  document.getElementById('edit-id').value = '';
+  ['f-company','f-contact','f-email','f-phone','f-website','f-location','f-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-type').value='security';
+  document.getElementById('f-status').value='ny';
+  document.getElementById('f-priority').value='medium';
+  document.getElementById('f-country').value='UK';
+  document.getElementById('f-category').value = activeTab === 'jobs' ? 'job' : 'company';
+  document.getElementById('modal-bg').classList.add('open');
+  setTimeout(()=>document.getElementById('f-company').focus(),100);
+}
+
+function openEdit(id) {
+  const l = leads.find(x=>x.id===id);
+  if(!l)return;
+  closeDetail();
+  document.getElementById('modal-title').textContent = 'Edit';
+  document.getElementById('edit-id').value = id;
+  document.getElementById('f-company').value = l.company||'';
+  document.getElementById('f-type').value = l.type||'security';
+  document.getElementById('f-category').value = l.category||(isJob(l)?'job':'company');
+  document.getElementById('f-contact').value = l.contact_person||'';
+  document.getElementById('f-email').value = l.email||'';
+  document.getElementById('f-phone').value = l.phone||'';
+  document.getElementById('f-website').value = l.website||'';
+  document.getElementById('f-location').value = l.location||'';
+  document.getElementById('f-country').value = l.country||'UK';
+  document.getElementById('f-status').value = l.status||'ny';
+  document.getElementById('f-priority').value = l.priority||'medium';
+  document.getElementById('f-notes').value = l.notes||'';
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal-bg').classList.remove('open'); }
+
+function save() {
+  const company = document.getElementById('f-company').value.trim();
+  if (!company) { document.getElementById('f-company').style.borderColor='var(--red)'; return; }
+  const data = {
+    company,
+    category: document.getElementById('f-category').value,
+    type: document.getElementById('f-type').value,
+    contact_person: document.getElementById('f-contact').value.trim()||null,
+    email: document.getElementById('f-email').value.trim()||null,
+    phone: document.getElementById('f-phone').value.trim()||null,
+    website: document.getElementById('f-website').value.trim()||null,
+    location: document.getElementById('f-location').value.trim()||null,
+    country: document.getElementById('f-country').value.trim()||'UK',
+    status: document.getElementById('f-status').value,
+    priority: document.getElementById('f-priority').value,
+    notes: document.getElementById('f-notes').value.trim()||null
+  };
+  const editId = document.getElementById('edit-id').value;
+  if (editId) {
+    const idx = leads.findIndex(x=>x.id===editId);
+    if (idx>=0) { leads[idx] = {...leads[idx], ...data, updated_at: new Date().toISOString()}; }
+  } else {
+    data.id = uid();
+    data.created_at = new Date().toISOString();
+    data.updated_at = data.created_at;
+    leads.unshift(data);
+  }
+  persist();
+  closeModal();
+  refresh();
+}
+
+function openDetail(id) {
+  const l = leads.find(x=>x.id===id);
+  if(!l)return;
+  const salary = extractSalary(l.notes);
+  const panel = document.getElementById('detail');
+  panel.innerHTML = `
+    <div class="detail-header">
+      <h2>${esc(l.company)}</h2>
+      <button class="close-btn" onclick="closeDetail()">\u2715</button>
+    </div>
+    <div class="detail-section">
+      ${isJob(l)?'<div class="detail-row"><span class="detail-label">Category</span><span class="detail-value"><span class="badge badge-job">JOB LISTING</span></span></div>':''}
+      <div class="detail-row"><span class="detail-label">Type</span><span class="detail-value"><span class="badge ${typeBadge[l.type]}">${typeLabels[l.type]||l.type}</span></span></div>
+      <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span style="color:${statusColors[l.status]};font-weight:600">${statusLabels[l.status]||l.status||'New'}</span></span></div>
+      <div class="detail-row"><span class="detail-label">Priority</span><span class="detail-value" style="font-weight:600;color:${l.priority==='hot'?'var(--red)':l.priority==='low'?'var(--muted)':'var(--amber)'}">${l.priority?l.priority.charAt(0).toUpperCase()+l.priority.slice(1):''}</span></div>
+      ${salary?`<div class="detail-row"><span class="detail-label">Salary</span><span class="detail-value salary-tag" style="font-size:15px">${esc(salary)}</span></div>`:''}
+      ${l.contact_person?`<div class="detail-row"><span class="detail-label">Contact</span><span class="detail-value">${esc(l.contact_person)}</span></div>`:''}
+      ${l.email?`<div class="detail-row"><span class="detail-label">Email</span><span class="detail-value"><a href="mailto:${esc(l.email)}">${esc(l.email)}</a></span></div>`:''}
+      ${l.phone?`<div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value"><a href="tel:${esc(l.phone)}">${esc(l.phone)}</a></span></div>`:''}
+      ${l.website?`<div class="detail-row"><span class="detail-label">${isJob(l)?'Apply':'Website'}</span><span class="detail-value"><a href="${l.website.startsWith('http')?esc(l.website):'https://'+esc(l.website)}" target="_blank">${isJob(l)?'Apply Now \u2192':esc(l.website)}</a></span></div>`:''}
+      ${l.location?`<div class="detail-row"><span class="detail-label">Location</span><span class="detail-value">${esc(l.location)}${l.country?' \u00b7 '+esc(l.country):''}</span></div>`:''}
+      ${l.notes?`<div style="margin-top:16px"><div class="detail-label" style="margin-bottom:6px">Notes</div><div style="font-size:13px;color:var(--muted);line-height:1.5;white-space:pre-wrap">${esc(l.notes)}</div></div>`:''}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:24px">
+      <button class="btn btn-ghost" onclick="openEdit('${l.id}')" style="flex:1">Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLead('${l.id}')">Delete</button>
+    </div>
+    <div style="margin-top:16px;font-size:10px;color:var(--muted)">Added ${new Date(l.created_at).toLocaleDateString('en-GB')}</div>
+  `;
+  panel.classList.add('open');
+  document.getElementById('detail-bg').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detail').classList.remove('open');
+  document.getElementById('detail-bg').classList.remove('open');
+}
+
+function deleteLead(id) {
+  if (!confirm('Delete this lead?')) return;
+  leads = leads.filter(x=>x.id!==id);
+  persist();
+  closeDetail();
+  refresh();
+}
+
+function refresh() {
+  renderStats();
+  applyFilters();
+}
+
+// Keyboard shortcuts: N = new, Esc = close
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'n' || e.key === 'N') openAdd();
+  if (e.key === 'Escape') { closeModal(); closeDetail(); }
+});
+
+refresh();
+</script>
+</body>
+</html>

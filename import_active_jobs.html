@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Import Active Jobs</title></head>
+<body>
+<script>
+const jobs = [
+  // SILENT PROFESSIONALS
+  {company:"Silent Professionals — Corporate EP Agent",type:"security",website:"silentprofessionals.org/jobs/corporate-executive-protection-agent-dallas/",location:"Dallas, TX",country:"USA",priority:"hot",notes:"$133K/år + bonus + benefits. Full-time. AKTIV STILLING."},
+  {company:"Silent Professionals — Corporate EP Agent",type:"security",website:"silentprofessionals.org/jobs/corporate-executive-protection-agent-chicago/",location:"Chicago, IL",country:"USA",priority:"hot",notes:"$133K/år + bonus + benefits. Full-time. AKTIV STILLING."},
+  {company:"Silent Professionals — EP Program Manager",type:"security",website:"silentprofessionals.org/jobs/corporate-executive-protection-program-manager-chicago/",location:"Chicago, IL",country:"USA",priority:"hot",notes:"$165K/år + bonus + benefits. Full-time. AKTIV STILLING."},
+  {company:"Silent Professionals — EP Team Guatemala",type:"security",website:"silentprofessionals.org/jobs/executive-protection-team-guatemala/",location:"Guatemala",country:"Guatemala",priority:"hot",notes:"$700/dag + expenses. Kontrakt. AKTIV STILLING."},
+  {company:"Silent Professionals — Armed EP Rotational",type:"security",website:"silentprofessionals.org/jobs/armed-executive-protection-houston-tx-rotational/",location:"Houston, TX",country:"USA",priority:"hot",notes:"$600/dag. 90-dagers rotasjoner. AKTIV STILLING."},
+  {company:"Silent Professionals — EP Cartagena",type:"security",website:"silentprofessionals.org/jobs/executive-protection-cartagena-columbia/",location:"Cartagena",country:"Colombia",priority:"hot",notes:"$450-650/dag + expenses. Kontrakt. AKTIV STILLING."},
+  {company:"Silent Professionals — Solo EP Agent",type:"security",website:"silentprofessionals.org/jobs/experienced-solo-ep-agent-el-salvador/",location:"El Salvador",country:"El Salvador",priority:"hot",notes:"$800/dag + expenses. Kontrakt. AKTIV STILLING."},
+  {company:"Silent Professionals — Covert Protection",type:"security",website:"silentprofessionals.org/jobs/covert-ep-agent-argentina/",location:"Argentina",country:"Argentina",priority:"hot",notes:"$700/dag + expenses. Kontrakt. AKTIV STILLING."},
+  {company:"Silent Professionals — Residential Security",type:"security",website:"silentprofessionals.org/jobs/residential-security-specialist-boca-raton-fl/",location:"Boca Raton, FL",country:"USA",priority:"hot",notes:"$570/dag + full benefits. AKTIV STILLING."},
+  {company:"Silent Professionals — EP East Asia",type:"security",website:"silentprofessionals.org/jobs/protection-agents-liaisons-east-asia/",location:"East Asia",country:"Asia",priority:"hot",notes:"$600-1.400/dag + bonus. Kontrakt. AKTIV STILLING."},
+  {company:"Silent Professionals — Counter Surveillance NYC",type:"security",website:"silentprofessionals.org/jobs/armed-protective-counter-surveillance-nyc/",location:"New York City",country:"USA",priority:"hot",notes:"$1.000/dag + expenses. Kontrakt. AKTIV STILLING."},
+  {company:"Silent Professionals — Director of Security",type:"security",website:"silentprofessionals.org/jobs/director-of-security-washington-dc/",location:"Washington, DC",country:"USA",priority:"hot",notes:"$130-160K/år + bonus. Full-time. AKTIV STILLING."},
+  {company:"Silent Professionals — PSD Ghana",type:"security",website:"silentprofessionals.org/jobs/psd-team-west-africa/",location:"Ghana",country:"Ghana",priority:"hot",notes:"$1.100/dag + expenses. Kontrakt. AKTIV STILLING."},
+  {company:"Silent Professionals — Maritime Anti-Piracy",type:"security",website:"silentprofessionals.org/jobs/maritime-security-operators-anti-piracy/",location:"Globalt",country:"Internasjonal",priority:"hot",notes:"$2.000/dag! Kontrakt. AKTIV STILLING."},
+
+  // GDBA — IMMEDIATE NEED
+  {company:"GDBA — Security Specialist (IMMEDIATE)",type:"security",website:"grnh.se/67689ac71us",location:"Los Angeles, CA",country:"USA",priority:"hot",notes:"Gavin de Becker. IMMEDIATE NEED. Gullstandarden for EP. AKTIV STILLING."},
+  {company:"GDBA — Security Specialist (IMMEDIATE)",type:"security",website:"grnh.se/5f6d6ed81us",location:"Menlo Park, CA",country:"USA",priority:"hot",notes:"Gavin de Becker. IMMEDIATE NEED. AKTIV STILLING."},
+  {company:"GDBA — Security Specialist (IMMEDIATE)",type:"security",website:"grnh.se/7ced4e321us",location:"Santa Barbara, CA",country:"USA",priority:"hot",notes:"Gavin de Becker. IMMEDIATE NEED. AKTIV STILLING."},
+  {company:"GDBA — Security Specialist (IMMEDIATE)",type:"security",website:"grnh.se/4ab1b1d61us",location:"Maui, HI",country:"USA",priority:"hot",notes:"Gavin de Becker. IMMEDIATE NEED. AKTIV STILLING."},
+  {company:"GDBA — Security Specialist (IMMEDIATE)",type:"security",website:"grnh.se/9kyhyeo01us",location:"Baltimore, MD",country:"USA",priority:"hot",notes:"Gavin de Becker. IMMEDIATE NEED. AKTIV STILLING."},
+  {company:"GDBA — Security Specialist",type:"security",website:"grnh.se/a047dd3c1us",location:"Manhattan, NY",country:"USA",priority:"hot",notes:"Gavin de Becker. AKTIV STILLING."},
+  {company:"GDBA — Security Specialist",type:"security",website:"grnh.se/166909ec1us",location:"Washington, DC",country:"USA",priority:"hot",notes:"Gavin de Becker. AKTIV STILLING."},
+  {company:"GDBA — Security Specialist",type:"security",website:"grnh.se/48e311d61us",location:"Miami, FL",country:"USA",priority:"hot",notes:"Gavin de Becker. AKTIV STILLING."},
+  {company:"GDBA — Field Travel Protector",type:"security",website:"grnh.se/7c0tguea1us",location:"Major US metros",country:"USA",priority:"hot",notes:"Gavin de Becker. Reise-basert EP. AKTIV STILLING."},
+
+  // GARDAWORLD
+  {company:"GardaWorld — Diplomatic CPO",type:"security",website:"jobs.garda.com/job/Baghdad-Diplomatic-Close-Protection-Officer-Iraq/890490900/",location:"Baghdad +4",country:"Irak",priority:"hot",notes:"Diplomatisk CP. Internasjonal. AKTIV STILLING."},
+  {company:"GardaWorld — Female CPO",type:"security",website:"jobs.garda.com/job/Baghdad-Female-Close-Protection-Officer-Iraq/680465400/",location:"Baghdad",country:"Irak",priority:"medium",notes:"Female CPO-rolle. AKTIV STILLING."},
+
+  // UK
+  {company:"Morgan Stanley — EP Director (EMEA)",type:"security",website:"jobs.wallstreetfriends.org/companies/morgan-stanley/jobs/72296996",location:"London",country:"UK",priority:"hot",notes:"Director-level Executive Protection. EMEA. AKTIV STILLING."},
+  {company:"Duke & Duchess Intl — CP Operative",type:"security",website:"dukeandduchess-int.com/jobs/full-time-close-protection-operative-live-out-ld433/",location:"Knightsbridge, London",country:"UK",priority:"hot",notes:"£55-60K/år. Full-time, live out. AKTIV STILLING."},
+  {company:"Concentric — Chief of Security",type:"security",website:"job-boards.greenhouse.io/concentric/jobs/4595914006",location:"Global",country:"UK",priority:"hot",notes:"EP & Global Operations. AKTIV STILLING."},
+  {company:"Crisis24 — CPO London",type:"security",website:"uk.indeed.com/q-close-protection-officer-jobs.html",location:"London",country:"UK",priority:"hot",notes:"Krever SIA CP Front Line License. AKTIV STILLING."},
+
+  // MIDTOSTEN
+  {company:"Guildhall — CPO/Executive Bodyguard",type:"security",website:"gulftalent.com/uae/jobs/close-protection-officer-executive-body-guard-397224",location:"Dubai",country:"UAE",priority:"hot",notes:"UHNW-klient. Søker vesteuropeisk. Live-in. AKTIV STILLING."},
+  {company:"AHS — VIP CPO / Travelling Butler",type:"security",website:"gulftalent.com/uae/jobs/vip-close-protection-officer-travelling-butler-566249",location:"Dubai",country:"UAE",priority:"hot",notes:"VIP Close Protection + Butler-rolle. AKTIV STILLING."},
+  {company:"International SOS — Security Specialist Aviation",type:"security",website:"careers.internationalsos.com",location:"Dubai",country:"UAE",priority:"medium",notes:"Aviation & Maritime Security. Level 1. AKTIV STILLING."},
+
+  // LINKEDIN
+  {company:"Allied Universal — EP Agent",type:"security",website:"linkedin.com/jobs/view/4411421740",location:"Arlington, VA",country:"USA",priority:"hot",notes:"$115K/år. AKTIV STILLING via LinkedIn."},
+  {company:"Gilead Sciences — Assoc Director EP",type:"security",website:"linkedin.com/jobs/view/4381760885",location:"San Francisco",country:"USA",priority:"hot",notes:"Senior/strategisk rolle. AKTIV STILLING via LinkedIn."},
+  {company:"ByteDance — EP Specialist",type:"security",website:"linkedin.com/jobs/view/4409967614",location:"Singapore",country:"Singapore",priority:"hot",notes:"Tech-gigant. Høy lønn. AKTIV STILLING via LinkedIn."},
+  {company:"Crisis24 — EP Senior Team Leader",type:"security",website:"linkedin.com/jobs/view/4409525543",location:"Menlo Park, CA",country:"USA",priority:"hot",notes:"Senior Team Leader. AKTIV STILLING via LinkedIn."},
+  {company:"Constellis — EP Agents 1 and 2",type:"security",website:"linkedin.com/jobs/view/4407964725",location:"San Francisco",country:"USA",priority:"hot",notes:"Multiple locations. AKTIV STILLING via LinkedIn."},
+  {company:"Constellis — EP Agents Montreal",type:"security",website:"linkedin.com/jobs/view/4407961785",location:"Montreal",country:"Canada",priority:"hot",notes:"AKTIV STILLING via LinkedIn."},
+
+  // INTL ORG / NGO
+  {company:"NATO — Chief Agency Security Officer",type:"security",website:"impactpool.org/jobs/1191340",location:"Brussel",country:"Belgia",priority:"hot",notes:"NATO HQ. AKTIV STILLING."},
+  {company:"UNOPS — Senior Security Officer",type:"security",website:"impactpool.org/jobs/1203776",location:"Yangon",country:"Myanmar",priority:"medium",notes:"FN-system. AKTIV STILLING."},
+  {company:"Interpol — Security Ops Centre Manager",type:"security",website:"impactpool.org/jobs/891603",location:"Lyon",country:"Frankrike",priority:"medium",notes:"Interpol HQ. AKTIV STILLING."},
+  {company:"IRC — Humanitarian Security Officer",type:"security",website:"impactpool.org/jobs/1209361",location:"Beirut",country:"Libanon",priority:"medium",notes:"AKTIV STILLING."},
+  {company:"MAG — Security & Access Manager",type:"security",website:"reliefweb.int/job/4122401",location:"OPT/Jordan/UK",country:"Internasjonal",priority:"medium",notes:"Remote option. AKTIV STILLING."},
+];
+
+function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}
+
+const existing = JSON.parse(localStorage.getItem('cp_leads_data')||'[]');
+const now = new Date().toISOString();
+const newJobs = jobs.map(j => ({
+  ...j,
+  id: uid(),
+  status: 'ny',
+  contact_person: null,
+  email: null,
+  phone: null,
+  created_at: now,
+  updated_at: now
+}));
+
+const merged = [...existing, ...newJobs];
+localStorage.setItem('cp_leads_data', JSON.stringify(merged));
+
+document.body.innerHTML = `
+<div style="font-family:system-ui;background:#09090b;color:#fafafa;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;padding:40px">
+  <div style="font-size:48px">🎯</div>
+  <h1 style="font-size:24px">${newJobs.length} aktive stillinger importert!</h1>
+  <div style="color:#a1a1aa;text-align:center">
+    <div>Lagt til eksisterende ${existing.length} leads</div>
+    <div style="margin-top:8px;font-weight:700;color:#22c55e">Totalt: ${merged.length} leads</div>
+  </div>
+  <a href="index.html" style="background:#22c55e;color:#000;padding:12px 24px;border-radius:8px;font-weight:700;text-decoration:none;font-size:16px">Åpne CPO Leads →</a>
+</div>`;
+</script>
+</body>
+</html>

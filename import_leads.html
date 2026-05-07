@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Import CPO Leads</title></head>
+<body>
+<script>
+const leads = [
+  // === KATEGORI 1: INTERNASJONALE CP-FIRMAER ===
+  // Global Tier-1
+  {company:"Control Risks",type:"security",website:"controlrisks.com",location:"London",country:"UK",priority:"hot",notes:"Global leder. EP Analyst-roller. 1001-5000 ansatte. Careers: controlrisks.com/careers"},
+  {company:"GardaWorld",type:"security",website:"gardaworld.com",location:"Montreal",country:"Canada",priority:"hot",notes:"Verdens største private sikkerhetsselskap. 463 EP-jobber. Portal: jobs.garda.com/go/International-Jobs/7695900/"},
+  {company:"Constellis",type:"security",website:"constellis.com",location:"Herndon, VA",country:"USA",priority:"hot",notes:"Military Friendly Gold 2026. 8700+ ansatte. 50 land. EP Agent $54-88K. Careers: constellis.com/careers/"},
+  {company:"Pilgrims Group",type:"security",website:"pilgrimsgroup.com",location:"Woking, Surrey",country:"UK",priority:"hot",notes:"Aktiv CPO-rekruttering. Ex-militær kjernelag. Email: info@pilgrims-rmg.com"},
+  {company:"ETS Risk Management",type:"security",website:"ets-riskmanagement.com",location:"Bethesda/London",country:"USA",priority:"hot",notes:"Elite boutique. Ledelse fra SAS/SRR/MI5. 80+ land. Rekrutterer via nettverk/LinkedIn"},
+  {company:"Neptune P2P Group",type:"security",website:"neptunep2pgroup.com",location:"Dubai/Manchester",country:"UAE",priority:"hot",notes:"GRUNNLAGT av britiske+franske SF. Legion = direkte kulturell match. +971 45 770 391"},
+  {company:"Allied Universal / G4S",type:"security",website:"aus.com",location:"Santa Ana/London",country:"USA/UK",priority:"medium",notes:"800K+ ansatte. EP $58-184K. Portal: jobs.aus.com"},
+  {company:"Ambrey",type:"security",website:"ambrey.com",location:"Hereford",country:"UK",priority:"medium",notes:"Ledende PMSC. 1000+ guards. Maritim + land. Careers: ambrey.com/careers/"},
+  {company:"Blue Mountain Group",type:"security",website:"bluemountaingroup.co.uk",location:"Carmarthen, Wales",country:"UK",priority:"medium",notes:"Diskret CP. ISO-akkreditert. WhatsApp-nettverk for graduates"},
+  {company:"Salama Fikira / SF Group",type:"security",website:"salamafikira.com",location:"Nottingham/Nairobi",country:"UK/Kenya",priority:"medium",notes:"Afrika-spesialist (80%+). Mining, olje/gass. Hundrevis av ex-Armed Forces"},
+  {company:"Black Swan UK",type:"security",website:"blackswanuk.com",location:"UK",country:"UK",priority:"medium",notes:"CP for executives, HNWI. RST. Intelligence-led. Referral-basert"},
+  {company:"International SOS",type:"security",website:"internationalsos.com",location:"Singapore/London",country:"Singapore",priority:"medium",notes:"13.000+ eksperter. 81 security jobs. Careers: careers.internationalsos.com"},
+  {company:"Northcott Global Solutions",type:"security",website:"northcottglobalsolutions.com",location:"London",country:"UK",priority:"medium",notes:"CP bodyguard, evacuations. 49 ansatte. Email: info@northcottglobalsolutions.com"},
+  {company:"Solace Global",type:"security",website:"solaceglobal.com",location:"Poole, Dorset",country:"UK",priority:"medium",notes:"Maritim + HNWI. 400+ fra EU Militær/SF. Careers: solaceglobal.com/careers-at-solace-global/"},
+
+  // UK CP Spesialister
+  {company:"Westminster Security",type:"security",website:"westminstersecurity.co.uk",location:"London",country:"UK",priority:"hot",notes:"Royals, statsoverhoder, HNWI. 5+ år EP + militær. ALDRI ring for oppfølging. Register: westminstersecurity.co.uk/recruitment/"},
+  {company:"AS Solution",type:"security",website:"careers.assolution.com",location:"København",country:"Danmark",priority:"hot",notes:"Corporate EP. 86 land. 501-1000 ansatte. Betalt EP-trening. Portal"},
+
+  // USA EP
+  {company:"Gavin de Becker & Associates",type:"security",website:"gdba.com",location:"Los Angeles",country:"USA",priority:"hot",notes:"GULLSTANDARDEN. 49 stillinger. $75-130K. Careers: gdba.com/join-our-team"},
+  {company:"TorchStone Global",type:"security",website:"torchstoneglobal.com",location:"Arlington, VA",country:"USA",priority:"hot",notes:"Elite boutique. Sr Security Manager $126K. Careers: torchstoneglobal.com/contact-us/careers/"},
+  {company:"Hillard Heintze",type:"security",website:"hillardheintze.com",location:"Chicago",country:"USA",priority:"medium",notes:"Jensen Hughes. Rekrutterer Secret Service, FBI, militær. Careers: hillardheintze.com/careers/"},
+  {company:"Pinkerton",type:"security",website:"pinkerton.com",location:"Ann Arbor, MI",country:"USA",priority:"medium",notes:"Grunnlagt 1850. 41 jobber, 15 EP Specialist. Careers: pinkerton.com/careers/current-openings"},
+  {company:"Guidepost Solutions",type:"security",website:"guidepostsolutions.com",location:"New York",country:"USA",priority:"medium",notes:"VP Protective Services-rolle. 17+ byer globalt. Careers: guidepostsolutions.com/careers/"},
+  {company:"World Protection Group",type:"security",website:"worldprotectiongroup.com",location:"Beverly Hills",country:"USA",priority:"medium",notes:"Kjendiser, politikere, CEOs. 200+ stab. Careers: worldprotectiongroup.com/jobs/"},
+
+  // Midtøsten
+  {company:"Royal Falcon Security",type:"security",website:"royalfalconsecurity.ae",location:"Abu Dhabi",country:"UAE",priority:"hot",notes:"GRUNNLAGT av UAE-royals. Direkte match for royal family protection. Careers: royalfalconsecurity.ae/careers.html"},
+  {company:"Septimius Security",type:"security",website:"septimiussecurity.com",location:"Dubai",country:"UAE",priority:"hot",notes:"520+ operatører. UHNWI, diplomater. SIRA-lisensiert. Flerspråklig verdsatt. Jobs: septimiussecurity.com/jobs/"},
+  {company:"Falcon Shield Security",type:"security",website:"falcon-uae.ae",location:"Dubai",country:"UAE",priority:"medium",notes:"SIRA-godkjent. EP, CP, event security"},
+  {company:"ISF Global Solutions",type:"security",website:"isf-security-ae.com",location:"Dubai",country:"UAE",priority:"medium",notes:"High-end CP for UHNWI. 20+ år erfaring"},
+  {company:"PGS Solution",type:"security",website:"pgs-solution.com",location:"Dubai",country:"UAE",priority:"medium",notes:"25+ år. EP for kjendiser, myndigheter, HNWI. SIRA-lisensiert"},
+  {company:"Sultan Royal Security",type:"security",website:"sultanroyalsecurity.com",location:"UAE",country:"UAE",priority:"medium",notes:"VIP protection. Royal/diplomatisk fokus. Careers: sultanroyalsecurity.com/career/"},
+  {company:"VCP Global Security",type:"security",website:"vcp-global.com",location:"Dubai",country:"UAE",priority:"medium",notes:"CP for UHNW familier i UAE"},
+  {company:"NEOM",type:"security",website:"neom.com",location:"NEOM",country:"Saudi-Arabia",priority:"medium",notes:"Saudi megaprosjekt. 230+ security-roller. Langsiktige kontrakter. Careers: neom.com/en-us/careers"},
+
+  // Maritim
+  {company:"Diaplous",type:"security",website:"diaplous.com",location:"Piraeus",country:"Hellas",priority:"medium",notes:"Maritim riskstyring. 560+ klienter. 6 internasjonale kontorer"},
+
+  // === KATEGORI 2: ARTIST MANAGEMENT & TOUR SECURITY ===
+  // Tour Security Spesialister (der jobbene faktisk sitter)
+  {company:"Solutions Group Intl (SGI)",type:"management",website:"solutionsgroupinternational.com",location:"USA",country:"USA",priority:"hot",notes:"DIREKTE ansetter CPO for turnéer. Green Day, Rihanna. US State Dept provider. Military veteran pipeline"},
+  {company:"T&M Protection Resources",type:"management",website:"tmusallc.com",location:"New York",country:"USA",priority:"hot",notes:"$45-55/hr. Aktivt ansetter EP-agenter. Militær/LE. Careers: tmusallc.com/careers/executive-protection-agent"},
+  {company:"Force Protection Agency",type:"management",website:"forceprotectionagency.com",location:"USA",country:"USA",priority:"hot",notes:"Musikkbransjens største navn. Military officer-ledet. Careers: forceprotectionagency.com/careers/"},
+  {company:"Insite Risk Management",type:"management",website:"insiteriskmanagement.com",location:"New York",country:"USA",priority:"hot",notes:"Celebrity, dignitary, sovereign protection. Email: info@insitesecurity.com"},
+  {company:"UKSPS International",type:"management",website:"ukspsinternational.com",location:"UK",country:"UK",priority:"hot",notes:"Dedikert music industry security-divisjon"},
+  {company:"VIS Protection",type:"management",website:"visprotection.com",location:"London/Dublin",country:"UK",priority:"medium",notes:"Celebrity/VIP bodyguard. Ex-militær/politi"},
+  {company:"ShowSec",type:"management",website:"showsec.co.uk",location:"UK",country:"UK",priority:"medium",notes:"35+ år. 450+ venues. Mer crowd mgmt enn CPO. Fot i døren. Careers: showsec.co.uk/jobs/"},
+
+  // Management (nettverks-targets — bruker eksterne CPO)
+  {company:"Warner Music Group",type:"management",website:"wmg.com",location:"New York",country:"USA",priority:"hot",notes:"AKTIV Operations Security Manager-rolle! Ed Sheeran, Dua Lipa. Portal: wmg.wd1.myworkdayjobs.com/WMGUS"},
+  {company:"Live Nation",type:"management",website:"livenationentertainment.com",location:"Beverly Hills",country:"USA",priority:"hot",notes:"Verdens største live entertainment. 1446 jobber. Søk director-level security"},
+  {company:"AEG Presents",type:"management",website:"aegpresents.com",location:"Los Angeles",country:"USA",priority:"hot",notes:"#2 globalt. Dedikert Security & Safety kategori. Portal: aegworldwide.com/careers/job-search"},
+  {company:"Roc Nation",type:"management",website:"rocnation.com",location:"New York",country:"USA",priority:"hot",notes:"Jay-Z. Rihanna, J. Cole. Høyest-profil klienter. Email: info@rocnation.com"},
+  {company:"Full Stop Management",type:"management",website:"fullstopmgmt.com",location:"Los Angeles",country:"USA",priority:"hot",notes:"Harry Styles, Eagles, Cardi B. Irving Azoff. Email: info@fullstopmgmt.com"},
+  {company:"Maverick Management",type:"management",website:"maverick.com",location:"Beverly Hills",country:"USA",priority:"hot",notes:"Madonna, U2, The Weeknd, RHCP. Guy Oseary. Massive turnéer"},
+  {company:"WME",type:"management",website:"wmeagency.com",location:"Beverly Hills",country:"USA",priority:"medium",notes:"Verdens største talent agency. Endeavor/UFC. Bruker eksterne CPO. Nettverks-target"},
+  {company:"CAA",type:"management",website:"caa.com",location:"Los Angeles",country:"USA",priority:"medium",notes:"#1 full-service agency. 3000+ atleter. Bruker kontrakt-CP"},
+  {company:"Wasserman / THE TEAM",type:"management",website:"the.team",location:"Los Angeles",country:"USA",priority:"medium",notes:"Music + Sports. 65 byer, 27 land. Email: hello@the.team"},
+  {company:"YMU Group",type:"management",website:"ymugroup.com",location:"London",country:"UK",priority:"medium",notes:"Entertainment, sport. Email: Careers@ymugroup.com"},
+  {company:"TaP Music",type:"management",website:"tap-music.com",location:"London",country:"UK",priority:"medium",notes:"Lana Del Rey, Ellie Goulding. Kontrakt-CP for turnéer"},
+
+  // === KATEGORI 3: FAMILY OFFICES & RECRUITERS ===
+  {company:"Greycoat Lumleys",type:"agency",website:"greycoatlumleys.co.uk",location:"London",country:"UK",priority:"hot",notes:"25+ år. Dedikert security-divisjon. Elite militær foretrukket. Email: info@greycoatlumleys.co.uk"},
+  {company:"Tiger Recruitment",type:"agency",website:"tiger-recruitment.com",location:"London/Dubai",country:"UK",priority:"hot",notes:"B Corp. Dedikert CP-divisjon. UHNWI, diplomater, royals. Email: info@tiger-recruitment.co.uk"},
+  {company:"Polo & Tweed",type:"agency",website:"poloandtweed.com",location:"London, Mayfair",country:"UK",priority:"hot",notes:"A-listers, royals, Midtøsten-royals. 14K+ kandidater. 40-71K+ GBP. Tel: +44 203 858 0233"},
+  {company:"Oplu",type:"agency",website:"oplu.com",location:"London, Mayfair",country:"UK",priority:"hot",notes:"UHNW family office. Eksplisitt Head of Security / CP Manager. Email: hello@oplu.com"},
+  {company:"Bespoke Britannia Security",type:"agency",website:"bespokebritanniasecurity.co.uk",location:"London, Mayfair",country:"UK",priority:"hot",notes:"20+ år British Royal Household. 30+ år Security Intelligence. Portal: bespokebritanniasecurity.co.uk/security-company/our-team/security-jobs/"},
+  {company:"Intelligent Protection Intl",type:"agency",website:"intelligent-protection.co.uk",location:"London/Paris/Genève",country:"UK",priority:"hot",notes:"Midtøsten royal family since 2017. Søker bi/trilinguale med Royal Protection. PERFEKT FIT. Email: info@intelligent-protection.co.uk"},
+  {company:"Infinite Risks",type:"agency",website:"infiniterisks.com",location:"Amsterdam",country:"Nederland",priority:"hot",notes:"Royal families i 50+ land. Email: contact@infiniterisks.com | +31 20 301 1395"},
+  {company:"CourtesyMasters",type:"agency",website:"courtesymasters.com",location:"Haag",country:"Nederland",priority:"hot",notes:"CPO for royal households, UHNWI. Email: info@courtesymasters.com"},
+  {company:"Morgan & Mallet",type:"agency",website:"householdstaff.agency",location:"Monaco/Dubai/NYC",country:"Internasjonal",priority:"hot",notes:"1200+ plasseringer/år. 4100+ security pros i Sveits. Residential security-divisjon"},
+  {company:"Talent Gurus",type:"agency",website:"talent-gurus.com",location:"USA/London/Miami",country:"USA",priority:"hot",notes:"Head of Security UHNW. $140K-$350K+. Retained søk under NDA. 12-18 uker"},
+  {company:"Heritage Staffing",type:"agency",website:"heritage-staffing.ch",location:"Genève",country:"Sveits",priority:"hot",notes:"SECO-lisensiert. 15+ år UHNW. Bodyguards, drivers. Email: info@heritage-staffing.ch"},
+  {company:"GulfTalent",type:"agency",website:"gulftalent.com",location:"UAE",country:"UAE",priority:"hot",notes:"Ledende ME job board. Aktive CPO-utlysninger. Vesteuropeiske ex-mil foretrukket"},
+  {company:"Guildhall",type:"agency",website:"Via GulfTalent",location:"UAE",country:"UAE",priority:"hot",notes:"Executive search MENA. Aktivt ansetter CPO/bodyguard for høy-profil Dubai-klient"},
+  {company:"Close Career",type:"agency",website:"closecareer.com",location:"UAE",country:"UAE",priority:"medium",notes:"UAE royal guard rekruttering. Email: jobs@closecareer.com"},
+  {company:"Norsk Tactical",type:"agency",website:"norsktactical.co.uk",location:"Scotland/UK",country:"UK",priority:"medium",notes:"UHNWI, politikere, ambassadearbeid. SIA-lisensiert. Careers: norsktactical.co.uk/vacancies"},
+  {company:"MyStaffHQ",type:"agency",website:"mystaffhq.com",location:"Online",country:"UK",priority:"medium",notes:"Elite private staff jobs. CP-seksjon: mystaffhq.com/jobs/close-protection-security"},
+  {company:"Silver Swan Recruitment",type:"agency",website:"silverswanrecruitment.com",location:"London/Miami/Dubai",country:"UK",priority:"medium",notes:"UHNW familier globalt. Estate managers, yacht crew"},
+
+  // === KATEGORI 4: DIPLOMATISK & INTERNASJONAL ===
+  {company:"UNDSS (FN)",type:"security",website:"un.org",location:"New York",country:"USA",priority:"hot",notes:"CP for senior FN-tjenestemenn i 131 land. Bestå Security Officer Test (SOT). Portal: careers.un.org"},
+  {company:"EU CSDP-misjoner",type:"security",website:"eeas.europa.eu",location:"Brussel",country:"Belgia",priority:"hot",notes:"70+ ledige 2026! Norge sekunderer aktivt. Kontakt norsk UD. EUCAP Somalia frist 25. mai"},
+  {company:"NATO HQ",type:"security",website:"nato.int",location:"Brussel",country:"Belgia",priority:"hot",notes:"Norsk = kvalifisert. Royal Guard = direkte relevant. NATO SECRET via NSM. Portal: nato.taleo.net"},
+  {company:"OSCE",type:"security",website:"osce.org",location:"Wien",country:"Østerrike",priority:"hot",notes:"Mission Security Officer + Field Security Officer AKTIVE nå! Portal: jobs.osce.org"},
+  {company:"UNHCR",type:"security",website:"unhcr.org",location:"Genève",country:"Sveits",priority:"hot",notes:"Feltsikkerhet i høyrisikomiljøer. Portal: unhcr.wd3.myworkdayjobs.com/External"},
+  {company:"WFP",type:"security",website:"wfp.org",location:"Roma",country:"Italia",priority:"hot",notes:"Flere security-stillinger: Beirut, Cairo, Ukraina, Sør-Sudan. Portal: wfp.org/careers"},
+  {company:"GardaWorld Federal Services",type:"security",website:"garda-federal.com",location:"Washington DC",country:"USA",priority:"hot",notes:"Embassy security globalt. 13 stillinger. Tilgjengelig for ikke-US. Portal: jobs.garda.com"},
+  {company:"Constellis WPS III",type:"security",website:"constellis.com",location:"Herndon, VA",country:"USA",priority:"hot",notes:"US State Dept ambassadesikkerhet. Sjekk citizenship-krav. Portal: constellis.com/wpsiii/"},
+  {company:"NRC",type:"security",website:"nrc.no",location:"Oslo",country:"Norge",priority:"hot",notes:"NORSK org = stor fordel. Felt: Palestina, Goma, Kyiv, Myanmar. Portal: nrc.no/careers"},
+  {company:"ICRC",type:"security",website:"icrc.org",location:"Genève",country:"Sveits",priority:"hot",notes:"Konfliktsoner. Armed Forces Delegate-rolle. Legion = sterk asset. Portal: careers.icrc.org"},
+  {company:"TotalEnergies",type:"security",website:"totalenergies.com",location:"Paris",country:"Frankrike",priority:"hot",notes:"FRANSK selskap! Legion = massiv fordel. Nigeria, Angola, Mozambique, Libya, Irak. Portal: careers.totalenergies.com"},
+  {company:"Amentum (ex-DynCorp)",type:"security",website:"amentum.com",location:"Germantown, MD",country:"USA",priority:"medium",notes:"34.000 ansatte i 105 land. US-fokusert. Careers: amentum.com/careers/"},
+  {company:"EEAS",type:"security",website:"eeas.europa.eu",location:"Brussel",country:"Belgia",priority:"medium",notes:"4 åpne stillinger. EU-borgerskap kan kreves. Sjekk EØS-kvalifikasjon"},
+  {company:"Frontex",type:"security",website:"frontex.europa.eu",location:"Warszawa",country:"Polen",priority:"medium",notes:"Opptil 400 offiserer i 2025-2026. Mer grensevakt enn CP. Careers: frontex.europa.eu/careers/"},
+  {company:"SHAPE (NATO)",type:"security",website:"shape.nato.int",location:"Mons",country:"Belgia",priority:"medium",notes:"Security Officer-roller. Via NATO Taleo"},
+  {company:"MSF",type:"security",website:"msf.org",location:"Genève",country:"Sveits",priority:"medium",notes:"Security Advisor. Krever humanitær erfaring i tillegg til militær. Portal: msf.org/jobs"},
+  {company:"Save the Children",type:"security",website:"savethechildren.net",location:"London",country:"UK",priority:"medium",notes:"157+ stillinger. Security management. Portal: savethechildren.net/careers/apply"},
+  {company:"Oxfam",type:"security",website:"oxfam.org",location:"Nairobi",country:"Kenya",priority:"medium",notes:"50+ stillinger 2026. Security Manager aktiv. $40-120K+. Portal: jobs.oxfam.org.uk"},
+  {company:"IRC",type:"security",website:"rescue.org",location:"New York",country:"USA",priority:"medium",notes:"Dedikert Safety & Security karrierevei. Portal: careers.rescue.org/us/en/c/safety-security-jobs"},
+  {company:"BP",type:"security",website:"bp.com",location:"London",country:"UK",priority:"medium",notes:"Irak, Aserbajdsjan, Algerie. Corporate Security. Portal: bp.com/en/global/corporate/careers.html"},
+  {company:"Shell",type:"security",website:"shell.com",location:"London",country:"UK",priority:"medium",notes:"Nigeria, Irak, Oman. Security Manager-roller. Portal: shell.com/careers"},
+  {company:"ExxonMobil",type:"security",website:"corporate.exxonmobil.com",location:"Spring, TX",country:"USA",priority:"medium",notes:"Guyana, Papua NG, Mozambique, Irak. Portal: jobs.exxonmobil.com"},
+  {company:"Rio Tinto",type:"security",website:"riotinto.com",location:"London/Melbourne",country:"UK/Australia",priority:"medium",notes:"Guinea, Madagaskar, Sør-Afrika, Mongolia. 39 stillinger. Portal: jobs.riotinto.com"},
+  {company:"Glencore",type:"security",website:"glencore.com",location:"Baar",country:"Sveits",priority:"medium",notes:"DRC (Katanga), Chad, Kamerun, Colombia. Portal: glencore.com/careers"},
+];
+
+function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}
+
+// Tøm eksisterende og importer på nytt
+const now = new Date().toISOString();
+const newLeads = leads.map(l => ({
+  ...l,
+  id: uid(),
+  status: 'ny',
+  contact_person: null,
+  email: null,
+  phone: null,
+  created_at: now,
+  updated_at: now
+}));
+
+localStorage.setItem('cp_leads_data', JSON.stringify(newLeads));
+document.body.innerHTML = `
+<div style="font-family:system-ui;background:#09090b;color:#fafafa;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;padding:40px">
+  <div style="font-size:48px">🛡️</div>
+  <h1 style="font-size:24px">${newLeads.length} leads importert!</h1>
+  <div style="color:#a1a1aa;text-align:center">
+    <div>${newLeads.filter(l=>l.type==='security').length} sikkerhetsselskaper/intl org</div>
+    <div>${newLeads.filter(l=>l.type==='management').length} management/tour security</div>
+    <div>${newLeads.filter(l=>l.type==='agency').length} recruiters/family offices</div>
+    <div style="margin-top:8px">${newLeads.filter(l=>l.priority==='hot').length} hot priority</div>
+  </div>
+  <a href="index.html" style="background:#22c55e;color:#000;padding:12px 24px;border-radius:8px;font-weight:700;text-decoration:none;font-size:16px">Åpne CP Leads →</a>
+</div>`;
+</script>
+</body>
+</html>
