@@ -133,8 +133,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 </div>
 
 <div class="stats" id="stats"></div>
+<div style="padding:0 20px 8px;position:relative">
+  <input type="text" id="global-search" placeholder="Search everything — companies, jobs, locations, notes..." oninput="globalSearch(this.value)" style="width:100%;padding:12px 16px 12px 40px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--fg);font-size:14px;outline:none">
+  <span style="position:absolute;left:32px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none">&#x1F50D;</span>
+  <div id="search-results" style="display:none;position:absolute;left:20px;right:20px;top:100%;background:var(--surface);border:1px solid var(--border);border-radius:0 0 12px 12px;max-height:400px;overflow-y:auto;z-index:60;box-shadow:0 12px 40px rgba(0,0,0,.5)"></div>
+</div>
 <div class="filters">
-  <input type="text" id="search" placeholder="Search company, person, location..." oninput="applyFilters()">
+  <input type="text" id="search" placeholder="Filter current view..." oninput="applyFilters()" style="font-size:12px">
   <select id="filter-type" onchange="applyFilters()">
     <option value="">All types</option>
     <option value="security">Security</option>
@@ -210,6 +215,55 @@ function isJob(l) { return l.category === 'job' || (l.notes && l.notes.includes(
 
 function persist() { localStorage.setItem(STORAGE_KEY, JSON.stringify(leads)); }
 function uid() { return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+let searchTimeout = null;
+function globalSearch(query) {
+  clearTimeout(searchTimeout);
+  const box = document.getElementById('search-results');
+  if (!query || query.length < 2) { box.style.display = 'none'; return; }
+  searchTimeout = setTimeout(() => {
+    const q = query.toLowerCase();
+    const results = leads.filter(l => {
+      const hay = [l.company,l.contact_person,l.location,l.country,l.notes,l.website,l.email].filter(Boolean).join(' ').toLowerCase();
+      return hay.includes(q);
+    }).slice(0, 15);
+    if (!results.length) {
+      box.innerHTML = '<div style="padding:16px;color:var(--muted);text-align:center">No results for "'+esc(query)+'"</div>';
+    } else {
+      box.innerHTML = results.map(l => {
+        const job = isJob(l);
+        const salary = extractSalary(l.notes);
+        return `<div onclick="closeSearch();${job?"switchTab('jobs')":"switchTab('companies')"};openDetail('${l.id}')" style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(l.company)}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${l.location?esc(l.location):''}${l.country&&l.country!=='UK'&&l.country!=='USA'?' \u00b7 '+esc(l.country):''}</div>
+          </div>
+          ${salary?'<span style="color:var(--accent);font-weight:700;font-size:12px;white-space:nowrap">'+esc(salary)+'</span>':''}
+          <span class="badge ${job?'badge-job':typeBadge[l.type]||'badge-security'}" style="font-size:9px">${job?'JOB':typeLabels[l.type]||l.type}</span>
+        </div>`;
+      }).join('');
+    }
+    box.style.display = 'block';
+  }, 150);
+}
+
+function closeSearch() {
+  document.getElementById('global-search').value = '';
+  document.getElementById('search-results').style.display = 'none';
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#global-search') && !e.target.closest('#search-results')) {
+    document.getElementById('search-results').style.display = 'none';
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+    document.getElementById('global-search').focus();
+  }
+});
 
 function switchTab(tab) {
   activeTab = tab;
