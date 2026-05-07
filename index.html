@@ -1714,17 +1714,9 @@ function detectJobType(l) {
 
 // Clean description — remove metadata clutter
 function cleanDescription(notes) {
-  if(!notes) return '';
-  return notes
-    .replace(/\$[\d,.]+[Kk]?(?:\/(?:yr|year|dag|day|hr))?(?:\s*[-\u2013+]\s*(?:bonus|benefits|expenses|full benefits))?\.?\s*/gi,'')
-    .replace(/ACTIVE LISTING\.?\s*/gi,'')
-    .replace(/Source:.*?\.\s*/gi,'')
-    .replace(/IMMEDIATE NEED\.?\s*/gi,'')
-    .replace(/via (?:LinkedIn|Indeed)\.?\s*/gi,'')
-    .replace(/Full-time\.?\s*/gi,'')
-    .replace(/Contract\.?\s*/gi,'')
-    .replace(/Posted \d+h? ago\.?\s*/gi,'')
-    .trim();
+  if(!notes) return notes||'';
+  // Don't strip — just return the full notes. Users want to see the info.
+  return notes.trim();
 }
 
 // Centered detail modal — clean boarding-pass design
