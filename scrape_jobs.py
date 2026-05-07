@@ -16,6 +16,61 @@ import os
 from datetime import datetime
 from html import unescape
 
+# Playwright for sites that block simple requests
+_browser = None
+_playwright = None
+
+def get_browser_page():
+    """Lazy-load Playwright browser (only when needed)"""
+    global _browser, _playwright
+    if _browser is None:
+        try:
+            from playwright.sync_api import sync_playwright
+            _playwright = sync_playwright().start()
+            _browser = _playwright.chromium.launch(headless=True)
+            log("  Playwright browser started")
+        except Exception as e:
+            log(f"  Playwright unavailable: {e}")
+            return None
+    try:
+        ctx = _browser.new_context(user_agent=HEADERS["User-Agent"])
+        page = ctx.new_page()
+        return page
+    except:
+        return None
+
+def close_browser():
+    global _browser, _playwright
+    try:
+        if _browser: _browser.close()
+        if _playwright: _playwright.stop()
+    except:
+        pass
+    _browser = None
+    _playwright = None
+
+def fetch_with_browser(url, wait_selector=None, wait_time=5):
+    """Fetch a page using real Chromium browser"""
+    page = get_browser_page()
+    if not page:
+        return None
+    try:
+        page.goto(url, timeout=30000, wait_until="domcontentloaded")
+        if wait_selector:
+            try:
+                page.wait_for_selector(wait_selector, timeout=10000)
+            except:
+                pass
+        time.sleep(wait_time)
+        html = page.content()
+        page.close()
+        return html
+    except Exception as e:
+        log(f"  Browser fetch error: {e}")
+        try: page.close()
+        except: pass
+        return None
+
 # --- CONFIG ---
 SUPABASE_URL = "https://afrcpiheobzauwyftksr.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmcmNwaWhlb2J6YXV3eWZ0a3NyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODE1MzMwNSwiZXhwIjoyMDkzNzI5MzA1fQ.s4pyLPAiFswQ426enQpmWqYYoohrHBTnSUmwrquE3XA"
@@ -125,8 +180,33 @@ def scrape_linkedin():
             time.sleep(1)
     return jobs
 
+def _parse_indeed_html(html, source="Indeed"):
+    """Parse Indeed HTML (shared by US and UK)"""
+    jobs = []
+    if not html:
+        return jobs
+    titles = [clean(m) for m in re.findall(r'<span[^>]*id="jobTitle-[^"]*"[^>]*>([^<]+)</span>', html)]
+    companies = [clean(m) for m in re.findall(r'<span[^>]*data-testid="company-name"[^>]*>([^<]+)</span>', html)]
+    locations = [clean(m) for m in re.findall(r'<div[^>]*data-testid="text-location"[^>]*>([^<]+)</div>', html)]
+    salaries = [clean(m) for m in re.findall(r'<div[^>]*class="[^"]*salary-snippet[^"]*"[^>]*>([^<]+)</div>', html)]
+    for i in range(len(titles)):
+        title = titles[i]
+        if any(skip in title.lower() for skip in ["data protection", "child protection", "fire protection", "loss prevention", "brand protection"]):
+            continue
+        jobs.append({
+            "title": title,
+            "company": companies[i] if i < len(companies) else "",
+            "location": locations[i] if i < len(locations) else "",
+            "source": source,
+            "source_url": "https://www.indeed.com",
+            "country": guess_country(locations[i] if i < len(locations) else ""),
+            "salary": salaries[i] if i < len(salaries) else "",
+            "notes": "",
+        })
+    return jobs
+
 def scrape_indeed():
-    """Scrape Indeed for EP/CP jobs"""
+    """Scrape Indeed US — tries HTTP first, falls back to Playwright"""
     jobs = []
     searches = [
         '%22executive+protection%22+OR+%22close+protection%22+OR+%22bodyguard%22',
@@ -135,58 +215,37 @@ def scrape_indeed():
     for q in searches:
         time.sleep(2)
         url = f'https://www.indeed.com/jobs?q={q}&sort=date&fromage=3'
+        # Try HTTP first
         html = fetch(url)
-        if not html:
+        if html and '<span' in html and 'jobTitle' in html:
+            jobs.extend(_parse_indeed_html(html, "Indeed"))
             continue
-
-        titles = [clean(m) for m in re.findall(r'<span[^>]*id="jobTitle-[^"]*"[^>]*>([^<]+)</span>', html)]
-        companies = [clean(m) for m in re.findall(r'<span[^>]*data-testid="company-name"[^>]*>([^<]+)</span>', html)]
-        locations = [clean(m) for m in re.findall(r'<div[^>]*data-testid="text-location"[^>]*>([^<]+)</div>', html)]
-        salaries = [clean(m) for m in re.findall(r'<div[^>]*class="[^"]*salary-snippet[^"]*"[^>]*>([^<]+)</div>', html)]
-
-        for i in range(len(titles)):
-            title = titles[i]
-            if any(skip in title.lower() for skip in ["data protection", "child protection", "fire protection", "loss prevention"]):
-                continue
-            jobs.append({
-                "title": title,
-                "company": companies[i] if i < len(companies) else "",
-                "location": locations[i] if i < len(locations) else "",
-                "source": "Indeed",
-                "source_url": "https://www.indeed.com",
-                "country": guess_country(locations[i] if i < len(locations) else ""),
-                "salary": salaries[i] if i < len(salaries) else "",
-                "notes": "",
-            })
+        # Fallback to Playwright
+        log("  Indeed blocked HTTP, trying Playwright...")
+        html = fetch_with_browser(url, wait_selector='[data-testid="company-name"]', wait_time=4)
+        if html:
+            jobs.extend(_parse_indeed_html(html, "Indeed"))
     return jobs
 
 def scrape_indeed_uk():
-    """Scrape Indeed UK for CP jobs"""
+    """Scrape Indeed UK — tries HTTP first, falls back to Playwright"""
     jobs = []
     time.sleep(2)
     url = 'https://uk.indeed.com/jobs?q=%22close+protection%22+OR+%22executive+protection%22&sort=date&fromage=7'
     html = fetch(url)
-    if not html:
-        return jobs
-
-    titles = [clean(m) for m in re.findall(r'<span[^>]*id="jobTitle-[^"]*"[^>]*>([^<]+)</span>', html)]
-    companies = [clean(m) for m in re.findall(r'<span[^>]*data-testid="company-name"[^>]*>([^<]+)</span>', html)]
-    locations = [clean(m) for m in re.findall(r'<div[^>]*data-testid="text-location"[^>]*>([^<]+)</div>', html)]
-
-    for i in range(len(titles)):
-        title = titles[i]
-        if any(skip in title.lower() for skip in ["data protection", "child protection"]):
-            continue
-        jobs.append({
-            "title": title,
-            "company": companies[i] if i < len(companies) else "",
-            "location": locations[i] if i < len(locations) else "",
-            "source": "Indeed UK",
-            "source_url": "https://uk.indeed.com",
-            "country": "UK",
-            "salary": "",
-            "notes": "",
-        })
+    if html and 'jobTitle' in html:
+        parsed = _parse_indeed_html(html, "Indeed UK")
+        for j in parsed:
+            j["country"] = "UK"
+        return parsed
+    # Fallback to Playwright
+    log("  Indeed UK blocked HTTP, trying Playwright...")
+    html = fetch_with_browser(url, wait_selector='[data-testid="company-name"]', wait_time=4)
+    if html:
+        parsed = _parse_indeed_html(html, "Indeed UK")
+        for j in parsed:
+            j["country"] = "UK"
+        return parsed
     return jobs
 
 def scrape_silent_professionals():
@@ -222,30 +281,44 @@ def scrape_silent_professionals():
     return jobs
 
 def scrape_gulftalent():
-    """Scrape GulfTalent for CP jobs in Middle East"""
+    """Scrape GulfTalent for CP jobs in Middle East — uses Playwright"""
     jobs = []
     time.sleep(2)
-    url = "https://www.gulftalent.com/jobs/title/close-protection-officer"
-    html = fetch(url)
-    if not html:
-        return jobs
+    urls = [
+        "https://www.gulftalent.com/jobs/title/close-protection-officer",
+        "https://www.gulftalent.com/jobs/title/executive-protection",
+        "https://www.gulftalent.com/jobs/title/bodyguard",
+    ]
+    for url in urls:
+        # GulfTalent always blocks HTTP, go straight to Playwright
+        log(f"  GulfTalent: fetching with Playwright...")
+        html = fetch_with_browser(url, wait_time=5)
+        if not html:
+            continue
 
-    # Parse job listings
-    titles = re.findall(r'<a[^>]*class="[^"]*job-title[^"]*"[^>]*>([^<]+)</a>', html)
-    companies = re.findall(r'<a[^>]*class="[^"]*company-name[^"]*"[^>]*>([^<]+)</a>', html)
-    locations = re.findall(r'<span[^>]*class="[^"]*location[^"]*"[^>]*>([^<]+)</span>', html)
+        # Parse job listings - try multiple selectors
+        titles = [clean(m) for m in re.findall(r'<a[^>]*class="[^"]*job-title[^"]*"[^>]*>([^<]+)</a>', html)]
+        if not titles:
+            titles = [clean(m) for m in re.findall(r'<h2[^>]*>\\s*<a[^>]*>([^<]+)</a>', html)]
+        if not titles:
+            # Broader match
+            titles = [clean(m) for m in re.findall(r'class="[^"]*title[^"]*"[^>]*>([^<]{10,})<', html)]
 
-    for i in range(len(titles)):
-        jobs.append({
-            "title": clean(titles[i]),
-            "company": clean(companies[i]) if i < len(companies) else "",
-            "location": clean(locations[i]) if i < len(locations) else "",
-            "source": "GulfTalent",
-            "source_url": "https://www.gulftalent.com",
-            "country": "UAE",
-            "salary": "",
-            "notes": "",
-        })
+        companies = [clean(m) for m in re.findall(r'<a[^>]*class="[^"]*company[^"]*"[^>]*>([^<]+)</a>', html)]
+        locations = [clean(m) for m in re.findall(r'<span[^>]*class="[^"]*location[^"]*"[^>]*>([^<]+)</span>', html)]
+
+        for i in range(len(titles)):
+            jobs.append({
+                "title": titles[i],
+                "company": clean(companies[i]) if i < len(companies) else "",
+                "location": clean(locations[i]) if i < len(locations) else "UAE",
+                "source": "GulfTalent",
+                "source_url": url,
+                "country": "UAE",
+                "salary": "",
+                "notes": "",
+            })
+        time.sleep(2)
     return jobs
 
 # --- UTILITIES ---
@@ -434,6 +507,9 @@ def main():
     else:
         log(f"  Errors: 0")
     log("=" * 60)
+
+    # Cleanup
+    close_browser()
 
     return 0 if not errors else 1
 
