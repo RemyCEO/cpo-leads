@@ -5,7 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>CPO Leads</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+/* Auth overlay */
+.auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;align-items:center;justify-content:center}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:400px;margin:20px}
+.auth-box h1{font-size:24px;font-weight:800;margin-bottom:4px}
+.auth-box h1 span{color:var(--accent)}
+.auth-box .auth-sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+.auth-box .auth-field{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+.auth-box .auth-field label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.auth-box .auth-field input{padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font-size:14px;outline:none}
+.auth-box .auth-field input:focus{border-color:var(--accent)}
+.auth-box .auth-btn{width:100%;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.auth-box .auth-btn:hover{background:var(--accent2)}
+.auth-box .auth-toggle{text-align:center;margin-top:16px;font-size:13px;color:var(--muted)}
+.auth-box .auth-toggle a{color:var(--accent);cursor:pointer;text-decoration:none}
+.auth-box .auth-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:12px;display:none}
+.auth-box .auth-success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:12px;display:none}
+.user-menu{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.user-menu button{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer}
+.user-menu button:hover{color:var(--fg);border-color:var(--fg)}
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#09090b;--surface:#18181b;--surface2:#27272a;--border:#3f3f46;--fg:#fafafa;--muted:#a1a1aa;--accent:#22c55e;--accent2:#16a34a;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--amber:#f59e0b;--radius:12px}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--fg);min-height:100vh;-webkit-font-smoothing:antialiased}
@@ -152,9 +172,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 </head>
 <body>
 
+<!-- Auth Overlay -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-box">
+    <h1>&#x1F6E1;&#xFE0F; <span>CPO</span> Leads</h1>
+    <div class="auth-sub">Close protection job intelligence platform</div>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-success" id="auth-success"></div>
+    <div id="auth-form-login">
+      <div class="auth-field"><label>Email</label><input type="email" id="auth-email" placeholder="you@email.com"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="auth-pass" placeholder="Your password"></div>
+      <button class="auth-btn" onclick="authLogin()">Log In</button>
+      <div class="auth-toggle"><a onclick="showSignup()">Create account</a> &middot; <a onclick="showReset()">Forgot password?</a></div>
+    </div>
+    <div id="auth-form-signup" style="display:none">
+      <div class="auth-field"><label>Email</label><input type="email" id="signup-email" placeholder="you@email.com"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="signup-pass" placeholder="Min 6 characters"></div>
+      <button class="auth-btn" onclick="authSignup()">Create Account</button>
+      <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--muted)">By signing up you agree to our Terms of Service</div>
+      <div class="auth-toggle"><a onclick="showLogin()">Already have an account? Log in</a></div>
+    </div>
+    <div id="auth-form-reset" style="display:none">
+      <div class="auth-field"><label>Email</label><input type="email" id="reset-email" placeholder="you@email.com"></div>
+      <button class="auth-btn" onclick="authReset()">Send Reset Link</button>
+      <div class="auth-toggle"><a onclick="showLogin()">Back to login</a></div>
+    </div>
+  </div>
+</div>
+
 <div class="header">
   <h1>&#x1F6E1;&#xFE0F; <span>CPO</span> Leads</h1>
   <div class="header-actions">
+    <div class="user-menu" id="user-menu"><span id="user-email"></span><button onclick="authLogout()">Log out</button></div>
     <div class="export-menu">
       <button class="btn btn-ghost btn-sm" onclick="toggleExport()">Export</button>
       <div class="export-dropdown" id="export-menu">
@@ -270,6 +319,90 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 <div class="detail" id="detail"></div>
 
 <script>
+// --- SUPABASE AUTH ---
+const SB_URL = 'https://afrcpiheobzauwyftksr.supabase.co';
+const SB_KEY = 'sb_publishable_fJWFqpHxoux8-FfxuEZH0Q_UxlBylC6';
+const STRIPE_MONTHLY = 'https://buy.stripe.com/28EeVdf423lFaGwcG37AI00';
+const STRIPE_YEARLY = 'https://buy.stripe.com/cNi8wPdZY2hB4i821p7AI01';
+
+const sb = supabase.createClient(SB_URL, SB_KEY);
+let currentUser = null;
+
+function showLogin() { document.getElementById('auth-form-login').style.display=''; document.getElementById('auth-form-signup').style.display='none'; document.getElementById('auth-form-reset').style.display='none'; hideAuthMsg(); }
+function showSignup() { document.getElementById('auth-form-login').style.display='none'; document.getElementById('auth-form-signup').style.display=''; document.getElementById('auth-form-reset').style.display='none'; hideAuthMsg(); }
+function showReset() { document.getElementById('auth-form-login').style.display='none'; document.getElementById('auth-form-signup').style.display='none'; document.getElementById('auth-form-reset').style.display=''; hideAuthMsg(); }
+function hideAuthMsg() { document.getElementById('auth-error').style.display='none'; document.getElementById('auth-success').style.display='none'; }
+function showAuthError(msg) { const el=document.getElementById('auth-error'); el.textContent=msg; el.style.display=''; }
+function showAuthSuccess(msg) { const el=document.getElementById('auth-success'); el.textContent=msg; el.style.display=''; }
+
+async function authLogin() {
+  hideAuthMsg();
+  const email = document.getElementById('auth-email').value.trim();
+  const pass = document.getElementById('auth-pass').value;
+  if(!email||!pass) return showAuthError('Enter email and password');
+  const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
+  if(error) return showAuthError(error.message);
+  onAuthSuccess(data.user);
+}
+
+async function authSignup() {
+  hideAuthMsg();
+  const email = document.getElementById('signup-email').value.trim();
+  const pass = document.getElementById('signup-pass').value;
+  if(!email||!pass) return showAuthError('Enter email and password');
+  if(pass.length<6) return showAuthError('Password must be at least 6 characters');
+  const {data,error} = await sb.auth.signUp({email,password:pass});
+  if(error) return showAuthError(error.message);
+  if(data.user && !data.user.confirmed_at) {
+    showAuthSuccess('Check your email for confirmation link!');
+  } else {
+    onAuthSuccess(data.user);
+  }
+}
+
+async function authReset() {
+  hideAuthMsg();
+  const email = document.getElementById('reset-email').value.trim();
+  if(!email) return showAuthError('Enter your email');
+  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: 'https://cpo.strategio.site/index.html'});
+  if(error) return showAuthError(error.message);
+  showAuthSuccess('Password reset link sent to your email!');
+}
+
+async function authLogout() {
+  await sb.auth.signOut();
+  currentUser = null;
+  document.getElementById('auth-overlay').style.display = 'flex';
+}
+
+function onAuthSuccess(user) {
+  currentUser = user;
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('user-email').textContent = user.email;
+}
+
+// Check session on load
+(async () => {
+  const {data:{session}} = await sb.auth.getSession();
+  if(session && session.user) {
+    onAuthSuccess(session.user);
+  }
+  // Listen for auth changes (email confirm redirect)
+  sb.auth.onAuthStateChange((event, session) => {
+    if(session && session.user) onAuthSuccess(session.user);
+  });
+})();
+
+// Enter key support on auth forms
+document.addEventListener('keydown', e => {
+  if(e.key==='Enter') {
+    if(document.activeElement.id==='auth-email'||document.activeElement.id==='auth-pass') authLogin();
+    if(document.activeElement.id==='signup-email'||document.activeElement.id==='signup-pass') authSignup();
+    if(document.activeElement.id==='reset-email') authReset();
+  }
+});
+
+// --- APP ---
 const STORAGE_KEY = 'cp_leads_data';
 const SEED_DATA=[
 {c:"Control Risks",t:"security",w:"controlrisks.com",l:"London",co:"UK",p:"hot",n:"Global leader. EP Analyst roles. 1001-5000 employees. Careers: controlrisks.com/careers"},
