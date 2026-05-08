@@ -1353,30 +1353,58 @@ body {
     <!-- Featured + News Row -->
     <div class="dashboard-grid" style="display:grid;gap:16px;margin-bottom:20px;align-items:start">
 
-    <!-- Featured Company Card -->
-    <div class="featured-company-card" style="display:grid;gap:0;border-radius:10px;overflow:hidden;border:1px solid rgba(201,168,76,.25);animation:borderPulse 4s ease-in-out infinite;grid-template-columns:1fr 1fr">
-      <!-- Left: Screenshot from GDBA website -->
+    <!-- Featured Company Card (clickable → opens modal) -->
+    <div class="featured-company-card" onclick="document.getElementById('featured-modal-bg').classList.add('open')" style="display:grid;gap:0;border-radius:10px;overflow:hidden;border:1px solid rgba(201,168,76,.25);animation:borderPulse 4s ease-in-out infinite;grid-template-columns:1fr 1fr;cursor:pointer">
+      <!-- Left: Screenshot -->
       <div style="position:relative;min-height:260px;background:#0c0f18;overflow:hidden">
         <img id="cotm-image" src="gdba_screenshot.png" alt="Gavin de Becker & Associates" style="width:100%;height:100%;object-fit:cover;object-position:center;opacity:.9" onerror="this.src='https://gdba.com/storage/01JPE5T53F263390ZVW13RP1TZ.jpg'">
         <div style="position:absolute;inset:0;background:linear-gradient(to right,transparent 50%,#0a0c14)"></div>
         <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,#0a0c14,transparent);height:40%"></div>
-        <!-- FEATURED badge -->
         <div style="position:absolute;top:14px;left:14px;display:flex;gap:8px;align-items:center">
           <span style="padding:4px 10px;border-radius:3px;font-size:0.55rem;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d">FEATURED</span>
           <span style="font-size:0.55rem;color:rgba(255,255,255,.5);letter-spacing:1px">MAY 2026</span>
         </div>
       </div>
-      <!-- Right: Info -->
+      <!-- Right: Preview -->
       <div style="background:#0a0c14;padding:24px;display:flex;flex-direction:column;justify-content:center">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
           <img src="https://gdba.com/images/gdba-footer.png" alt="GDBA" style="height:28px;filter:brightness(1.2)" onerror="this.style.display='none'">
           <span style="padding:3px 10px;border-radius:3px;font-size:0.55rem;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d">FEATURED COMPANY</span>
         </div>
         <h3 style="font-size:1.15rem;font-weight:800;letter-spacing:0.5px;line-height:1.25;margin-bottom:10px;color:var(--text-primary)">Gavin de Becker & Associates</h3>
-        <p style="font-size:0.75rem;color:var(--text-secondary);line-height:1.65;margin-bottom:12px">Founded in 1978 by 3x Presidential appointee Gavin de Becker, GDBA is widely regarded as the gold standard in executive protection. Their pioneering work on threat assessment and violence prediction has redefined the industry. They protect some of the world's most high-profile families, corporate leaders, and public figures.</p>
-        <p style="font-size:0.7rem;color:var(--gold);line-height:1.5;margin-bottom:14px;padding:8px 10px;border-left:2px solid rgba(201,168,76,.4);background:rgba(201,168,76,.03);border-radius:0 4px 4px 0"><strong>WHY FEATURED COMPANY:</strong> Massive hiring push across the US with 22 immediate openings. Military and law enforcement backgrounds highly valued. One of the few firms where career progression leads to global operations leadership.</p>
-        <a href="https://gdba.com/open-positions/" target="_blank" style="display:block;text-align:center;padding:12px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:6px;font-weight:800;font-size:0.8rem;text-decoration:none;letter-spacing:1px;transition:all .2s;margin-bottom:8px" onmouseover="this.style.boxShadow='0 0 24px rgba(201,168,76,.4)'" onmouseout="this.style.boxShadow='none'">APPLY NOW</a>
-        <button onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Gavin de Becker';applyFilters()},200)" style="width:100%;padding:8px;background:none;border:1px solid rgba(201,168,76,.2);border-radius:6px;color:var(--gold);font-size:0.7rem;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:0.5px;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='rgba(201,168,76,.2)'">View on CPO Leads</button>
+        <p class="featured-preview-text" style="font-size:0.75rem;color:var(--text-secondary);line-height:1.65;margin-bottom:0">Founded in 1978 by 3x Presidential appointee. The gold standard in executive protection. Tap to read more.</p>
+      </div>
+    </div>
+
+    <!-- Featured Company Modal -->
+    <div id="featured-modal-bg" class="detail-modal-bg" onclick="this.classList.remove('open')" style="z-index:300">
+      <div onclick="event.stopPropagation()" style="background:rgba(10,14,26,.98);border:1px solid rgba(201,168,76,.25);border-radius:12px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:0;margin:16px;animation:fadeInUp .25s ease">
+        <!-- Image -->
+        <div style="position:relative;height:200px;overflow:hidden;border-radius:12px 12px 0 0">
+          <img src="gdba_screenshot.png" alt="GDBA" style="width:100%;height:100%;object-fit:cover;opacity:.85" onerror="this.src='https://gdba.com/storage/01JPE5T53F263390ZVW13RP1TZ.jpg'">
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,14,26,.95) 0%,transparent 60%)"></div>
+          <button onclick="document.getElementById('featured-modal-bg').classList.remove('open')" style="position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">&times;</button>
+          <div style="position:absolute;bottom:16px;left:20px;display:flex;align-items:center;gap:10px">
+            <span style="padding:4px 10px;border-radius:3px;font-size:0.55rem;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d">FEATURED COMPANY — MAY 2026</span>
+          </div>
+        </div>
+        <!-- Content -->
+        <div style="padding:20px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+            <img src="https://gdba.com/images/gdba-footer.png" alt="GDBA" style="height:24px;filter:brightness(1.2)" onerror="this.style.display='none'">
+            <h3 style="font-size:1.1rem;font-weight:800;color:var(--text-primary)">Gavin de Becker & Associates</h3>
+          </div>
+          <p style="font-size:0.78rem;color:var(--text-secondary);line-height:1.7;margin-bottom:16px">Founded in 1978 by 3x Presidential appointee Gavin de Becker, GDBA is widely regarded as the gold standard in executive protection. Their pioneering work on threat assessment and violence prediction has redefined the industry. They protect some of the world's most high-profile families, corporate leaders, and public figures.</p>
+          <p style="font-size:0.73rem;color:var(--gold);line-height:1.5;margin-bottom:16px;padding:10px 12px;border-left:2px solid rgba(201,168,76,.4);background:rgba(201,168,76,.03);border-radius:0 4px 4px 0"><strong>WHY FEATURED:</strong> Massive hiring push across the US with 22 immediate openings. Military and law enforcement backgrounds highly valued. One of the few firms where career progression leads to global operations leadership.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;font-size:0.68rem">
+            <div style="padding:10px;background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.1);border-radius:6px;text-align:center"><div style="color:var(--gold);font-weight:800;font-size:1rem;margin-bottom:2px">22</div><div style="color:var(--text-muted)">Open Positions</div></div>
+            <div style="padding:10px;background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.1);border-radius:6px;text-align:center"><div style="color:var(--gold);font-weight:800;font-size:1rem;margin-bottom:2px">40+</div><div style="color:var(--text-muted)">Global Offices</div></div>
+            <div style="padding:10px;background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.1);border-radius:6px;text-align:center"><div style="color:var(--gold);font-weight:800;font-size:1rem;margin-bottom:2px">$75K-$130K</div><div style="color:var(--text-muted)">Salary Range</div></div>
+            <div style="padding:10px;background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.1);border-radius:6px;text-align:center"><div style="color:var(--gold);font-weight:800;font-size:1rem;margin-bottom:2px">1978</div><div style="color:var(--text-muted)">Founded</div></div>
+          </div>
+          <a href="https://gdba.com/open-positions/" target="_blank" onclick="event.stopPropagation()" style="display:block;text-align:center;padding:14px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:8px;font-weight:800;font-size:0.85rem;text-decoration:none;letter-spacing:1px;margin-bottom:8px">APPLY NOW — VIEW POSITIONS</a>
+          <button onclick="document.getElementById('featured-modal-bg').classList.remove('open');switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Gavin de Becker';applyFilters()},200)" style="width:100%;padding:10px;background:none;border:1px solid rgba(201,168,76,.2);border-radius:8px;color:var(--gold);font-size:0.72rem;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:0.5px">View All GDBA Jobs on CPO Leads</button>
+        </div>
       </div>
     </div>
 
