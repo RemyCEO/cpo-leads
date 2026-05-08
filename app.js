@@ -78,6 +78,14 @@ async function authLogout() {
 let _isSubscribed = false;
 const _adminEmails = ['remy@strategioai.com','helgesenconsulting@gmail.com','reppin1388@gmail.com'];
 
+// Central gate — ALL job/apply interactions go through this
+function gateApply(e) {
+  if (_isSubscribed) return true;
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  showPaywall();
+  return false;
+}
+
 async function onAuthSuccess(user) {
   currentUser = user;
   document.getElementById('user-email').textContent = user.email;
@@ -347,7 +355,7 @@ function renderSaved() {
           ${salary?'<div class="job-salary">'+esc(salary)+'</div>':''}
         </div>
         <div class="job-actions">
-          ${url?'<a href="'+url+'" target="_blank" class="btn-apply" onclick="event.stopPropagation();if(!_isSubscribed){event.preventDefault();showPaywall()}">Apply \u2192</a>':''}
+          ${url?'<a href="'+url+'" target="_blank" class="btn-apply" onclick="if(!gateApply(event))return">Apply \u2192</a>':''}
           <button class="btn btn-ghost btn-sm" onclick="openDetail('${l.id}')" style="font-size:11px">Details</button>
           <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleSaved('${l.id}');renderSaved()" style="font-size:11px;color:var(--red);border-color:rgba(239,68,68,.3)">Remove</button>
           <span class="badge ${job?'badge-job':typeBadge[l.type]||'badge-security'}" style="margin-left:auto">${job?'JOB':typeLabels[l.type]||l.type}</span>
@@ -628,7 +636,7 @@ function renderList(list) {
             ${l.location ? `<span style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px">${flag} ${esc(l.location)}${l.country && l.country!=='UK' && l.country!=='USA' ? ' \u00b7 '+esc(l.country) : ''}</span>` : ''}
             ${sourceIcon(source)}
             <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
-              ${url ? `<a href="${url}" target="_blank" onclick="event.stopPropagation();if(!_isSubscribed){event.preventDefault();showPaywall()}" style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;padding:5px 14px;border-radius:5px;font-size:10px;font-weight:800;text-decoration:none;letter-spacing:0.5px">APPLY</a>` : ''}
+              ${url ? `<a href="${url}" target="_blank" onclick="if(!gateApply(event))return" style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;padding:5px 14px;border-radius:5px;font-size:10px;font-weight:800;text-decoration:none;letter-spacing:0.5px">APPLY</a>` : ''}
               <button onclick="event.stopPropagation();toggleSaved('${l.id}');applyFilters();updateSavedCount()" style="background:none;border:none;cursor:pointer;font-size:18px;opacity:${l.saved?'1':'.35'};transition:opacity .15s;padding:0" title="${l.saved?'Unsave':'Save'}">${l.saved?'\u2605':'\u2606'}</button>
             </span>
           </div>
@@ -756,7 +764,7 @@ function openDetail(id) {
       ${l.contact_person?`<div class="detail-row"><span class="detail-label">Contact</span><span class="detail-value">${esc(l.contact_person)}</span></div>`:''}
       ${l.email?`<div class="detail-row"><span class="detail-label">Email</span><span class="detail-value"><a href="mailto:${esc(l.email)}">${esc(l.email)}</a></span></div>`:''}
       ${l.phone?`<div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value"><a href="tel:${esc(l.phone)}">${esc(l.phone)}</a></span></div>`:''}
-      ${l.website?`<div class="detail-row"><span class="detail-label">${isJob(l)?'Apply':'Website'}</span><span class="detail-value"><a href="${l.website.startsWith('http')?esc(l.website):'https://'+esc(l.website)}" target="_blank">${isJob(l)?'Apply Now \u2192':esc(l.website)}</a></span></div>`:''}
+      ${l.website?`<div class="detail-row"><span class="detail-label">${isJob(l)?'Apply':'Website'}</span><span class="detail-value"><a href="${l.website.startsWith('http')?esc(l.website):'https://'+esc(l.website)}" target="_blank" ${isJob(l)?'onclick="if(!gateApply(event))return"':''}>${isJob(l)?'Apply Now \u2192':esc(l.website)}</a></span></div>`:''}
       ${l.location?`<div class="detail-row"><span class="detail-label">Location</span><span class="detail-value">${esc(l.location)}${l.country?' \u00b7 '+esc(l.country):''}</span></div>`:''}
       ${l.notes?`<div style="margin-top:16px"><div class="detail-label" style="margin-bottom:6px">Notes</div><div style="font-size:13px;color:var(--muted);line-height:1.5;white-space:pre-wrap">${esc(l.notes)}</div></div>`:''}
     </div>
