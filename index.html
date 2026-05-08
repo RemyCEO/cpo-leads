@@ -2301,17 +2301,22 @@ window.addEventListener('scroll', () => {
 
 // Intersection Observer for reveal animations
 const revealElements = document.querySelectorAll('.reveal');
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-    }
+if (window.innerWidth <= 768) {
+  // On mobile, show everything immediately — no animation delays
+  revealElements.forEach(el => el.classList.add('visible'));
+} else {
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, {
+    threshold: 0.05,
+    rootMargin: '0px 0px 50px 0px'
   });
-}, {
-  threshold: 0.1,
-  rootMargin: '0px 0px -50px 0px'
-});
-revealElements.forEach(el => revealObserver.observe(el));
+  revealElements.forEach(el => revealObserver.observe(el));
+}
 
 // FAQ accordion
 const faqItems = document.querySelectorAll('.faq-item');
