@@ -1098,36 +1098,67 @@ body {
   .sidebar { transform: translateX(-100%); }
   .sidebar.open { transform: translateX(0); }
   .hamburger { display: flex; }
-  .main-content { margin-left: 0; padding: 80px 12px 20px; }
-  .topbar { left: 0; padding-left: 60px; }
-  .topbar-search input { font-size: 13px; }
+  .main-content { margin-left: 0; padding: 70px 10px 20px; }
+  .topbar { left: 0; padding-left: 52px; height: 56px; }
+  .topbar-search input { font-size: 12px; padding: 6px 10px 6px 30px; }
   .main-content::after { left: 0; }
+
+  /* All grids single column */
   .dashboard-grid { grid-template-columns: 1fr !important; }
-  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .stat-card { padding: 14px; }
-  .stat-value { font-size: 1.3rem; }
-  .stat-label { font-size: 0.6rem; }
-  .section-title { font-size: 0.85rem; }
-  .job-card { padding: 14px; }
-  .job-header { flex-direction: column; gap: 6px; }
-  .job-salary { font-size: 13px; }
-  .job-actions { flex-wrap: wrap; gap: 6px; }
-  .lead-card { padding: 12px; }
-  .detail-modal { width: 95%; max-width: none; margin: 10px; padding: 16px; }
   .dash-grid { grid-template-columns: 1fr !important; }
+
+  /* Featured Company — stack image above text */
+  #page-dashboard .dashboard-grid .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+  #page-dashboard .dashboard-grid .dashboard-grid > div:first-child {
+    min-height: 180px !important;
+  }
+
+  /* Threat Monitor */
   #threat-regions { grid-template-columns: repeat(3, 1fr) !important; }
-  .threat-zone:nth-child(4), .threat-zone:nth-child(5) { border-top: 1px solid rgba(201,168,76,.08); }
-  .nav-item { font-size: 0.8rem; padding: 10px 16px; }
+  .threat-zone { padding: 10px 8px; }
+  .tz-label { font-size: 0.5rem; }
+  .tz-level { font-size: 0.6rem; }
+  .tz-detail { font-size: 0.5rem; }
+
+  /* Stats */
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { padding: 12px; }
+  .stat-value { font-size: 1.2rem; }
+  .stat-label { font-size: 0.55rem; }
+  .section-title { font-size: 0.85rem; }
+
+  /* Job cards */
+  .job-card { padding: 12px; }
+  .job-header { flex-direction: column; gap: 4px; }
+  .job-title { font-size: 14px; }
+  .job-salary { font-size: 12px; }
+  .job-row { font-size: 11px; flex-wrap: wrap; gap: 6px; }
+  .job-actions { flex-wrap: wrap; gap: 6px; }
+  .btn-apply { font-size: 11px; padding: 6px 12px; }
+
+  /* Lead cards */
+  .lead-card { padding: 10px; }
+  .lead-company { font-size: 13px; }
+
+  /* Detail modal */
+  .detail-modal { width: 95% !important; max-width: none !important; margin: 8px !important; padding: 14px !important; }
+
+  /* Nav & profile */
+  .nav-item { font-size: 0.78rem; padding: 10px 16px; }
+  .profile-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
   .stats-grid { grid-template-columns: 1fr; }
-  .topbar { padding-left: 50px; }
-  .topbar-actions .btn-gold { font-size: 9px; padding: 5px 8px; }
-  .topbar-actions .btn-ghost { font-size: 9px; }
-  #global-search { min-width: 80px; font-size: 12px; }
-  .job-title { font-size: 14px; }
-  .job-row { font-size: 12px; }
-  .btn-apply { font-size: 11px; padding: 6px 12px; }
+  .topbar { padding-left: 46px; }
+  .topbar-actions .btn-gold { font-size: 9px; padding: 4px 8px; }
+  .topbar-actions .btn-ghost { font-size: 8px; padding: 4px 6px; }
+  #global-search { min-width: 60px; font-size: 11px; }
+  #threat-regions { grid-template-columns: repeat(2, 1fr) !important; }
+  .threat-zone:nth-child(5) { grid-column: 1 / -1; }
+  .job-title { font-size: 13px; }
+  .job-row { font-size: 10px; }
 }
 </style>
 </head>
