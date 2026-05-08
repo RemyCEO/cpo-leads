@@ -133,20 +133,40 @@ async function startTrial(email, plan) {
 function showPaywall() {
   document.getElementById('paywall-overlay')?.remove();
 
+  const features = [
+    'Full access to all contract listings worldwide',
+    'Curated job matching and recommendations',
+    'Verified operator profile with credential badges',
+    'End-to-end encrypted messaging with employers',
+    'Daily intelligence briefings and threat data',
+    'Global threat map and travel risk assessments',
+    'Priority intel alerts for your regions and skillset',
+    'Elite contractor network and referral access',
+    'Direct application to verified employers'
+  ];
+  const checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>';
+  const featureList = features.map(f => '<li style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px;color:#e8e6e3;line-height:1.4">' + checkSvg + f + '</li>').join('');
+
   const pw = document.createElement('div');
   pw.id = 'paywall-overlay';
-  pw.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(6,8,13,0.95);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)';
+  pw.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(6,8,13,0.97);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(12px);overflow-y:auto';
   pw.innerHTML = `
-    <div style="max-width:480px;text-align:center;font-family:Inter,system-ui,sans-serif">
-      <div style="font-size:48px;margin-bottom:16px">&#128737;</div>
-      <h2 style="color:#C9A84C;font-size:26px;margin-bottom:12px">Unlock All Job Listings</h2>
-      <p style="color:#C9A84C;font-size:17px;font-weight:700;margin-bottom:4px">3 days free. Cancel anytime.</p>
-      <p style="color:#9a978f;font-size:13px;line-height:1.5;margin-bottom:24px">
-        Access 200+ close protection contracts, apply directly to verified employers, and get daily job alerts. You won't be charged until day 4.
-      </p>
-      <a href="${STRIPE_MONTHLY}" style="display:block;width:100%;padding:16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:8px;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:10px;font-family:inherit;text-decoration:none;text-align:center">Start Free Trial — then $19.90/mo</a>
-      <a href="${STRIPE_YEARLY}" style="display:block;width:100%;padding:14px;background:transparent;border:2px solid #C9A84C;color:#C9A84C;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:24px;font-family:inherit;text-decoration:none;text-align:center">Start Free Trial — then $199/yr (Save $40)</a>
-      <button onclick="document.getElementById('paywall-overlay')?.remove()" style="background:none;border:none;color:#666;cursor:pointer;font-size:13px;font-family:inherit">Back to Dashboard</button>
+    <div style="max-width:480px;width:100%;font-family:Inter,system-ui,sans-serif;background:rgba(13,17,23,0.95);border:1px solid rgba(201,168,76,.2);border-radius:16px;padding:32px 24px;box-shadow:0 24px 80px rgba(0,0,0,.6)">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="display:inline-block;padding:6px 14px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;margin-bottom:14px">OPERATIONAL ACCESS</div>
+        <h2 style="color:#C9A84C;font-size:32px;font-weight:800;margin-bottom:4px">3 Days Free</h2>
+        <p style="color:#9a978f;font-size:13px;line-height:1.5;margin-bottom:4px">Then $19.90/month. Cancel anytime — you won't be charged during trial.</p>
+        <p style="color:#7a7770;font-size:12px">Or <strong style="color:#e8e6e3">$199/year</strong> after trial — save $40 annually</p>
+      </div>
+      <ul style="list-style:none;padding:0;margin:0 0 24px;border-top:1px solid rgba(201,168,76,.1);border-bottom:1px solid rgba(201,168,76,.1);padding:16px 0">
+        ${featureList}
+      </ul>
+      <a href="${STRIPE_MONTHLY}" style="display:block;width:100%;padding:16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:8px;font-weight:800;font-size:15px;text-decoration:none;text-align:center;letter-spacing:0.5px;margin-bottom:8px">Start Free Trial — 3 Days Free</a>
+      <p style="text-align:center;font-size:11px;color:#7a7770;margin-bottom:16px">Sign up, add a card, explore everything. Charged $19.90/mo after 3 days.</p>
+      <div style="text-align:center;padding-top:12px;border-top:1px solid rgba(201,168,76,.08)">
+        <p style="font-size:11px;color:#52504b;margin-bottom:12px">Secure payment via Stripe. Cancel anytime.</p>
+        <button onclick="document.getElementById('paywall-overlay')?.remove()" style="background:none;border:none;color:#666;cursor:pointer;font-size:12px;font-family:inherit">Back to Dashboard</button>
+      </div>
     </div>
   `;
   document.body.appendChild(pw);
