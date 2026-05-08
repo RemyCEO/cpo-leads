@@ -199,9 +199,10 @@ function expandSeed(s){
   return{id:uid(),company:s.c,type:s.t,website:s.w||null,location:s.l||null,country:s.co||null,priority:s.p||'medium',notes:s.n||null,category:s.j?'job':'company',status:'ny',contact_person:s.cp||null,email:s.e||null,phone:s.ph||null,created_at:now,updated_at:now};
 }
 
-const SEED_VERSION = 7;
+const SEED_VERSION = 8;
 let leads;
 if (localStorage.getItem('cp_seed_version') !== String(SEED_VERSION)) {
+  // Purge old data and rebuild from clean seed
   leads = SEED_DATA.map(expandSeed);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
   localStorage.setItem('cp_seed_version', String(SEED_VERSION));
@@ -209,6 +210,10 @@ if (localStorage.getItem('cp_seed_version') !== String(SEED_VERSION)) {
   leads = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   if (!leads.length) { leads = SEED_DATA.map(expandSeed); localStorage.setItem(STORAGE_KEY, JSON.stringify(leads)); }
 }
+// Strip any JobLeads entries that snuck into localStorage
+const _before = leads.length;
+leads = leads.filter(l => !/jobleads/i.test(l.company || '') && !/jobleads/i.test(l.website || '') && !/jobleads/i.test(l.notes || ''));
+if (leads.length < _before) { persist(); console.log('Removed ' + (_before - leads.length) + ' JobLeads entries'); }
 let activeTab = 'companies';
 
 const typeLabels = {security:'Security',management:'Management',agency:'Agency'};
