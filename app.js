@@ -80,10 +80,10 @@ async function onAuthSuccess(user) {
   document.getElementById('user-email').textContent = user.email;
 
   // Check subscription status before granting access
-  const isAdmin = user.email === 'remy@strategioai.com';
+  const isAdmin = user.email === 'remy@strategioai.com' || user.email === 'helgesenconsulting@gmail.com' || user.email === 'reppin1388@gmail.com';
   if (!isAdmin) {
     // 3-day free trial based on account creation date
-    const createdAt = new Date(user.created_at);
+    const createdAt = new Date(user.created_at || user.confirmed_at || Date.now());
     const trialMs = 3 * 24 * 60 * 60 * 1000;
     const trialEnd = new Date(createdAt.getTime() + trialMs);
     const inTrial = Date.now() < trialEnd.getTime();
