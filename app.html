@@ -2196,7 +2196,7 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
 
   // Fetch live conflict data from GDELT
   try {
-    const gdeltUrl = 'https://api.gdeltproject.org/api/v2/doc/doc?query=("armed conflict" OR "military attack" OR "terrorist attack" OR "security threat" OR "bombing" OR "missile strike")&mode=artlist&maxrecords=30&format=json&sort=datedesc';
+    const gdeltUrl = 'https://api.gdeltproject.org/api/v2/doc/doc?query=("armed conflict" OR "military attack" OR "terrorist attack" OR "security threat" OR "bombing" OR "missile strike") sourcelang:english&mode=artlist&maxrecords=30&format=json&sort=datedesc';
     const r = await fetch(gdeltUrl);
     const data = await r.json();
     const articles = data.articles || [];
@@ -2258,9 +2258,9 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
   // === INDUSTRY INTEL FEED (live from GDELT) ===
   try {
     const intelQueries = [
-      '("security contract" OR "security firm" OR "protection company") (awarded OR hiring OR expansion)',
-      '("executive protection" OR "close protection" OR "bodyguard") (market OR industry OR growth OR hiring)',
-      '("private security" OR "security services") (contract OR deal OR billion OR million)',
+      '("security contract" OR "security firm" OR "protection company") (awarded OR hiring OR expansion) sourcelang:english',
+      '("executive protection" OR "close protection" OR "bodyguard") (market OR industry OR growth OR hiring) sourcelang:english',
+      '("private security" OR "security services") (contract OR deal OR billion OR million) sourcelang:english',
     ];
     const allIntel = [];
     for (const q of intelQueries) {
