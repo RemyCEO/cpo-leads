@@ -2,7 +2,7 @@
   "name": "CPO Leads — Global Security Opportunities",
   "short_name": "CPO Leads",
   "description": "Elite intelligence and recruitment platform for close protection operators",
-  "start_url": "/index.html?login",
+  "start_url": "/app.html?login",
   "display": "standalone",
   "background_color": "#06080d",
   "theme_color": "#C9A84C",

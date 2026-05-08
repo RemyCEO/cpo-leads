@@ -1,0 +1,2292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+// Redirect to landing page if no active session
+if (!localStorage.getItem('sb-afrcpiheobzauwyftksr-auth-token') && !window.location.search.includes('login')) {
+  window.location.replace('/');
+}
+</script>
+<title>CPO Leads Dashboard — Security Jobs, Intel & Contracts</title>
+<meta name="description" content="Your CPO Leads dashboard. Browse close protection jobs, daily threat intelligence, verified security employers, and active contracts worldwide.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://cpoleads.com/app">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cpoleads.com/app">
+<meta property="og:title" content="CPO Leads — Security Opportunities Dashboard">
+<meta property="og:description" content="Access vetted contracts, threat intel, and operator networks worldwide.">
+<meta property="og:image" content="https://cpoleads.com/cpo_leads_logo.png">
+
+<!-- PWA & Mobile -->
+<link rel="icon" type="image/png" href="cpo_leads_logo.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#C9A84C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CPO Leads">
+<link rel="apple-touch-icon" href="cpo_leads_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 14px; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: #06080d;
+  color: #e8e6e3;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+::-webkit-scrollbar { width: 12px; }
+::-webkit-scrollbar-track { background: #0a0e1a; border-left: 1px solid rgba(201,168,76,.08); }
+::-webkit-scrollbar-thumb { background: rgba(201,168,76,.3); border-radius: 6px; border: 2px solid #0a0e1a; }
+::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,.55); }
+* { scrollbar-width: auto; scrollbar-color: rgba(201,168,76,.3) #0a0e1a; }
+
+/* ===== CSS VARIABLES ===== */
+:root {
+  --gold: #C9A84C;
+  --gold-bright: #D4AF37;
+  --gold-dim: #8a7a3a;
+  --bg-deep: #06080d;
+  --bg-panel: #0a0e1a;
+  --card-bg: rgba(15, 20, 30, 0.8);
+  --card-border: rgba(201, 168, 76, 0.12);
+  --card-border-hover: rgba(201, 168, 76, 0.3);
+  --text-primary: #e8e6e3;
+  --text-secondary: #7a7770;
+  --text-muted: #4a4740;
+  --sidebar-width: 240px;
+  --topbar-height: 60px;
+  --green: #3ecf8e;
+  --red: #e74c3c;
+  --amber: #f0a030;
+  --blue: #3a8fd4;
+  /* Compat aliases for app.js rendering */
+  --bg: #06080d;
+  --bg2: #0a0e1a;
+  --surface: rgba(15,20,30,0.8);
+  --surface2: rgba(20,26,40,0.9);
+  --border: rgba(201,168,76,0.12);
+  --border-hover: rgba(201,168,76,0.3);
+  --fg: #e8e6e3;
+  --muted: #7a7770;
+  --dim: #52504d;
+  --accent: #C9A84C;
+  --accent2: #8B7635;
+  --purple: #8e44ad;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --gold-dim: rgba(201,168,76,0.15);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes radarSweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.8); opacity: 0.3; }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 5px rgba(201, 168, 76, 0.1); }
+  50% { box-shadow: 0 0 20px rgba(201, 168, 76, 0.15); }
+}
+@keyframes gridFade {
+  0%, 100% { opacity: 0.03; }
+  50% { opacity: 0.07; }
+}
+@keyframes scanline {
+  0% { top: -2px; }
+  100% { top: 100%; }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes textGlow {
+  0%, 100% { text-shadow: 0 0 20px rgba(201, 168, 76, 0.3); }
+  50% { text-shadow: 0 0 40px rgba(201, 168, 76, 0.6), 0 0 80px rgba(201, 168, 76, 0.2); }
+}
+@keyframes borderPulse {
+  0%, 100% { border-color: rgba(201, 168, 76, 0.15); }
+  50% { border-color: rgba(201, 168, 76, 0.4); }
+}
+@keyframes dotPing {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(2.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+/* ========================================
+   1. LOGIN SCREEN
+   ======================================== */
+#auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-deep);
+  overflow: hidden;
+}
+/* Animated grid background */
+#auth-overlay::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background-image:
+    linear-gradient(rgba(201, 168, 76, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 168, 76, 0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridFade 4s ease-in-out infinite;
+  transform: perspective(500px) rotateX(60deg);
+  transform-origin: center center;
+}
+/* Scanline on login */
+#auth-overlay::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.15), transparent);
+  animation: scanline 4s linear infinite;
+  z-index: 1;
+}
+
+.login-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 420px;
+  padding: 0 24px;
+  animation: fadeInUp 0.8s ease-out;
+}
+.login-logo {
+  text-align: center;
+  margin-bottom: 12px;
+}
+.login-logo h1 {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: 8px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright), #e8d48a, var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textGlow 3s ease-in-out infinite;
+  line-height: 1.1;
+}
+.login-subtitle {
+  text-align: center;
+  font-size: 0.7rem;
+  letter-spacing: 4px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 32px;
+}
+.login-divider {
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 0 auto 32px;
+}
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.login-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(15, 20, 30, 0.6);
+  border: 1px solid rgba(201, 168, 76, 0.15);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.login-input::placeholder { color: var(--text-muted); }
+.login-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1);
+}
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+  border: none;
+  border-radius: 6px;
+  color: #0a0e1a;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.3s;
+  margin-top: 8px;
+}
+.login-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 24px rgba(201, 168, 76, 0.3);
+}
+.login-btn:active { transform: translateY(0); }
+
+.login-footer {
+  text-align: center;
+  margin-top: 32px;
+}
+.login-restricted {
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.login-encrypted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+}
+.login-encrypted .dot-green {
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 6px var(--green);
+}
+
+/* ========================================
+   2. SIDEBAR
+   ======================================== */
+.sidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: var(--sidebar-width);
+  background: linear-gradient(180deg, #0c1018 0%, #080b12 100%);
+  border-right: 1px solid rgba(201, 168, 76, 0.08);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+}
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.08);
+}
+.sidebar-logo h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.sidebar-logo span {
+  display: block;
+  font-size: 0.55rem;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 0;
+  overflow-y: auto;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+  text-decoration: none;
+}
+.nav-item:hover {
+  color: var(--text-primary);
+  background: rgba(201, 168, 76, 0.04);
+}
+.nav-item.active {
+  color: var(--gold);
+  border-left-color: var(--gold);
+  background: rgba(201, 168, 76, 0.06);
+}
+.nav-item svg {
+  width: 20px; height: 20px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(201, 168, 76, 0.08);
+}
+.operator-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.operator-status .dot {
+  width: 8px; height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--green);
+}
+.operator-label {
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.operator-sub {
+  font-size: 0.65rem;
+  color: var(--green);
+  letter-spacing: 1px;
+  margin-left: auto;
+}
+
+/* Hamburger */
+.hamburger {
+  display: none;
+  position: fixed;
+  top: 14px; left: 14px;
+  z-index: 1100;
+  width: 40px; height: 40px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(12px);
+}
+.hamburger svg { stroke: var(--gold); fill: none; stroke-width: 1.5; }
+
+/* ========================================
+   3. TOP BAR
+   ======================================== */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  height: var(--topbar-height);
+  background: rgba(10, 14, 26, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(201, 168, 76, 0.08);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  z-index: 900;
+}
+.topbar-search {
+  flex: 1;
+  max-width: 400px;
+  position: relative;
+}
+.topbar-search input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  background: rgba(15, 20, 30, 0.6);
+  border: 1px solid rgba(201, 168, 76, 0.1);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.3s;
+}
+.topbar-search input::placeholder { color: var(--text-muted); }
+.topbar-search input:focus { border-color: rgba(201, 168, 76, 0.3); }
+.topbar-search svg {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  width: 16px; height: 16px;
+  stroke: var(--text-muted);
+  fill: none;
+  stroke-width: 2;
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.btn-ghost {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+.btn-ghost:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.btn-gold {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+  border: none;
+  border-radius: 6px;
+  color: #0a0e1a;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+.btn-gold:hover {
+  box-shadow: 0 2px 16px rgba(201, 168, 76, 0.3);
+  transform: translateY(-1px);
+}
+
+/* ========================================
+   4. MAIN CONTENT
+   ======================================== */
+.main-content {
+  margin-left: var(--sidebar-width);
+  padding-top: var(--topbar-height);
+  min-height: 100vh;
+  position: relative;
+}
+/* Global scanline overlay */
+.main-content::after {
+  content: '';
+  position: fixed;
+  left: var(--sidebar-width);
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.06), transparent);
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.page-section {
+  display: none;
+  padding: 24px;
+  animation: fadeInUp 0.4s ease-out;
+}
+.page-section.active { display: block; }
+
+/* ===== STAT CARDS ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 20px;
+  transition: transform 0.25s, box-shadow 0.3s, border-color 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(201, 168, 76, 0.08);
+  border-color: var(--card-border-hover);
+}
+.stat-card:hover::before { opacity: 1; }
+
+.stat-label {
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-value.amber { color: var(--amber); }
+.stat-value.green { color: var(--green); }
+.stat-sub {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+.stat-sub .up { color: var(--green); }
+.stat-sub .down { color: var(--red); }
+
+/* ===== DASHBOARD GRID ===== */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 20px;
+  transition: transform 0.25s, box-shadow 0.3s, border-color 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(201, 168, 76, 0.06);
+  border-color: var(--card-border-hover);
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+.card-badge {
+  font-size: 0.6rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.card-badge.live {
+  background: rgba(62, 207, 142, 0.12);
+  color: var(--green);
+  border: 1px solid rgba(62, 207, 142, 0.2);
+}
+
+/* ===== INTEL ALERTS ===== */
+.alert-list { display: flex; flex-direction: column; gap: 12px; }
+.alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(10, 14, 26, 0.5);
+  border-radius: 6px;
+  border-left: 3px solid transparent;
+}
+.alert-item.critical { border-left-color: var(--red); }
+.alert-item.warning { border-left-color: var(--amber); }
+.alert-item.info { border-left-color: var(--blue); }
+.alert-item.ok { border-left-color: var(--green); }
+.alert-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.alert-dot.red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.alert-dot.amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.alert-dot.blue { background: var(--blue); box-shadow: 0 0 6px var(--blue); }
+.alert-dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.alert-text {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+.alert-time {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ===== WORLD MAP ===== */
+.map-container {
+  grid-column: 1 / -1;
+  position: relative;
+  min-height: 320px;
+  overflow: hidden;
+}
+.map-container svg.world-map {
+  width: 100%;
+  height: auto;
+  opacity: 0.7;
+}
+.map-radar {
+  position: absolute;
+  width: 200px; height: 200px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.radar-sweep {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  position: relative;
+  animation: radarSweep 6s linear infinite;
+}
+.radar-sweep::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 50%; height: 2px;
+  background: linear-gradient(90deg, rgba(201, 168, 76, 0.6), transparent);
+  transform-origin: left center;
+}
+.radar-ring {
+  position: absolute;
+  border: 1px solid rgba(201, 168, 76, 0.1);
+  border-radius: 50%;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+.radar-ring.r1 { width: 80px; height: 80px; }
+.radar-ring.r2 { width: 140px; height: 140px; }
+.radar-ring.r3 { width: 200px; height: 200px; }
+
+.map-dot {
+  position: absolute;
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--gold);
+}
+.map-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid var(--gold);
+  animation: dotPing 2s ease-out infinite;
+}
+.map-dot.d1 { top: 30%; left: 25%; animation-delay: 0s; }
+.map-dot.d2 { top: 35%; left: 48%; animation-delay: 0.5s; }
+.map-dot.d3 { top: 25%; left: 52%; animation-delay: 1s; }
+.map-dot.d4 { top: 55%; left: 30%; animation-delay: 1.5s; }
+.map-dot.d5 { top: 40%; left: 72%; animation-delay: 0.3s; }
+.map-dot.d6 { top: 28%; left: 80%; animation-delay: 0.8s; }
+.map-dot.d7 { top: 60%; left: 55%; animation-delay: 1.2s; }
+.map-dot.red { background: var(--red); box-shadow: 0 0 8px var(--red); }
+.map-dot.red::after { border-color: var(--red); }
+
+/* ===== CONTRACT LIST ===== */
+.contract-list { display: flex; flex-direction: column; gap: 10px; }
+.contract-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(10, 14, 26, 0.5);
+  border-radius: 6px;
+  border: 1px solid rgba(201, 168, 76, 0.05);
+  transition: border-color 0.2s;
+}
+.contract-item:hover { border-color: rgba(201, 168, 76, 0.15); }
+.contract-info { display: flex; flex-direction: column; gap: 2px; }
+.contract-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.contract-meta {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+.contract-salary {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+/* ===== RECOMMENDED ===== */
+.rec-list { display: flex; flex-direction: column; gap: 10px; }
+.rec-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(10, 14, 26, 0.5);
+  border-radius: 6px;
+  border: 1px solid rgba(201, 168, 76, 0.05);
+  transition: border-color 0.2s;
+}
+.rec-item:hover { border-color: rgba(201, 168, 76, 0.15); }
+.rec-info { display: flex; flex-direction: column; gap: 2px; }
+.rec-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.rec-meta {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+.match-badge {
+  font-size: 0.6rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: rgba(201, 168, 76, 0.12);
+  color: var(--gold);
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  white-space: nowrap;
+}
+
+/* ========================================
+   5. OPERATOR PROFILE
+   ======================================== */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.dossier-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 24px;
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+.dossier-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+}
+.dossier-title {
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  color: var(--gold);
+  font-weight: 700;
+}
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  padding: 4px 12px;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 4px;
+  color: var(--gold);
+  font-weight: 700;
+  background: rgba(201, 168, 76, 0.06);
+}
+.verified-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--gold);
+}
+.dossier-fields { display: flex; flex-direction: column; gap: 14px; }
+.dossier-row {
+  display: flex;
+  gap: 12px;
+}
+.dossier-label {
+  width: 110px;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  padding-top: 2px;
+}
+.dossier-value {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+.dossier-value .tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(201, 168, 76, 0.08);
+  border: 1px solid rgba(201, 168, 76, 0.15);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  margin: 2px 2px;
+  color: var(--text-secondary);
+}
+.dossier-value .status-green {
+  color: var(--green);
+  font-weight: 600;
+}
+
+/* CV Upload */
+.cv-upload {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+.cv-upload-title {
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+.cv-dropzone {
+  flex: 1;
+  border: 2px dashed rgba(201, 168, 76, 0.2);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  transition: border-color 0.3s, background 0.3s;
+  cursor: pointer;
+  min-height: 200px;
+}
+.cv-dropzone:hover {
+  border-color: var(--gold);
+  background: rgba(201, 168, 76, 0.03);
+}
+.cv-dropzone svg {
+  width: 40px; height: 40px;
+  stroke: var(--gold-dim);
+  fill: none;
+  stroke-width: 1.5;
+  margin-bottom: 16px;
+}
+.cv-dropzone-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.cv-dropzone-sub {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Editable dossier inputs */
+.dossier-input {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(6,8,13,.6);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.dossier-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(201,168,76,.1);
+}
+.dossier-row { display: flex; align-items: center; gap: 12px; }
+
+/* ===== PREMIUM JOB CARDS ===== */
+.jcard{background:var(--card-bg);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:8px;padding:16px 18px;transition:all .25s;cursor:pointer;position:relative;overflow:hidden}
+.jcard:hover{border-color:var(--card-border-hover);transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,168,76,.08)}
+.jcard.tier1{border-left:3px solid var(--gold);background:linear-gradient(135deg,rgba(201,168,76,.04),transparent)}
+.jcard.tier1:hover{box-shadow:0 8px 32px rgba(201,168,76,.15)}
+.jcard.tier2{border-left:3px solid rgba(201,168,76,.3)}
+.jcard.tier3{border-left:3px solid rgba(201,168,76,.08)}
+.jcard.stale{opacity:.65}
+.jcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+.jcard-title{font-weight:700;font-size:0.95rem;line-height:1.3;flex:1;transition:color .15s}
+.jcard:hover .jcard-title{color:var(--gold)}
+.jcard-salary{font-size:1.1rem;font-weight:900;color:var(--gold-bright);text-shadow:0 0 12px rgba(201,168,76,.3);white-space:nowrap;flex-shrink:0}
+.jcard-company{font-size:0.75rem;color:var(--text-secondary);margin-bottom:6px}
+.jcard-cred{font-size:0.65rem;color:var(--text-muted);margin-top:2px;font-style:italic}
+.jcard-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.jbadge{padding:2px 8px;border-radius:3px;font-size:0.6rem;font-weight:700;letter-spacing:0.5px;text-transform:uppercase}
+.jbadge-contract{background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.2)}
+.jbadge-fulltime{background:rgba(62,207,142,.12);color:var(--green);border:1px solid rgba(62,207,142,.2)}
+.jbadge-rotation{background:rgba(58,143,212,.12);color:var(--blue);border:1px solid rgba(58,143,212,.2)}
+.jbadge-urgent{background:rgba(231,76,60,.15);color:#e74c3c;border:1px solid rgba(231,76,60,.25);animation:pulse 2s infinite}
+.jbadge-new{background:rgba(62,207,142,.12);color:var(--green);border:1px solid rgba(62,207,142,.2)}
+.jbadge-verified{background:rgba(201,168,76,.08);color:var(--gold);border:1px solid rgba(201,168,76,.15)}
+.jbadge-exclusive{background:rgba(142,68,173,.12);color:#bb8fce;border:1px solid rgba(142,68,173,.2)}
+.jcard-stats{display:flex;gap:12px;align-items:center;font-size:0.7rem;color:var(--text-secondary);padding-top:8px;border-top:1px solid rgba(201,168,76,.06);margin-top:8px;flex-wrap:wrap}
+.jcard-stats span{display:flex;align-items:center;gap:4px}
+.jcard-actions{display:flex;gap:8px;align-items:center;margin-top:10px}
+.jcard-apply{padding:6px 16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:5px;font-size:0.75rem;font-weight:700;text-decoration:none;cursor:pointer;font-family:inherit;transition:all .2s;letter-spacing:0.5px}
+.jcard-apply:hover{box-shadow:0 0 16px rgba(201,168,76,.3);transform:scale(1.02);text-decoration:none}
+/* Progress bar */
+.jprog{display:flex;gap:2px;align-items:center}
+.jprog-dot{width:6px;height:6px;border-radius:50%;background:rgba(201,168,76,.15);transition:background .2s}
+.jprog-dot.active{background:var(--gold)}
+.jprog-dot.done{background:var(--green)}
+/* Top picks */
+.top-picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px}
+.top-pick-label{font-size:0.7rem;font-weight:700;letter-spacing:2px;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.top-pick-label::after{content:'';flex:1;height:1px;background:rgba(201,168,76,.15)}
+.view-toggle{width:30px;height:30px;background:rgba(15,20,30,.8);border:1px solid var(--card-border);border-radius:5px;color:var(--text-secondary);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.view-toggle.active{color:var(--gold);border-color:var(--gold);background:rgba(201,168,76,.08)}
+.view-toggle:hover{border-color:var(--gold)}
+.compact-row{display:grid;grid-template-columns:1fr 140px 100px 80px 60px 36px;align-items:center;gap:8px;padding:10px 14px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:6px;cursor:pointer;transition:all .2s;font-size:0.8rem}
+.compact-row:hover{border-color:var(--card-border-hover);background:rgba(201,168,76,.03)}
+.compact-row .cr-title{font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compact-row .cr-company{font-size:0.7rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compact-row .cr-loc{color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compact-row .cr-salary{color:var(--gold-bright);font-weight:700;text-align:right;white-space:nowrap}
+.compact-row .cr-date{color:var(--text-muted);font-size:0.7rem;text-align:right}
+.compact-header{display:grid;grid-template-columns:1fr 140px 100px 80px 60px 36px;gap:8px;padding:6px 14px;font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;border-bottom:1px solid rgba(201,168,76,.1);margin-bottom:4px}
+@media(max-width:768px){
+.compact-row{grid-template-columns:1fr 80px 36px;gap:4px;padding:8px 10px}
+.compact-row .cr-loc,.compact-row .cr-date,.compact-row .cr-company{display:none}
+.compact-header{grid-template-columns:1fr 80px 36px}
+.compact-header span:nth-child(3),.compact-header span:nth-child(4),.compact-header span:nth-child(5){display:none}
+}
+/* Skeleton */
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel{background:linear-gradient(90deg,rgba(15,20,30,.8) 25%,rgba(20,26,40,.9) 50%,rgba(15,20,30,.8) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+
+/* Company/job cards in new layout */
+.co-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.co-card:hover {
+  border-color: var(--card-border-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(201,168,76,.06);
+}
+.co-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.co-info { flex: 1; min-width: 0; }
+.co-name { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.co-name:hover { color: var(--gold); }
+.co-meta { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
+.co-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.co-badge { padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.co-badge-security { background: rgba(41,128,185,.15); color: #5dade2; border: 1px solid rgba(41,128,185,.2); }
+.co-badge-management { background: rgba(142,68,173,.15); color: #bb8fce; border: 1px solid rgba(142,68,173,.2); }
+.co-badge-agency { background: rgba(201,168,76,.15); color: #C9A84C; border: 1px solid rgba(201,168,76,.2); }
+.co-badge-job { background: rgba(212,175,55,.15); color: #D4AF37; border: 1px solid rgba(212,175,55,.2); }
+.co-salary { color: var(--gold); font-weight: 800; font-size: 0.85rem; white-space: nowrap; }
+.co-star { background: none; border: none; cursor: pointer; font-size: 18px; transition: opacity 0.15s; }
+.co-star:hover { opacity: 1 !important; }
+.co-link { color: var(--gold); text-decoration: none; font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border: 1px solid var(--card-border); border-radius: 4px; transition: all 0.2s; white-space: nowrap; }
+.co-link:hover { background: rgba(201,168,76,.1); border-color: var(--gold); text-decoration: none; }
+
+/* Detail modal (centered) */
+.detail-modal-bg {
+  position: fixed; inset: 0; background: rgba(6,8,13,.75); backdrop-filter: blur(8px); z-index: 200; display: none; align-items: center; justify-content: center;
+}
+.detail-modal-bg.open { display: flex; }
+.detail-modal {
+  background: rgba(10,14,26,.97); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 12px;
+  width: 100%; max-width: 560px; max-height: 85vh; overflow-y: auto; padding: 28px; margin: 20px; animation: fadeInUp 0.25s ease;
+}
+
+/* ===== PLACEHOLDER PAGES ===== */
+.placeholder-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+.placeholder-inner {
+  text-align: center;
+}
+.placeholder-inner h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.placeholder-inner p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ========================================
+   THREAT MONITOR
+   ======================================== */
+.threat-zone {
+  padding: 14px 12px;
+  text-align: center;
+  border-right: 1px solid rgba(201,168,76,.08);
+  cursor: pointer;
+  transition: background .2s;
+}
+.threat-zone:last-child { border-right: none; }
+.threat-zone:hover { background: rgba(201,168,76,.05); }
+.tz-label { font-size: 0.55rem; font-weight: 700; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 6px; }
+.tz-level { font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px; }
+.tz-critical { color: #e74c3c; }
+.tz-high { color: #e67e22; }
+.tz-elevated { color: #f1c40f; }
+.tz-moderate { color: #3ecf8e; }
+.tz-low { color: #2ecc71; }
+.tz-detail { font-size: 0.55rem; color: var(--text-muted); line-height: 1.3; }
+.ticker-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; }
+.ticker-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.ticker-dot.red { background: #e74c3c; }
+.ticker-dot.orange { background: #e67e22; }
+.ticker-dot.yellow { background: #f1c40f; }
+.ticker-dot.green { background: #3ecf8e; }
+.ticker-text { font-size: 0.65rem; color: var(--text-secondary); }
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 1024px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .dashboard-grid { grid-template-columns: 1fr !important; }
+  .profile-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .hamburger { display: flex; }
+  .main-content { margin-left: 0; padding: 80px 12px 20px; }
+  .topbar { left: 0; padding-left: 60px; }
+  .topbar-search input { font-size: 13px; }
+  .main-content::after { left: 0; }
+  .dashboard-grid { grid-template-columns: 1fr !important; }
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-card { padding: 14px; }
+  .stat-value { font-size: 1.3rem; }
+  .stat-label { font-size: 0.6rem; }
+  .section-title { font-size: 0.85rem; }
+  .job-card { padding: 14px; }
+  .job-header { flex-direction: column; gap: 6px; }
+  .job-salary { font-size: 13px; }
+  .job-actions { flex-wrap: wrap; gap: 6px; }
+  .lead-card { padding: 12px; }
+  .detail-modal { width: 95%; max-width: none; margin: 10px; padding: 16px; }
+  .dash-grid { grid-template-columns: 1fr !important; }
+  #threat-regions { grid-template-columns: repeat(3, 1fr) !important; }
+  .threat-zone:nth-child(4), .threat-zone:nth-child(5) { border-top: 1px solid rgba(201,168,76,.08); }
+  .nav-item { font-size: 0.8rem; padding: 10px 16px; }
+}
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .topbar { padding-left: 50px; }
+  .topbar-actions .btn-gold { font-size: 9px; padding: 5px 8px; }
+  .topbar-actions .btn-ghost { font-size: 9px; }
+  #global-search { min-width: 80px; font-size: 12px; }
+  .job-title { font-size: 14px; }
+  .job-row { font-size: 12px; }
+  .btn-apply { font-size: 11px; padding: 6px 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN OVERLAY ============ -->
+<div id="auth-overlay">
+  <div class="login-container">
+    <div class="login-logo">
+      <img src="cpo_leads_hero_logo.png" alt="CPO Leads" style="height:64px;filter:drop-shadow(0 2px 8px rgba(201,168,76,.25));margin-bottom:12px">
+      <h1>CPO LEADS</h1>
+    </div>
+    <p class="login-subtitle">GLOBAL SECURITY OPPORTUNITIES NETWORK</p>
+    <div class="login-divider"></div>
+    <div class="login-form">
+      <div id="auth-error" style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#e74c3c;padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:12px;display:none"></div>
+      <div id="auth-success" style="background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.3);color:#3ecf8e;padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:12px;display:none"></div>
+      <div id="auth-form-login">
+        <input type="email" id="auth-email" class="login-input" placeholder="Operator ID / Email" autocomplete="off">
+        <input type="password" id="auth-pass" class="login-input" placeholder="Access Code" autocomplete="off">
+        <button class="login-btn" onclick="authLogin()">ACCESS PLATFORM</button>
+        <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-secondary)">
+          <a onclick="showSignup()" style="color:var(--gold);cursor:pointer">Create account</a> &middot; <a onclick="showReset()" style="color:var(--gold);cursor:pointer">Reset access</a>
+        </div>
+      </div>
+      <div id="auth-form-signup" style="display:none">
+        <input type="email" id="signup-email" class="login-input" placeholder="Email" autocomplete="off">
+        <input type="password" id="signup-pass" class="login-input" placeholder="Password (min 6 chars)" autocomplete="off">
+        <button class="login-btn" onclick="authSignup()">CREATE ACCOUNT</button>
+        <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-secondary)"><a onclick="showLogin()" style="color:var(--gold);cursor:pointer">Back to login</a></div>
+      </div>
+      <div id="auth-form-reset" style="display:none">
+        <input type="email" id="reset-email" class="login-input" placeholder="Email" autocomplete="off">
+        <button class="login-btn" onclick="authReset()">SEND RESET LINK</button>
+        <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-secondary)"><a onclick="showLogin()" style="color:var(--gold);cursor:pointer">Back to login</a></div>
+      </div>
+    </div>
+    <div class="login-footer">
+      <p class="login-restricted">ACCESS RESTRICTED TO AUTHORIZED PERSONNEL</p>
+      <span class="login-encrypted"><span class="dot-green"></span> ENCRYPTED CONNECTION</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP CONTAINER (hidden until subscription verified) ============ -->
+<div id="app-container" style="display:none">
+
+<!-- ============ HAMBURGER ============ -->
+<button class="hamburger" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+  <svg width="20" height="20" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="sidebar">
+  <div class="sidebar-logo" style="padding:20px 20px 14px;text-align:center">
+    <img src="cpo_leads_hero_logo.png" alt="CPO LEADS" style="width:100%;max-width:170px;filter:drop-shadow(0 2px 8px rgba(201,168,76,.25))">
+  </div>
+  <nav class="sidebar-nav">
+    <!-- Dashboard -->
+    <a class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard', this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <!-- Jobs -->
+    <a class="nav-item" data-page="jobs" onclick="switchPage('jobs', this)">
+      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+      Jobs
+    </a>
+    <!-- Companies -->
+    <a class="nav-item" data-page="companies" onclick="switchPage('companies', this)">
+      <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M9 17h1"/></svg>
+      Companies
+    </a>
+    <!-- Saved -->
+    <a class="nav-item" data-page="saved" onclick="switchPage('saved', this)">
+      <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      Saved
+    </a>
+    <!-- Intel Guide -->
+    <a class="nav-item" data-page="intel" onclick="switchPage('intel', this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      Intel Guide
+    </a>
+    <!-- Profile -->
+    <a class="nav-item" data-page="profile" onclick="switchPage('profile', this)">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profile
+    </a>
+    <!-- Strategy -->
+    <a class="nav-item" data-page="strategy" onclick="switchPage('strategy', this)">
+      <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Strategy
+    </a>
+    <!-- Settings -->
+    <a class="nav-item" data-page="settings" onclick="switchPage('settings', this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1.08 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1.08H21a2 2 0 0 1 0 4h-.09c-.658.08-1.25.476-1.51 1.08z"/></svg>
+      Settings
+    </a>
+  </nav>
+  <div class="sidebar-footer" style="cursor:pointer" onclick="switchPage('profile',document.querySelector('.nav-item[data-page=profile]'))">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:48px;height:48px;border-radius:8px;overflow:hidden;border:1px solid rgba(201,168,76,.3);flex-shrink:0">
+        <img src="operator_avatar.png" alt="Operator" class="op-avatar" style="width:100%;height:100%;object-fit:cover">
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="operator-label" id="sidebar-name" style="font-size:0.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">OPERATOR</div>
+        <div class="operator-sub" style="display:flex;align-items:center;gap:4px"><div class="dot"></div> ONLINE</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ============ TOP BAR ============ -->
+<header class="topbar">
+  <div class="topbar-search" style="position:relative">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="global-search" placeholder="Search jobs, companies, intel... ( / )" oninput="globalSearch(this.value)">
+    <div id="search-results" style="display:none;position:absolute;left:0;right:0;top:100%;background:rgba(10,14,26,.97);border:1px solid var(--card-border);border-radius:0 0 8px 8px;max-height:400px;overflow-y:auto;z-index:60;box-shadow:0 12px 40px rgba(0,0,0,.5)"></div>
+  </div>
+  <div class="topbar-actions">
+    <span id="user-email" style="font-size:11px;color:var(--text-secondary);margin-right:8px"></span>
+    <div id="export-menu" style="display:none"></div>
+    <button class="btn-gold" onclick="openAdd()">+ ADD</button>
+    <button class="btn-ghost" onclick="authLogout()" style="font-size:10px">LOGOUT</button>
+  </div>
+</header>
+
+<!-- ============ MAIN CONTENT ============ -->
+<main class="main-content">
+
+  <!-- === DASHBOARD === -->
+  <section id="page-dashboard" class="page-section active">
+
+    <!-- GLOBAL THREAT MONITOR -->
+    <div id="threat-monitor" style="margin-bottom:20px;border:1px solid rgba(201,168,76,.2);border-radius:10px;overflow:hidden;background:linear-gradient(135deg,rgba(10,14,26,.95),rgba(15,20,35,.95))">
+      <div style="padding:14px 18px;border-bottom:1px solid rgba(201,168,76,.1);display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:8px;height:8px;border-radius:50%;background:#3ecf8e;animation:pulse 2s infinite"></div>
+          <span style="font-size:0.7rem;font-weight:700;letter-spacing:2px;color:#C9A84C">GLOBAL THREAT MONITOR</span>
+        </div>
+        <span id="monitor-time" style="font-size:0.6rem;color:var(--text-muted);letter-spacing:1px"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-bottom:1px solid rgba(201,168,76,.1)" id="threat-regions">
+        <div class="threat-zone" data-region="middle-east">
+          <div class="tz-label">MIDDLE EAST</div>
+          <div class="tz-level tz-high">HIGH</div>
+          <div class="tz-detail" id="tz-me">Loading...</div>
+        </div>
+        <div class="threat-zone" data-region="africa">
+          <div class="tz-label">AFRICA</div>
+          <div class="tz-level tz-critical">CRITICAL</div>
+          <div class="tz-detail" id="tz-af">Loading...</div>
+        </div>
+        <div class="threat-zone" data-region="europe">
+          <div class="tz-label">EUROPE</div>
+          <div class="tz-level tz-elevated">ELEVATED</div>
+          <div class="tz-detail" id="tz-eu">Loading...</div>
+        </div>
+        <div class="threat-zone" data-region="asia">
+          <div class="tz-label">ASIA-PAC</div>
+          <div class="tz-level tz-moderate">MODERATE</div>
+          <div class="tz-detail" id="tz-ap">Loading...</div>
+        </div>
+        <div class="threat-zone" data-region="americas">
+          <div class="tz-label">AMERICAS</div>
+          <div class="tz-level tz-moderate">MODERATE</div>
+          <div class="tz-detail" id="tz-am">Loading...</div>
+        </div>
+      </div>
+      <div style="padding:10px 18px;display:flex;gap:12px;overflow-x:auto;scrollbar-width:none" id="threat-ticker">
+        <div class="ticker-item"><span class="ticker-dot red"></span><span class="ticker-text">Loading threat feed...</span></div>
+      </div>
+    </div>
+
+    <!-- Featured + News Row -->
+    <div class="dashboard-grid" style="display:grid;gap:16px;margin-bottom:20px;align-items:start">
+
+    <!-- Featured Company Card -->
+    <div class="dashboard-grid" style="display:grid;gap:0;border-radius:10px;overflow:hidden;border:1px solid rgba(201,168,76,.25);animation:borderPulse 4s ease-in-out infinite">
+      <!-- Left: Screenshot from GDBA website -->
+      <div style="position:relative;min-height:260px;background:#0c0f18;overflow:hidden">
+        <img id="cotm-image" src="gdba_screenshot.png" alt="Gavin de Becker & Associates" style="width:100%;height:100%;object-fit:cover;object-position:center;opacity:.9" onerror="this.src='https://gdba.com/storage/01JPE5T53F263390ZVW13RP1TZ.jpg'">
+        <div style="position:absolute;inset:0;background:linear-gradient(to right,transparent 50%,#0a0c14)"></div>
+        <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,#0a0c14,transparent);height:40%"></div>
+        <!-- FEATURED badge -->
+        <div style="position:absolute;top:14px;left:14px;display:flex;gap:8px;align-items:center">
+          <span style="padding:4px 10px;border-radius:3px;font-size:0.55rem;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d">FEATURED</span>
+          <span style="font-size:0.55rem;color:rgba(255,255,255,.5);letter-spacing:1px">MAY 2026</span>
+        </div>
+      </div>
+      <!-- Right: Info -->
+      <div style="background:#0a0c14;padding:24px;display:flex;flex-direction:column;justify-content:center">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+          <img src="https://gdba.com/images/gdba-footer.png" alt="GDBA" style="height:28px;filter:brightness(1.2)" onerror="this.style.display='none'">
+          <span style="padding:3px 10px;border-radius:3px;font-size:0.55rem;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d">FEATURED COMPANY</span>
+        </div>
+        <h3 style="font-size:1.15rem;font-weight:800;letter-spacing:0.5px;line-height:1.25;margin-bottom:10px;color:var(--text-primary)">Gavin de Becker & Associates</h3>
+        <p style="font-size:0.75rem;color:var(--text-secondary);line-height:1.65;margin-bottom:12px">Founded in 1978 by 3x Presidential appointee Gavin de Becker, GDBA is widely regarded as the gold standard in executive protection. Their pioneering work on threat assessment and violence prediction has redefined the industry. They protect some of the world's most high-profile families, corporate leaders, and public figures.</p>
+        <p style="font-size:0.7rem;color:var(--gold);line-height:1.5;margin-bottom:14px;padding:8px 10px;border-left:2px solid rgba(201,168,76,.4);background:rgba(201,168,76,.03);border-radius:0 4px 4px 0"><strong>WHY FEATURED COMPANY:</strong> Massive hiring push across the US with 22 immediate openings. Military and law enforcement backgrounds highly valued. One of the few firms where career progression leads to global operations leadership.</p>
+        <a href="https://gdba.com/open-positions/" target="_blank" style="display:block;text-align:center;padding:12px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:6px;font-weight:800;font-size:0.8rem;text-decoration:none;letter-spacing:1px;transition:all .2s;margin-bottom:8px" onmouseover="this.style.boxShadow='0 0 24px rgba(201,168,76,.4)'" onmouseout="this.style.boxShadow='none'">APPLY NOW</a>
+        <button onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Gavin de Becker';applyFilters()},200)" style="width:100%;padding:8px;background:none;border:1px solid rgba(201,168,76,.2);border-radius:6px;color:var(--gold);font-size:0.7rem;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:0.5px;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='rgba(201,168,76,.2)'">View on CPO Leads</button>
+      </div>
+    </div>
+
+    <!-- Industry News (dynamic) -->
+    <div style="background:var(--card-bg);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:10px;overflow:hidden">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--card-border);display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:6px;height:6px;border-radius:50%;background:#3ecf8e;animation:pulse 2s infinite"></div>
+          <span style="font-size:0.7rem;font-weight:700;letter-spacing:2px;color:var(--gold)">INDUSTRY INTEL</span>
+        </div>
+        <span id="intel-updated" style="font-size:0.55rem;color:var(--text-muted);letter-spacing:1px">UPDATING...</span>
+      </div>
+      <div id="intel-feed" style="display:flex;flex-direction:column">
+        <div style="padding:24px;text-align:center;color:var(--text-muted);font-size:0.7rem">Loading intelligence feed...</div>
+      </div>
+    </div>
+
+    </div><!-- /Featured + News Row -->
+
+    <!-- Stat Cards (dynamic) -->
+    <div class="stats-grid" id="dash-stats">
+      <div class="stat-card">
+        <div class="stat-label">RISK LEVEL</div>
+        <div class="stat-value amber">ELEVATED</div>
+        <div class="stat-sub">Global threat index</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ACTIVE JOBS</div>
+        <div class="stat-value" id="ds-jobs">0</div>
+        <div class="stat-sub">Open positions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">COMPANIES</div>
+        <div class="stat-value" id="ds-companies">0</div>
+        <div class="stat-sub">Verified employers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">SAVED</div>
+        <div class="stat-value" id="ds-saved">0</div>
+        <div class="stat-sub">Your watchlist</div>
+      </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+      <!-- Intel Summary -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">INTEL SUMMARY</span>
+          <span class="card-badge live">LIVE</span>
+        </div>
+        <div class="alert-list">
+          <div class="alert-item critical" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Solo EP Agent';applyFilters()},200)">
+            <div class="alert-dot red"></div>
+            <div>
+              <div class="alert-text">Solo EP Agent — El Salvador, $800/day contract posted</div>
+              <div class="alert-time">12 minutes ago</div>
+            </div>
+          </div>
+          <div class="alert-item warning" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='PSD';applyFilters()},200)">
+            <div class="alert-dot amber"></div>
+            <div>
+              <div class="alert-text">PSD Team West Africa — Ghana, $1,100/day. GardaWorld expanding</div>
+              <div class="alert-time">43 minutes ago</div>
+            </div>
+          </div>
+          <div class="alert-item info" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Maritime';applyFilters()},200)">
+            <div class="alert-dot blue"></div>
+            <div>
+              <div class="alert-text">Maritime Anti-Piracy Operators — Global, $2,000/day</div>
+              <div class="alert-time">2 hours ago</div>
+            </div>
+          </div>
+          <div class="alert-item ok" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Counter Surveillance';applyFilters()},200)">
+            <div class="alert-dot green"></div>
+            <div>
+              <div class="alert-text">Armed Counter Surveillance — NYC, $1,000/day posted</div>
+              <div class="alert-time">6 hours ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Paying -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">TOP PAYING CONTRACTS</span>
+        </div>
+        <div class="contract-list">
+          <div class="contract-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Maritime Anti-Piracy';applyFilters()},200)">
+            <div class="contract-info">
+              <span class="contract-title">Maritime Anti-Piracy Operators</span>
+              <span class="contract-meta">Global · Silent Professionals</span>
+            </div>
+            <span class="contract-salary">$2,000/day</span>
+          </div>
+          <div class="contract-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='PSD Ghana';applyFilters()},200)">
+            <div class="contract-info">
+              <span class="contract-title">PSD Team — West Africa</span>
+              <span class="contract-meta">Ghana · Silent Professionals</span>
+            </div>
+            <span class="contract-salary">$1,100/day</span>
+          </div>
+          <div class="contract-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Counter Surveillance';applyFilters()},200)">
+            <div class="contract-info">
+              <span class="contract-title">Armed Counter Surveillance</span>
+              <span class="contract-meta">New York City · Silent Professionals</span>
+            </div>
+            <span class="contract-salary">$1,000/day</span>
+          </div>
+          <div class="contract-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Solo EP Agent';applyFilters()},200)">
+            <div class="contract-info">
+              <span class="contract-title">Solo EP Agent</span>
+              <span class="contract-meta">El Salvador · Silent Professionals</span>
+            </div>
+            <span class="contract-salary">$800/day</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Regions Mini Widget -->
+      <div class="card" style="position:relative;overflow:hidden">
+        <div class="card-header">
+          <span class="card-title">ACTIVE REGIONS</span>
+          <span class="card-badge live">LIVE</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 2s infinite"></div>
+            <span style="font-size:0.8rem;flex:1">Middle East</span>
+            <span style="font-size:0.7rem;color:var(--red);font-weight:600">HIGH RISK</span>
+            <span style="font-size:0.7rem;color:var(--text-muted)">14 contracts</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite .3s"></div>
+            <span style="font-size:0.8rem;flex:1">West Africa</span>
+            <span style="font-size:0.7rem;color:var(--amber);font-weight:600">ELEVATED</span>
+            <span style="font-size:0.7rem;color:var(--text-muted)">8 contracts</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite .6s"></div>
+            <span style="font-size:0.8rem;flex:1">United Kingdom</span>
+            <span style="font-size:0.7rem;color:var(--green);font-weight:600">STABLE</span>
+            <span style="font-size:0.7rem;color:var(--text-muted)">22 contracts</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);animation:pulse 2s infinite .9s"></div>
+            <span style="font-size:0.8rem;flex:1">USA / Americas</span>
+            <span style="font-size:0.7rem;color:var(--green);font-weight:600">STABLE</span>
+            <span style="font-size:0.7rem;color:var(--text-muted)">31 contracts</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 2s infinite 1.2s"></div>
+            <span style="font-size:0.8rem;flex:1">Ukraine / Eastern Europe</span>
+            <span style="font-size:0.7rem;color:var(--red);font-weight:600">HIGH RISK</span>
+            <span style="font-size:0.7rem;color:var(--text-muted)">5 contracts</span>
+          </div>
+        </div>
+        <!-- Subtle radar animation in corner -->
+        <div style="position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;border:1px solid rgba(201,168,76,.15);overflow:hidden">
+          <div style="position:absolute;top:50%;left:50%;width:50%;height:1px;background:linear-gradient(90deg,var(--gold),transparent);transform-origin:left;animation:radarSweep 4s linear infinite"></div>
+          <div style="position:absolute;top:50%;left:50%;width:2px;height:2px;border-radius:50%;background:var(--gold);transform:translate(-50%,-50%)"></div>
+        </div>
+      </div>
+
+      <!-- Recommended -->
+      <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-header">
+          <span class="card-title">RECOMMENDED FOR YOU</span>
+        </div>
+        <div class="rec-list">
+          <div class="rec-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='EP East Asia';applyFilters()},200)">
+            <div class="rec-info">
+              <span class="rec-title">Protection Agents & Liaisons — East Asia</span>
+              <span class="rec-meta">East Asia · Silent Professionals · $600-1,400/day · Contract</span>
+            </div>
+            <span class="match-badge">95% MATCH</span>
+          </div>
+          <div class="rec-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Gavin de Becker';applyFilters()},200)">
+            <div class="rec-info">
+              <span class="rec-title">Security Specialist — IMMEDIATE NEED</span>
+              <span class="rec-meta">Los Angeles, CA · Gavin de Becker · Full-time · $90-130K</span>
+            </div>
+            <span class="match-badge">92% MATCH</span>
+          </div>
+          <div class="rec-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='EP Program Manager';applyFilters()},200)">
+            <div class="rec-info">
+              <span class="rec-title">EP Program Manager — Chicago</span>
+              <span class="rec-meta">Chicago, IL · Silent Professionals · $165K/yr + bonus</span>
+            </div>
+            <span class="match-badge">89% MATCH</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Newest Jobs (dynamically populated) -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <span class="card-title">NEWEST JOBS</span>
+        <span style="font-size:0.65rem;color:var(--gold);cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'))">VIEW ALL</span>
+      </div>
+      <div id="dash-newest" style="display:flex;flex-direction:column"></div>
+    </div>
+
+    <script>
+    // Populate newest jobs on dashboard
+    function updateNewestJobs() {
+      const el = document.getElementById('dash-newest');
+      if(!el || typeof leads === 'undefined') return;
+      const jobs = leads.filter(l => isJob(l)).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||'')).slice(0,5);
+      el.innerHTML = jobs.map(l => {
+        const salary = extractSalary(l.notes);
+        const title = esc(l.company).replace(/^.*?\u2014\s*/, '');
+        const company = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(201,168,76,.06);cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(201,168,76,.03)'" onmouseout="this.style.background='transparent'" onclick="cardClick('${l.id}')">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 2s infinite"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:0.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title||esc(l.company)}</div>
+            <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px">${company?company+' &middot; ':''}${l.location?esc(l.location):''}</div>
+          </div>
+          ${salary?'<span style="color:var(--gold);font-weight:800;font-size:0.8rem;white-space:nowrap">'+esc(salary)+'</span>':''}
+        </div>`;
+      }).join('') || '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:0.75rem">No jobs yet</div>';
+    }
+    // Run after data loads
+    document.addEventListener('DOMContentLoaded', () => { setTimeout(updateNewestJobs, 500); });
+    </script>
+
+  </section>
+
+  <!-- === PROFILE === -->
+  <section id="page-profile" class="page-section">
+    <div style="max-width:440px;margin:0 auto">
+      <div style="background:var(--card-bg);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:10px;overflow:hidden">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--card-border);display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:0.85rem;font-weight:700;letter-spacing:2px">MY PROFILE</span>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:0.7rem;display:flex;align-items:center;gap:6px;color:var(--green)"><span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block"></span> ONLINE</span>
+            <button onclick="switchPage('dashboard',document.querySelector('.nav-item[data-page=dashboard]'))" style="background:none;border:1px solid var(--card-border);border-radius:6px;color:var(--text-muted);cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--card-border)';this.style.color='var(--text-muted)'">&times;</button>
+          </div>
+        </div>
+        <div style="padding:24px 20px;display:flex;flex-direction:column;gap:16px">
+          <!-- Photo -->
+          <div style="display:flex;align-items:center;gap:16px">
+            <label style="cursor:pointer;position:relative;flex-shrink:0" title="Click to upload photo">
+              <input type="file" accept="image/*" onchange="handlePhotoUpload(this)" style="display:none">
+              <div style="width:80px;height:80px;border-radius:12px;overflow:hidden;border:2px solid rgba(201,168,76,.3);transition:border-color .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='rgba(201,168,76,.3)'">
+                <img src="operator_avatar.png" alt="Operator" class="op-avatar" style="width:100%;height:100%;object-fit:cover">
+              </div>
+              <div style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#06080d" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+              </div>
+            </label>
+            <div style="font-size:0.7rem;color:var(--text-muted);line-height:1.4">Click photo to upload<br>your own picture</div>
+          </div>
+          <!-- Name -->
+          <div>
+            <label style="font-size:0.6rem;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600;display:block;margin-bottom:4px">Full Name</label>
+            <input id="prof-callsign" placeholder="Your name" style="width:100%;padding:10px 14px;background:rgba(6,8,13,.6);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:0.9rem;font-weight:600;outline:none;font-family:inherit;transition:border-color .2s" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--card-border)'">
+          </div>
+          <!-- Email -->
+          <div>
+            <label style="font-size:0.6rem;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600;display:block;margin-bottom:4px">Email</label>
+            <input id="prof-background" placeholder="you@email.com" type="email" style="width:100%;padding:10px 14px;background:rgba(6,8,13,.6);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:0.85rem;outline:none;font-family:inherit;transition:border-color .2s" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--card-border)'">
+          </div>
+          <!-- CV Upload -->
+          <div>
+            <label style="font-size:0.6rem;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600;display:block;margin-bottom:4px">CV / Resume</label>
+            <div id="cv-status" style="font-size:0.75rem;margin-bottom:8px"></div>
+            <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:14px 16px;border:1px dashed var(--card-border);border-radius:6px;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--card-border)'">
+              <input type="file" accept=".pdf,.doc,.docx" onchange="handleCVUpload(this)" style="display:none">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div>
+                <div style="font-size:0.8rem;color:var(--text-primary);font-weight:600">Upload your CV</div>
+                <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px">PDF or DOC, max 5MB</div>
+              </div>
+            </label>
+          </div>
+          <!-- Save -->
+          <button onclick="saveProfile()" style="width:100%;padding:12px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.8rem;letter-spacing:2px;transition:all 0.2s;margin-top:4px" onmouseover="this.style.boxShadow='0 0 20px rgba(201,168,76,.3)'" onmouseout="this.style.boxShadow='none'">SAVE PROFILE</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === JOBS === -->
+  <section id="page-jobs" class="page-section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 style="font-size:18px;font-weight:700;letter-spacing:2px;color:var(--gold);margin:0">JOB OPPORTUNITIES</h2>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span id="jobs-count" style="font-size:0.75rem;color:var(--text-secondary)"></span>
+        <button onclick="toggleJobView('card')" id="view-card" class="view-toggle active" title="Card view">&#9638;</button>
+        <button onclick="toggleJobView('compact')" id="view-compact" class="view-toggle" title="Compact list">&#9776;</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <input type="text" id="search" placeholder="Filter..." oninput="applyFilters()" style="flex:1;min-width:140px;padding:8px 12px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:13px;outline:none;font-family:inherit">
+      <select id="filter-type" onchange="applyFilters()" style="padding:8px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:12px;font-family:inherit">
+        <option value="">All types</option><option value="security">Security</option><option value="management">Management</option><option value="agency">Agency</option>
+      </select>
+      <select id="filter-status" onchange="applyFilters()" style="padding:8px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:12px;font-family:inherit">
+        <option value="">All statuses</option><option value="ny">New</option><option value="kontaktet">Contacted</option><option value="applied">Applied</option><option value="interview">Interview</option><option value="offer">Offer</option><option value="rejected">Rejected</option>
+      </select>
+      <select id="filter-country" onchange="applyFilters()" style="padding:8px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:12px;font-family:inherit">
+        <option value="">All regions</option><option value="UK">UK</option><option value="USA">USA</option><option value="UAE">UAE/Gulf</option><option value="Europe">Europe</option><option value="Africa">Africa</option><option value="Asia">Asia</option><option value="LATAM">LATAM</option><option value="International">International</option>
+      </select>
+      <select id="sort-by" onchange="applyFilters()" style="padding:8px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:12px;font-family:inherit">
+        <option value="priority">Sort: Priority</option><option value="salary">Sort: Salary</option><option value="date">Sort: Newest</option><option value="name">Sort: A-Z</option>
+      </select>
+    </div>
+    <div id="stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:6px;margin-bottom:12px"></div>
+    <div id="leads" style="display:flex;flex-direction:column;gap:6px;padding-bottom:40px"></div>
+    <div id="load-more-wrap" style="text-align:center;padding:20px 0;display:none">
+      <button id="load-more-btn" onclick="loadMoreJobs()" style="padding:12px 40px;background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.05));border:1px solid var(--card-border);border-radius:8px;color:var(--gold);font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:1px;transition:all .2s">SHOW MORE</button>
+    </div>
+  </section>
+
+  <!-- === COMPANIES === -->
+  <section id="page-companies" class="page-section">
+    <h2 style="font-size:18px;font-weight:700;letter-spacing:2px;color:var(--gold);margin-bottom:16px">COMPANIES DATABASE</h2>
+    <div id="companies-filters" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <input type="text" id="co-search" placeholder="Filter companies..." oninput="renderCompaniesPage()" style="flex:1;min-width:140px;padding:8px 12px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:13px;outline:none;font-family:inherit">
+    </div>
+    <div id="companies-list" style="display:flex;flex-direction:column;gap:6px;padding-bottom:40px"></div>
+  </section>
+
+  <!-- === SAVED === -->
+  <section id="page-saved" class="page-section">
+    <div id="saved-view"></div>
+  </section>
+
+  <!-- === INTEL GUIDE === -->
+  <section id="page-intel" class="page-section">
+    <div id="guide-view" style="max-width:800px"></div>
+  </section>
+
+  <!-- === STRATEGY === -->
+  <section id="page-strategy" class="page-section">
+    <div id="strategy-view"></div>
+  </section>
+
+  <!-- === SETTINGS === -->
+  <section id="page-settings" class="page-section">
+    <div style="padding:40px 0;text-align:center;color:var(--text-secondary)">
+      <h2 style="color:var(--gold);margin-bottom:8px">SETTINGS</h2>
+      <p>Account preferences and security configuration coming soon.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- Hidden elements for tab count compatibility -->
+<span id="count-companies" style="display:none">0</span>
+<span id="count-jobs" style="display:none">0</span>
+<span id="count-saved" style="display:none">0</span>
+<div id="dashboard-view" style="display:none"></div>
+<div id="list-view" style="display:none"></div>
+
+<!-- ============ ADD/EDIT MODAL ============ -->
+<div id="modal-bg" class="detail-modal-bg" onclick="closeModal()" style="z-index:250">
+  <div onclick="event.stopPropagation()" style="background:rgba(10,14,26,.97);border:1px solid var(--card-border);border-radius:12px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;margin:20px;animation:fadeInUp .25s ease">
+    <h2 id="modal-title" style="font-size:16px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:20px">NEW ENTRY</h2>
+    <input type="hidden" id="edit-id">
+    <div style="margin-bottom:10px"><label style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600">Company *</label><input id="f-company" type="text" placeholder="Company name" style="width:100%;margin-top:4px;padding:10px;background:rgba(6,8,13,.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:14px;outline:none;font-family:inherit"></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <div style="flex:1"><label style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600">Category</label><select id="f-category" style="width:100%;margin-top:4px;padding:10px;background:rgba(6,8,13,.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:13px;font-family:inherit"><option value="company">Company</option><option value="job">Job Listing</option></select></div>
+      <div style="flex:1"><label style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600">Type</label><select id="f-type" style="width:100%;margin-top:4px;padding:10px;background:rgba(6,8,13,.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:13px;font-family:inherit"><option value="security">Security</option><option value="management">Management</option><option value="agency">Agency</option></select></div>
+    </div>
+    <div style="margin-bottom:10px"><label style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600">Contact</label><input id="f-contact" type="text" placeholder="Name" style="width:100%;margin-top:4px;padding:10px;background:rgba(6,8,13,.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:14px;outline:none;font-family:inherit"></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <div style="flex:1"><label style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600">Email</label><input id="f-email" type="email" placeholder="email@co.com" style="width:100%;margin-top:4px;padding:10px;background:rgba(6,8,13,.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:13px;outline:none;font-family:inherit"></div>
+      <div style="flex:1"><label style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600">Phone</label><input id="f-phone" type="text" placeholder="+44..." style="width:100%;margin-top:4px;padding:10px;background:rgba(6,8,13,.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:13px;outline:none;font-family:inherit"></div>
+    </div>
+    <div style="margin-bottom:10px"><label style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600">Website / Apply URL</label><input id="f-website" type="text" placeholder="www.company.com" style="width:100%;margin-top:4px;padding:10px;background:rgba(6,8,13,.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:14px;outline:none;font-family:inherit"></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <div style="flex:1"><label style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600">Location</label><input id="f-location" type="text" placeholder="London" style="width:100%;margin-top:4px;padding:10px;background:rgba(6,8,13,.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:13px;outline:none;font-family:inherit"></div>
+      <div style="flex:1"><label style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600">Country</label><input id="f-country" type="text" value="UK" style="width:100%;margin-top:4px;padding:10px;background:rgba(6,8,13,.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:13px;outline:none;font-family:inherit"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <div style="flex:1"><label style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600">Status</label><select id="f-status" style="width:100%;margin-top:4px;padding:10px;background:rgba(6,8,13,.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:13px;font-family:inherit"><option value="ny">New</option><option value="kontaktet">Contacted</option><option value="applied">Applied</option><option value="interview">Interview</option><option value="offer">Offer</option><option value="rejected">Rejected</option></select></div>
+      <div style="flex:1"><label style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600">Priority</label><select id="f-priority" style="width:100%;margin-top:4px;padding:10px;background:rgba(6,8,13,.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:13px;font-family:inherit"><option value="medium">Medium</option><option value="hot">Hot</option><option value="low">Low</option></select></div>
+    </div>
+    <div style="margin-bottom:14px"><label style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:600">Notes</label><textarea id="f-notes" rows="3" placeholder="Salary, requirements..." style="width:100%;margin-top:4px;padding:10px;background:rgba(6,8,13,.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:13px;outline:none;font-family:inherit;resize:vertical"></textarea></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="save()" style="flex:1;padding:12px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px">SAVE</button>
+      <button onclick="closeModal()" style="padding:12px 20px;background:none;border:1px solid var(--card-border);border-radius:6px;color:var(--text-secondary);cursor:pointer;font-family:inherit;font-size:13px">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ DETAIL MODAL (CENTERED) ============ -->
+<div class="detail-modal-bg" id="detail-bg" onclick="closeDetail()">
+  <div class="detail-modal" id="detail" onclick="event.stopPropagation()"></div>
+</div>
+
+</div><!-- /app-container -->
+
+<!-- ============ SCRIPTS ============ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="seed_data.js"></script>
+<script src="app.js"></script>
+<script>
+// === BRIDGE: sidebar nav → app.js ===
+
+// Prevent click-through when user is selecting text
+function safeClick(fn) {
+  return function(e) {
+    const sel = window.getSelection();
+    if (sel && sel.toString().length > 0) return;
+    fn(e);
+  };
+}
+// Global helper for onclick attributes
+function cardClick(id) {
+  const sel = window.getSelection();
+  if (sel && sel.toString().length > 0) return;
+  openDetailModal(id);
+}
+
+const badgeClass = {security:'co-badge-security',management:'co-badge-management',agency:'co-badge-agency'};
+const typeLabel = {security:'Security',management:'Management',agency:'Agency'};
+const sColors = {ny:'#52504d',kontaktet:'#2980b9',applied:'#8e44ad',interview:'#D4AF37',offer:'#27ae60',rejected:'#c0392b'};
+const sLabels = {ny:'New',kontaktet:'Contacted',applied:'Applied',interview:'Interview',offer:'Offer',rejected:'Rejected'};
+
+function switchPage(pageId, el) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('page-' + pageId);
+  if (target) target.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.querySelector('.sidebar').classList.remove('open');
+
+  if (pageId === 'jobs') { activeTab = 'jobs'; refresh(); }
+  else if (pageId === 'companies') { activeTab = 'companies'; renderCompaniesPage(); }
+  else if (pageId === 'saved') renderSaved();
+  else if (pageId === 'intel') renderGuide();
+  else if (pageId === 'strategy') renderStrategy();
+  else if (pageId === 'profile') renderProfile();
+}
+
+// Companies page with nice cards
+function renderCompaniesPage() {
+  const searchEl = document.getElementById('co-search');
+  const q = searchEl ? searchEl.value.toLowerCase() : '';
+  const companies = leads.filter(l => !isJob(l)).filter(l => {
+    if (!q) return true;
+    return [l.company,l.location,l.country,l.notes,l.contact_person].filter(Boolean).join(' ').toLowerCase().includes(q);
+  });
+  companies.sort((a,b) => (priorityOrder[a.priority]||1) - (priorityOrder[b.priority]||1));
+  const el = document.getElementById('companies-list');
+  el.innerHTML = companies.map(l => {
+    const url = l.website ? (l.website.startsWith('http') ? l.website : 'https://'+l.website) : '';
+    const cred = getCredibility(l.company);
+    return `<div class="co-card" style="flex-direction:column;align-items:stretch;gap:8px" onclick="cardClick('${l.id}')">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="co-dot" style="background:${sColors[l.status]||'#52504d'}"></div>
+        <div class="co-info" style="flex:1">
+          <div class="co-name">${esc(l.company)}</div>
+          <div class="co-meta">${l.location?esc(l.location):''}${l.country&&l.country!=='UK'&&l.country!=='USA'?' &middot; '+esc(l.country):''} ${cred?'<span style="color:var(--text-muted);font-style:italic">&middot; '+cred+'</span>':''}</div>
+        </div>
+        <div class="co-actions">
+          ${url?'<a href="'+url+'" target="_blank" class="co-link" onclick="event.stopPropagation()">Visit</a>':''}
+          <button class="co-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');renderCompaniesPage()" style="opacity:${l.saved?'1':'.35'}" title="${l.saved?'Unsave':'Save'}">${l.saved?'\u2605':'\u2606'}</button>
+          <span class="co-badge ${badgeClass[l.type]||'co-badge-security'}">${typeLabel[l.type]||l.type}</span>
+        </div>
+      </div>
+      ${l.notes?'<div style="font-size:0.75rem;color:#c5c2bd;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;padding-left:20px">'+esc(l.notes)+'</div>':''}
+    </div>`;
+  }).join('');
+}
+
+// Job type detection
+function detectJobType(l) {
+  const h = [l.company,l.notes,l.location].filter(Boolean).join(' ').toLowerCase();
+  if(h.includes('royal')||h.includes('diplomatic')||h.includes('embassy')||h.includes('nato')||h.includes('osce')) return {icon:'\u{1F6E1}',label:'Royal / Diplomatic'};
+  if(h.includes('maritime')||h.includes('anti-piracy')||h.includes('vessel')) return {icon:'\u2693',label:'Maritime Security'};
+  if(h.includes('celebrity')||h.includes('tour')||h.includes('artist')||h.includes('entertainment')) return {icon:'\u{1F3A4}',label:'Celebrity / Tour'};
+  if(h.includes('residential')||h.includes('estate')||h.includes('family office')||h.includes('uhnw')||h.includes('hnwi')) return {icon:'\u{1F3E0}',label:'Family Office / UHNW'};
+  if(h.includes('hostile')||h.includes('conflict')||h.includes('psd')||h.includes('high-risk')||h.includes('war zone')) return {icon:'\u{1F30D}',label:'High-Risk / Hostile'};
+  if(h.includes('driver')||h.includes('chauffeur')) return {icon:'\u{1F697}',label:'Security Driver'};
+  if(h.includes('corporate')||h.includes('executive protection')||h.includes('ep agent')||h.includes('ep specialist')) return {icon:'\u{1F4BC}',label:'Corporate EP'};
+  return {icon:'\u{1F6E1}',label:'Close Protection'};
+}
+
+// Clean description — remove metadata clutter
+function cleanDescription(notes) {
+  if(!notes) return notes||'';
+  // Don't strip — just return the full notes. Users want to see the info.
+  return notes.trim();
+}
+
+// Centered detail modal — clean boarding-pass design
+function openDetailModal(id) {
+  const l = leads.find(x=>x.id===id);
+  if(!l) return;
+  const salary = extractSalary(l.notes);
+  const url = l.website ? (l.website.startsWith('http') ? l.website : 'https://'+l.website) : '';
+  const job = isJob(l);
+  const jt = detectJobType(l);
+  const cleanTitle = esc(l.company).replace(/^.*?\u2014\s*/, '');
+  const companyName = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : esc(l.company);
+  const desc = cleanDescription(l.notes);
+  const posted = l.posted_at || l.created_at;
+  const cred = getCredibility(l.company);
+
+  const panel = document.getElementById('detail');
+  panel.innerHTML = `
+    <!-- Close -->
+    <button onclick="closeDetail()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:6px;line-height:1;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">&times;</button>
+
+    <!-- Header -->
+    <div style="margin-bottom:24px">
+      <h2 style="font-size:1.25rem;font-weight:800;line-height:1.25;margin-bottom:6px;padding-right:30px">${cleanTitle || companyName}</h2>
+      <div style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px">
+        <span>${job && esc(l.company).includes('\u2014') ? companyName : ''}</span>
+        ${l.location ? (job && companyName ? '<span style="color:var(--text-muted)">&middot;</span>' : '') + '<span>' + esc(l.location) + (l.country && l.country!=='UK' && l.country!=='USA' ? ' \u00b7 ' + esc(l.country) : '') + '</span>' : ''}
+      </div>
+      ${salary ? '<div style="font-size:1.3rem;font-weight:900;color:var(--gold-bright);text-shadow:0 0 12px rgba(201,168,76,.3);margin-bottom:12px">'+esc(salary)+'</div>' : ''}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span style="padding:4px 12px;border-radius:4px;font-size:0.7rem;font-weight:600;background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.15)">${jt.icon} ${jt.label}</span>
+        <span style="padding:4px 10px;border-radius:4px;font-size:0.65rem;font-weight:600;background:rgba(62,207,142,.1);color:var(--green);border:1px solid rgba(62,207,142,.15)">ACTIVE</span>
+        ${cred ? '<span style="font-size:0.65rem;color:var(--text-muted);font-style:italic">'+cred+'</span>' : ''}
+      </div>
+    </div>
+
+    <!-- Description -->
+    ${desc ? '<div style="font-size:0.88rem;color:#c5c2bd;line-height:1.7;margin-bottom:28px">'+esc(desc)+'</div>' : '<div style="margin-bottom:28px"></div>'}
+
+    <!-- Notes already shown in description above -->
+
+    <!-- Action Bar -->
+    <div style="display:flex;gap:8px;padding-top:20px;border-top:1px solid var(--card-border)">
+      ${url ? '<a href="'+url+'" target="_blank" style="flex:1;text-align:center;padding:12px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border-radius:8px;font-weight:700;font-size:0.85rem;text-decoration:none;letter-spacing:0.5px;transition:all .2s" onmouseover="this.style.boxShadow=\'0 0 20px rgba(201,168,76,.3)\'" onmouseout="this.style.boxShadow=\'none\'">'+(job?'APPLY NOW':'VISIT WEBSITE')+'</a>' : ''}
+      <button onclick="event.stopPropagation();toggleSaved('${l.id}');openDetailModal('${l.id}')" style="padding:12px 18px;background:none;border:1px solid var(--card-border);border-radius:8px;color:var(--gold);cursor:pointer;font-family:inherit;font-size:0.85rem;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--card-border)'">${l.saved?'\u2605':'\u2606'}</button>
+      <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='flex'?'none':'flex'" style="padding:12px 14px;background:none;border:1px solid var(--card-border);border-radius:8px;color:var(--text-muted);cursor:pointer;font-family:inherit;font-size:0.85rem;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--card-border)'">&middot;&middot;&middot;</button>
+      <div style="display:none;position:absolute;bottom:70px;right:24px;flex-direction:column;gap:2px;background:rgba(10,14,26,.97);border:1px solid var(--card-border);border-radius:8px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:10">
+        <button onclick="openEdit('${l.id}')" style="padding:8px 16px;background:none;border:none;color:var(--text-primary);font-size:0.78rem;cursor:pointer;font-family:inherit;text-align:left;border-radius:6px;transition:background .15s" onmouseover="this.style.background='rgba(201,168,76,.06)'" onmouseout="this.style.background='none'">Edit</button>
+        <button onclick="deleteLead('${l.id}')" style="padding:8px 16px;background:none;border:none;color:var(--red);font-size:0.78rem;cursor:pointer;font-family:inherit;text-align:left;border-radius:6px;transition:background .15s" onmouseover="this.style.background='rgba(231,76,60,.06)'" onmouseout="this.style.background='none'">Delete</button>
+      </div>
+    </div>
+
+    <!-- Added date -->
+    <div style="margin-top:16px;font-size:0.65rem;color:var(--text-muted)">Added ${new Date(l.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
+  `;
+  document.getElementById('detail-bg').classList.add('open');
+}
+
+// Override app.js openDetail/closeDetail for centered modal
+openDetail = openDetailModal;
+closeDetail = function() { document.getElementById('detail-bg').classList.remove('open'); };
+
+// Override switchTab for sidebar
+switchTab = function(tab) {
+  const map = {jobs:'jobs',companies:'companies',saved:'saved',guide:'intel',dashboard:'dashboard',strategy:'strategy'};
+  const pageId = map[tab] || tab;
+  const navEl = document.querySelector('.nav-item[data-page="'+pageId+'"]');
+  switchPage(pageId, navEl);
+};
+
+// === COMPANY CREDIBILITY DATABASE ===
+const companyCredibility = {
+  'silent professionals':'Military veteran network \u00b7 US-based \u00b7 Gold standard sourcing',
+  'gavin de becker':'Gold standard EP \u00b7 40+ offices \u00b7 Presidential appointee founded',
+  'gardaworld':'World\'s largest private security \u00b7 132K+ staff \u00b7 25 countries',
+  'constellis':'8,700+ staff \u00b7 50 countries \u00b7 Military Friendly Gold',
+  'crisis24':'GardaWorld subsidiary \u00b7 Global EP \u00b7 170+ countries',
+  'allied universal':'800K+ staff \u00b7 Largest US security \u00b7 NYSE listed',
+  'control risks':'Est. 1975 \u00b7 Global risk consultancy \u00b7 1,000-5,000 staff',
+  'nato':'North Atlantic Treaty Org \u00b7 31 member states \u00b7 Government grade',
+  'bytedance':'Tech giant \u00b7 TikTok parent \u00b7 150K+ employees',
+  'morgan stanley':'Fortune 500 \u00b7 Global financial \u00b7 Director-level EP',
+  'amazon':'FAANG \u00b7 1.5M+ employees \u00b7 Global protective services',
+  'paypal':'Fintech leader \u00b7 30K+ staff \u00b7 Senior EP management',
+  'hp':'Fortune 500 \u00b7 Tech hardware \u00b7 Corporate EP program',
+  'brookings':'Top think tank \u00b7 Washington DC \u00b7 Director level',
+  'interpol':'194 member countries \u00b7 International law enforcement',
+  'undss':'UN security \u00b7 131 countries \u00b7 Field operations',
+};
+
+function getCredibility(company) {
+  const c = (company||'').toLowerCase();
+  for(const [key,val] of Object.entries(companyCredibility)) {
+    if(c.includes(key)) return val;
+  }
+  return '';
+}
+
+function getSalaryNum(notes) {
+  if(!notes) return 0;
+  const perDay = notes.match(/\$([\d,]+)\/day/);
+  if(perDay) return parseInt(perDay[1].replace(/,/g,''))*260;
+  const perYear = notes.match(/\$([\d,]+)[Kk]?\/yr/);
+  if(perYear) return parseInt(perYear[1].replace(/,/g,''));
+  const plain = notes.match(/\$([\d,]+)/);
+  if(plain) return parseInt(plain[1].replace(/,/g,''));
+  return 0;
+}
+
+function getTier(notes) {
+  const s = getSalaryNum(notes);
+  const perDay = notes && notes.match(/\$([\d,]+)\/day/);
+  const dayRate = perDay ? parseInt(perDay[1].replace(/,/g,'')) : 0;
+  if(dayRate >= 800 || s >= 130000) return 'tier1';
+  if(dayRate >= 400 || s >= 80000) return 'tier2';
+  return 'tier3';
+}
+
+function getContractBadges(l) {
+  const n = ((l.notes||'')+(l.company||'')).toLowerCase();
+  const badges = [];
+  if(n.includes('immediate')||n.includes('urgent')) badges.push('<span class="jbadge jbadge-urgent">URGENT</span>');
+  if(n.includes('full-time')||n.includes('full time')) badges.push('<span class="jbadge jbadge-fulltime">FULL-TIME</span>');
+  else if(n.includes('rotation')) badges.push('<span class="jbadge jbadge-rotation">ROTATION</span>');
+  else if(n.includes('contract')||n.includes('/day')) badges.push('<span class="jbadge jbadge-contract">CONTRACT</span>');
+  // Freshness
+  const age = (Date.now() - new Date(l.created_at).getTime())/(1000*60*60);
+  if(age < 24) badges.push('<span class="jbadge jbadge-new">JUST IN</span>');
+  else if(age < 72) badges.push('<span class="jbadge jbadge-new">NEW</span>');
+  // Source badges
+  if(n.includes('active listing')) badges.push('<span class="jbadge jbadge-verified">VERIFIED</span>');
+  return badges.join('');
+}
+
+function getFreshness(l) {
+  const h = (Date.now() - new Date(l.created_at).getTime())/(1000*60*60);
+  if(h < 24) return '<span style="color:var(--green)">Just posted</span>';
+  if(h < 72) return '<span style="color:var(--green)">' + Math.floor(h/24) + 'd ago</span>';
+  if(h < 336) return Math.floor(h/24) + 'd ago';
+  if(h < 720) return Math.floor(h/168) + 'w ago';
+  return '';
+}
+
+function getProgressDots(status) {
+  const stages = ['ny','kontaktet','applied','interview','offer'];
+  const idx = stages.indexOf(status);
+  return '<div class="jprog">' + stages.map((_,i) =>
+    '<div class="jprog-dot'+(i<=idx?(idx>=4?' done':' active'):'')+'"></div>'
+  ).join('') + '</div>';
+}
+
+// Jobs view: premium cards with pagination
+let jobViewMode = 'card';
+let jobsPerPage = 25;
+let jobsShown = 25;
+let currentFilteredJobs = [];
+
+function toggleJobView(mode) {
+  jobViewMode = mode;
+  document.getElementById('view-card').classList.toggle('active', mode==='card');
+  document.getElementById('view-compact').classList.toggle('active', mode==='compact');
+  jobsShown = jobsPerPage;
+  applyFilters();
+}
+
+function loadMoreJobs() {
+  jobsShown += jobsPerPage;
+  renderJobList(currentFilteredJobs);
+}
+
+function renderCompactRow(l) {
+  const salary = extractSalary(l.notes);
+  const cleanTitle = esc(l.company).replace(/^.*?\u2014\s*/, '');
+  const companyName = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : esc(l.company);
+  const posted = l.posted_at || l.created_at;
+  const ta = timeAgo(posted);
+  return '<div class="compact-row" onclick="cardClick(\''+l.id+'\')">'+
+    '<div><div class="cr-title">'+cleanTitle+'</div><div class="cr-company">'+companyName+'</div></div>'+
+    '<div class="cr-loc">'+(esc(l.location)||'')+'</div>'+
+    '<div class="cr-salary">'+(salary?esc(salary):'')+'</div>'+
+    '<div class="cr-date">'+ta+'</div>'+
+    '<div style="color:'+(sColors[l.status]||'#52504d')+';font-size:0.65rem">'+(sLabels[l.status]||'New')+'</div>'+
+    '<button class="co-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters()" style="opacity:'+(l.saved?'1':'.35')+';font-size:14px;background:none;border:none;cursor:pointer">'+(l.saved?'\u2605':'\u2606')+'</button>'+
+  '</div>';
+}
+
+function renderJobList(list) {
+  const el = document.getElementById('leads');
+  const loadMoreWrap = document.getElementById('load-more-wrap');
+  const countEl = document.getElementById('jobs-count');
+  if (!el) return;
+
+  currentFilteredJobs = list;
+  if(countEl) countEl.textContent = list.length + ' jobs';
+
+  if (!list.length) {
+    const total = leads.filter(l=>isJob(l)).length;
+    el.innerHTML = '<div style="text-align:center;padding:60px 20px"><div style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:8px">No matches for this filter</div><div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.6">We track <strong style="color:var(--gold)">'+total+'</strong> active opportunities across <strong style="color:var(--gold)">7 global regions</strong>.<br>Try adjusting your filters or check back \u2014 new listings are added every 12 hours.</div></div>';
+    if(loadMoreWrap) loadMoreWrap.style.display='none';
+    return;
+  }
+
+  const visible = list.slice(0, jobsShown);
+  const remaining = list.length - visible.length;
+
+  if (jobViewMode === 'compact') {
+    let html = '<div class="compact-header"><span>Job Title</span><span>Location</span><span style="text-align:right">Salary</span><span style="text-align:right">Posted</span><span>Status</span><span></span></div>';
+    html += visible.map(l => renderCompactRow(l)).join('');
+    el.innerHTML = html;
+  } else {
+    // Top Picks (first 3 highest salary)
+    const topPicks = [...list].sort((a,b)=>getSalaryNum(b.notes)-getSalaryNum(a.notes)).slice(0,3).filter(l=>getSalaryNum(l.notes)>0);
+    let html = '';
+    if(topPicks.length && !document.getElementById('search').value && jobsShown <= jobsPerPage) {
+      html += '<div class="top-pick-label">TOP PICKS FOR YOU</div><div class="top-picks">';
+      html += topPicks.map(l => renderJobCard(l, true)).join('');
+      html += '</div>';
+    }
+    html += visible.map(l => renderJobCard(l, false)).join('');
+    el.innerHTML = html;
+  }
+
+  // Show/hide load more
+  if(loadMoreWrap) {
+    if(remaining > 0) {
+      loadMoreWrap.style.display = 'block';
+      document.getElementById('load-more-btn').textContent = 'SHOW MORE (' + remaining + ' remaining)';
+    } else {
+      loadMoreWrap.style.display = 'none';
+    }
+  }
+}
+
+const _origRenderList = renderList;
+renderList = function(list) {
+  const el = document.getElementById('leads');
+  if (!el) return;
+  if (activeTab === 'jobs') {
+    jobsShown = jobsPerPage;
+    renderJobList(list);
+  } else {
+    _origRenderList(list);
+  }
+};
+
+function timeAgo(dateStr) {
+  if(!dateStr) return '';
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime())/1000);
+  if(diff<60) return 'just now';
+  if(diff<3600) return Math.floor(diff/60)+'m ago';
+  if(diff<86400) return Math.floor(diff/3600)+'h ago';
+  if(diff<604800) return Math.floor(diff/86400)+'d ago';
+  if(diff<2592000) return Math.floor(diff/604800)+'w ago';
+  return new Date(dateStr).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+}
+
+function renderJobCard(l, featured) {
+  const salary = extractSalary(l.notes);
+  const source = extractSource(l);
+  const url = getApplyUrl(l);
+  const cleanTitle = esc(l.company).replace(/^.*?\u2014\s*/, '');
+  const companyName = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '';
+  const tier = getTier(l.notes);
+  const cred = getCredibility(l.company);
+  const badges = getContractBadges(l);
+  const posted = l.posted_at || l.created_at;
+  const ta = timeAgo(posted);
+  const age = (Date.now()-new Date(l.created_at).getTime())/(1000*60*60);
+  const stale = age > 720;
+  // Clean description (remove salary text that's already shown separately)
+  const desc = (l.notes||'').replace(/\$[\d,.]+[Kk]?(?:\/(?:yr|year|dag|day))?/g,'').replace(/ACTIVE LISTING\.?/gi,'').replace(/Source:.*?\./,'').trim();
+
+  return `<div class="jcard ${tier}${stale?' stale':''}" onclick="cardClick('${l.id}')">
+    <div class="jcard-top">
+      <div style="flex:1;min-width:0">
+        <div class="jcard-title">${cleanTitle || esc(l.company)}</div>
+        <div class="jcard-company">${companyName||source||''} ${cred?'<span style="color:var(--text-muted);font-style:italic">&middot; '+cred+'</span>':''}</div>
+      </div>
+      ${salary?'<div class="jcard-salary">'+esc(salary)+'</div>':''}
+    </div>
+    ${desc?'<div style="font-size:0.78rem;color:#c5c2bd;line-height:1.5;margin:4px 0 6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+esc(desc)+'</div>':''}
+    ${badges?'<div class="jcard-badges">'+badges+'</div>':''}
+    <div class="jcard-stats">
+      ${l.location?'<span>'+esc(l.location)+(l.country&&l.country!=='UK'&&l.country!=='USA'?' \u00b7 '+esc(l.country):'')+'</span>':''}
+      ${salary?'<span style="color:var(--gold)">'+esc(salary)+'</span>':''}
+      ${ta?'<span>'+ta+'</span>':''}
+      <span style="color:${sColors[l.status]||'#52504d'}">${sLabels[l.status]||'New'}</span>
+      ${getProgressDots(l.status)}
+    </div>
+    <div class="jcard-actions">
+      ${url?'<a href="'+url+'" target="_blank" class="jcard-apply" onclick="event.stopPropagation()">APPLY</a>':''}
+      <button class="co-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters()" style="opacity:${l.saved?'1':'.35'};font-size:16px">${l.saved?'\u2605':'\u2606'}</button>
+      ${source?'<span style="font-size:0.6rem;color:var(--text-muted);margin-left:auto">via '+source+'</span>':''}
+    </div>
+  </div>`;
+}
+
+// Update dashboard stats from real data
+function updateDashStats() {
+  const j = document.getElementById('ds-jobs');
+  const c = document.getElementById('ds-companies');
+  const s = document.getElementById('ds-saved');
+  if(j && typeof leads!=='undefined') j.textContent = leads.filter(l=>isJob(l)).length;
+  if(c && typeof leads!=='undefined') c.textContent = leads.filter(l=>!isJob(l)).length;
+  if(s && typeof leads!=='undefined') s.textContent = leads.filter(l=>l.saved).length;
+}
+
+// Run on load + whenever page switches to dashboard
+const _origSwitchPage = switchPage;
+switchPage = function(pageId, el) {
+  _origSwitchPage(pageId, el);
+  if(pageId === 'dashboard') { updateDashStats(); if(typeof updateNewestJobs==='function') updateNewestJobs(); }
+  if(pageId === 'profile' && typeof renderProfile === 'function') renderProfile();
+};
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  updateDashStats();
+  if(typeof updateProfilePhotos==='function') updateProfilePhotos();
+});
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+
+// === GLOBAL THREAT MONITOR ===
+(async function loadThreatMonitor() {
+  // Update clock
+  function updateClock() {
+    const now = new Date();
+    const el = document.getElementById('monitor-time');
+    if(el) el.textContent = now.toUTCString().replace('GMT','UTC');
+  }
+  updateClock();
+  setInterval(updateClock, 30000);
+
+  // Fetch live conflict data from GDELT
+  try {
+    const gdeltUrl = 'https://api.gdeltproject.org/api/v2/doc/doc?query=("armed conflict" OR "military attack" OR "terrorist attack" OR "security threat" OR "bombing" OR "missile strike")&mode=artlist&maxrecords=30&format=json&sort=datedesc';
+    const r = await fetch(gdeltUrl);
+    const data = await r.json();
+    const articles = data.articles || [];
+
+    // Map articles to regions
+    const regionEvents = { 'middle-east': [], 'africa': [], 'europe': [], 'asia': [], 'americas': [] };
+    const meCountries = ['iraq','iran','syria','yemen','lebanon','israel','palestine','saudi','jordan','kuwait','qatar','uae','oman','bahrain'];
+    const afCountries = ['nigeria','somalia','sudan','congo','mali','burkina','niger','mozambique','ethiopia','libya','chad','cameroon','kenya','egypt'];
+    const euCountries = ['ukraine','russia','france','germany','uk','britain','poland','turkey','spain','italy','greece','sweden','norway'];
+    const apCountries = ['china','india','pakistan','afghanistan','myanmar','philippines','north korea','japan','taiwan','indonesia','thailand'];
+    const amCountries = ['united states','mexico','colombia','brazil','venezuela','haiti','ecuador','peru','argentina','canada'];
+
+    for (const a of articles) {
+      const loc = ((a.sourcecountry||'')+(a.title||'')).toLowerCase();
+      if (meCountries.some(c=>loc.includes(c))) regionEvents['middle-east'].push(a);
+      else if (afCountries.some(c=>loc.includes(c))) regionEvents['africa'].push(a);
+      else if (euCountries.some(c=>loc.includes(c))) regionEvents['europe'].push(a);
+      else if (apCountries.some(c=>loc.includes(c))) regionEvents['asia'].push(a);
+      else if (amCountries.some(c=>loc.includes(c))) regionEvents['americas'].push(a);
+    }
+
+    // Update region details
+    function topEvent(region) {
+      const evts = regionEvents[region];
+      if (!evts.length) return 'No active threats';
+      return evts[0].title?.substring(0, 60) + '...' || 'Active monitoring';
+    }
+    const meEl = document.getElementById('tz-me');
+    const afEl = document.getElementById('tz-af');
+    const euEl = document.getElementById('tz-eu');
+    const apEl = document.getElementById('tz-ap');
+    const amEl = document.getElementById('tz-am');
+    if(meEl) meEl.textContent = regionEvents['middle-east'].length + ' events • ' + topEvent('middle-east').substring(0,35);
+    if(afEl) afEl.textContent = regionEvents['africa'].length + ' events • ' + topEvent('africa').substring(0,35);
+    if(euEl) euEl.textContent = regionEvents['europe'].length + ' events • ' + topEvent('europe').substring(0,35);
+    if(apEl) apEl.textContent = regionEvents['asia'].length + ' events • ' + topEvent('asia').substring(0,35);
+    if(amEl) amEl.textContent = regionEvents['americas'].length + ' events • ' + topEvent('americas').substring(0,35);
+
+    // Build ticker
+    const ticker = document.getElementById('threat-ticker');
+    if (ticker && articles.length) {
+      const dotClass = {1:'green',2:'yellow',3:'orange',4:'red'};
+      ticker.innerHTML = articles.slice(0, 12).map(a => {
+        const tone = a.tone ? parseFloat(a.tone) : 0;
+        const dot = tone < -5 ? 'red' : tone < -2 ? 'orange' : tone < 0 ? 'yellow' : 'green';
+        const time = a.seendate ? a.seendate.substring(8,10)+':'+a.seendate.substring(10,12)+' UTC' : '';
+        return '<div class="ticker-item"><span class="ticker-dot '+dot+'"></span><span class="ticker-text">'+time+' '+(a.title||'').substring(0,70)+'</span></div>';
+      }).join('');
+    }
+  } catch(e) {
+    console.log('Threat monitor: using cached data', e);
+    // Fallback static data
+    ['tz-me','tz-af','tz-eu','tz-ap','tz-am'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.textContent = 'Monitoring active';
+    });
+  }
+
+  // === INDUSTRY INTEL FEED (live from GDELT) ===
+  try {
+    const intelQueries = [
+      '("security contract" OR "security firm" OR "protection company") (awarded OR hiring OR expansion)',
+      '("executive protection" OR "close protection" OR "bodyguard") (market OR industry OR growth OR hiring)',
+      '("private security" OR "security services") (contract OR deal OR billion OR million)',
+    ];
+    const allIntel = [];
+    for (const q of intelQueries) {
+      try {
+        const iUrl = 'https://api.gdeltproject.org/api/v2/doc/doc?query=' + encodeURIComponent(q) + '&mode=artlist&maxrecords=8&format=json&sort=datedesc';
+        const iR = await fetch(iUrl);
+        const iData = await iR.json();
+        if (iData.articles) allIntel.push(...iData.articles);
+      } catch(e) {}
+      await new Promise(r => setTimeout(r, 500));
+    }
+
+    // Deduplicate by domain
+    const seen = new Set();
+    const uniqueIntel = allIntel.filter(a => {
+      if (!a.title || !a.url) return false;
+      const key = a.title.substring(0, 40);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      // Filter English only
+      if (a.language && a.language !== 'English') return false;
+      return true;
+    }).slice(0, 8);
+
+    const intelFeed = document.getElementById('intel-feed');
+    const intelUpdated = document.getElementById('intel-updated');
+    if (intelFeed && uniqueIntel.length > 0) {
+      const dots = ['red','gold','amber','blue','green','gold','red','amber'];
+      intelFeed.innerHTML = uniqueIntel.map((a, i) => {
+        const domain = (a.domain || a.url || '').replace(/^www\./,'').split('/')[0];
+        const timeStr = a.seendate ? a.seendate.substring(6,8)+':'+a.seendate.substring(8,10)+' UTC' : '';
+        return '<a href="'+a.url+'" target="_blank" style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(201,168,76,.06);text-decoration:none;transition:background .15s" onmouseover="this.style.background=\'rgba(201,168,76,.03)\'" onmouseout="this.style.background=\'transparent\'">' +
+          '<div style="width:6px;height:6px;border-radius:50%;background:var(--'+dots[i%dots.length]+');margin-top:5px;flex-shrink:0'+(i===0?';animation:pulse 2s infinite':'')+'"></div>' +
+          '<div style="flex:1">' +
+            '<div style="font-size:0.78rem;color:var(--text-primary);font-weight:600;line-height:1.3">'+(a.title||'').substring(0,80)+'</div>' +
+            '<div style="font-size:0.6rem;color:var(--text-muted);margin-top:4px;display:flex;justify-content:space-between"><span>'+domain+'</span><span>'+timeStr+'</span></div>' +
+          '</div></a>';
+      }).join('');
+      if (intelUpdated) intelUpdated.textContent = 'LIVE • ' + new Date().toUTCString().substring(17,22) + ' UTC';
+    } else if (intelFeed) {
+      intelFeed.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:0.7rem">Intel feed temporarily unavailable</div>';
+      if (intelUpdated) intelUpdated.textContent = 'OFFLINE';
+    }
+  } catch(e) {
+    console.log('Intel feed error:', e);
+  }
+
+  // Also fetch earthquake data for extra intel
+  try {
+    const eqUrl = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson';
+    const eqR = await fetch(eqUrl);
+    const eqData = await eqR.json();
+    const quakes = eqData.features || [];
+    if (quakes.length > 0) {
+      const ticker = document.getElementById('threat-ticker');
+      if (ticker) {
+        const eqItems = quakes.slice(0, 3).map(q => {
+          const mag = q.properties.mag;
+          const place = q.properties.place || '';
+          const dot = mag >= 6 ? 'red' : mag >= 5 ? 'orange' : 'yellow';
+          return '<div class="ticker-item"><span class="ticker-dot '+dot+'"></span><span class="ticker-text">SEISMIC M'+mag.toFixed(1)+' '+place.substring(0,50)+'</span></div>';
+        }).join('');
+        ticker.innerHTML += eqItems;
+      }
+    }
+  } catch(e) {}
+})();
+</script>
+
+</body>
+</html>

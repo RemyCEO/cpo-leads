@@ -62,7 +62,7 @@ async function authReset() {
   hideAuthMsg();
   const email = document.getElementById('reset-email').value.trim();
   if(!email) return showAuthError('Enter your email');
-  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: 'https://cpo.strategio.site/index.html'});
+  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: 'https://cpoleads.com/app.html'});
   if(error) return showAuthError(error.message);
   showAuthSuccess('Password reset link sent to your email!');
 }

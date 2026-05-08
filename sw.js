@@ -1,5 +1,5 @@
 const CACHE = 'cpo-leads-v1';
-const ASSETS = ['/', '/index.html', '/app.js', '/seed_data.js', '/cpo_leads_logo.png', '/cpo_leads_hero_logo.png'];
+const ASSETS = ['/', '/index.html', '/app.html', '/app.js', '/seed_data.js', '/cpo_leads_logo.png', '/cpo_leads_hero_logo.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
