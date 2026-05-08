@@ -1175,46 +1175,7 @@ body {
 </head>
 <body>
 
-<!-- ============ LOGIN OVERLAY ============ -->
-<div id="auth-overlay" style="display:none">
-  <div class="login-container">
-    <div class="login-logo">
-      <img src="cpo_leads_hero_logo.png" alt="CPO Leads" style="height:64px;filter:drop-shadow(0 2px 8px rgba(201,168,76,.25));margin-bottom:12px">
-      <h1>CPO LEADS</h1>
-    </div>
-    <p class="login-subtitle">GLOBAL SECURITY OPPORTUNITIES NETWORK</p>
-    <div class="login-divider"></div>
-    <div class="login-form">
-      <div id="auth-error" style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#e74c3c;padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:12px;display:none"></div>
-      <div id="auth-success" style="background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.3);color:#3ecf8e;padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:12px;display:none"></div>
-      <div id="auth-form-login">
-        <input type="email" id="auth-email" class="login-input" placeholder="Operator ID / Email" autocomplete="off">
-        <input type="password" id="auth-pass" class="login-input" placeholder="Access Code" autocomplete="off">
-        <button class="login-btn" onclick="authLogin()">ACCESS PLATFORM</button>
-        <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-secondary)">
-          <a onclick="showSignup()" style="color:var(--gold);cursor:pointer">Create account</a> &middot; <a onclick="showReset()" style="color:var(--gold);cursor:pointer">Reset access</a>
-        </div>
-      </div>
-      <div id="auth-form-signup" style="display:none">
-        <input type="email" id="signup-email" class="login-input" placeholder="Email" autocomplete="off">
-        <input type="password" id="signup-pass" class="login-input" placeholder="Password (min 6 chars)" autocomplete="off">
-        <button class="login-btn" onclick="authSignup()">CREATE ACCOUNT</button>
-        <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-secondary)"><a onclick="showLogin()" style="color:var(--gold);cursor:pointer">Back to login</a></div>
-      </div>
-      <div id="auth-form-reset" style="display:none">
-        <input type="email" id="reset-email" class="login-input" placeholder="Email" autocomplete="off">
-        <button class="login-btn" onclick="authReset()">SEND RESET LINK</button>
-        <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-secondary)"><a onclick="showLogin()" style="color:var(--gold);cursor:pointer">Back to login</a></div>
-      </div>
-    </div>
-    <div class="login-footer">
-      <p class="login-restricted">ACCESS RESTRICTED TO AUTHORIZED PERSONNEL</p>
-      <span class="login-encrypted"><span class="dot-green"></span> ENCRYPTED CONNECTION</span>
-    </div>
-  </div>
-</div>
-
-<!-- ============ APP CONTAINER (hidden until subscription verified) ============ -->
+<!-- ============ APP CONTAINER ============ -->
 <div id="app-container">
 
 <!-- ============ HAMBURGER ============ -->
