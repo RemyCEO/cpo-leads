@@ -6,10 +6,22 @@
 <script>
 // Redirect to landing page if no active session
 if (!localStorage.getItem('sb-afrcpiheobzauwyftksr-auth-token') && !window.location.search.includes('login')) {
-  window.location.replace('/');
+  window.location.replace('landing.html');
 }
 </script>
-<title>CPO LEADS — Global Security Opportunities Network</title>
+<title>CPO Leads Dashboard — Security Jobs, Intel & Contracts</title>
+<meta name="description" content="Your CPO Leads dashboard. Browse close protection jobs, daily threat intelligence, verified security employers, and active contracts worldwide.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://cpo.strategio.site/app">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cpo.strategio.site/app">
+<meta property="og:title" content="CPO Leads — Security Opportunities Dashboard">
+<meta property="og:description" content="Access vetted contracts, threat intel, and operator networks worldwide.">
+<meta property="og:image" content="https://cpo.strategio.site/cpo_leads_logo.png">
+
+<!-- PWA & Mobile -->
 <link rel="icon" type="image/png" href="cpo_leads_logo.png">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#C9A84C">
@@ -17,10 +29,6 @@ if (!localStorage.getItem('sb-afrcpiheobzauwyftksr-auth-token') && !window.locat
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CPO Leads">
 <link rel="apple-touch-icon" href="cpo_leads_logo.png">
-<meta name="description" content="Elite intelligence and recruitment platform for close protection operators and security professionals worldwide.">
-<meta property="og:title" content="CPO LEADS — Global Security Opportunities Network">
-<meta property="og:description" content="Access vetted contracts, threat intel, and operator networks worldwide.">
-<meta property="og:image" content="cpo_leads_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
