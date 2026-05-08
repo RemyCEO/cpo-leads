@@ -66,7 +66,7 @@ export default async function handler(req, res) {
   if (type === 'customer.subscription.updated' || type === 'customer.subscription.deleted') {
     const subscription = data.object;
     const customerId = subscription.customer;
-    const status = subscription.status === 'active' ? 'active' : subscription.status === 'canceled' ? 'canceled' : subscription.status;
+    const status = ['active','trialing'].includes(subscription.status) ? subscription.status : subscription.status === 'canceled' ? 'canceled' : subscription.status;
     const periodEnd = new Date(subscription.current_period_end * 1000).toISOString();
 
     await supabase.from('subscribers').update({
