@@ -75,30 +75,31 @@ async function authLogout() {
   document.getElementById('auth-overlay').style.display = 'flex';
 }
 
+let _isSubscribed = false;
+const _adminEmails = ['remy@strategioai.com','helgesenconsulting@gmail.com','reppin1388@gmail.com'];
+
 async function onAuthSuccess(user) {
   currentUser = user;
   document.getElementById('user-email').textContent = user.email;
 
-  // Check subscription status before granting access
-  const isAdmin = user.email === 'remy@strategioai.com' || user.email === 'helgesenconsulting@gmail.com' || user.email === 'reppin1388@gmail.com';
-  if (!isAdmin) {
+  // Check subscription in background — don't block access
+  if (_adminEmails.includes(user.email)) {
+    _isSubscribed = true;
+  } else {
     try {
       const res = await fetch(`/api/check-subscription?email=${encodeURIComponent(user.email)}`);
       const sub = await res.json();
-      if (!sub.active) {
-        document.getElementById('auth-overlay').style.display = 'none';
-        showPaywall(user.email);
-        return;
-      }
+      _isSubscribed = !!sub.active;
     } catch(e) {
       console.error('Subscription check failed:', e);
+      _isSubscribed = false;
     }
   }
 
+  // Let everyone in — Jobs tab is gated separately
   document.getElementById('auth-overlay').style.display = 'none';
   document.getElementById('paywall-overlay')?.remove();
   document.getElementById('app-container').style.display = '';
-  // Load fresh scraped jobs from Supabase and merge with seed data
   await loadScrapedJobs();
 }
 
@@ -122,26 +123,22 @@ async function startTrial(email, plan) {
 }
 
 function showPaywall(email) {
-  document.getElementById('app-container').style.display = 'none';
   document.getElementById('paywall-overlay')?.remove();
 
   const pw = document.createElement('div');
   pw.id = 'paywall-overlay';
-  pw.style.cssText = 'position:fixed;inset:0;z-index:10000;background:#06080d;display:flex;align-items:center;justify-content:center;padding:20px';
+  pw.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(6,8,13,0.95);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)';
   pw.innerHTML = `
     <div style="max-width:480px;text-align:center;font-family:Inter,system-ui,sans-serif">
-      <div style="font-size:48px;margin-bottom:16px">&#128274;</div>
-      <h2 style="color:#C9A84C;font-size:28px;margin-bottom:12px">Start Your Free Trial</h2>
-      <p style="color:#9a978f;font-size:15px;line-height:1.6;margin-bottom:8px">
-        You're logged in as <strong style="color:#fff">${email}</strong>.
-      </p>
+      <div style="font-size:48px;margin-bottom:16px">&#128737;</div>
+      <h2 style="color:#C9A84C;font-size:26px;margin-bottom:12px">Unlock All Job Listings</h2>
       <p style="color:#C9A84C;font-size:17px;font-weight:700;margin-bottom:4px">3 days free. Cancel anytime.</p>
       <p style="color:#9a978f;font-size:13px;line-height:1.5;margin-bottom:24px">
-        Get full access to all jobs, 90+ companies, daily intel, and the operator guide. You won't be charged until day 4.
+        Access 200+ close protection contracts, apply directly to verified employers, and get daily job alerts. You won't be charged until day 4.
       </p>
       <button onclick="startTrial('${email}','monthly')" style="display:block;width:100%;padding:16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:8px;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:10px;font-family:inherit">Start Free Trial — then $19.90/mo</button>
       <button onclick="startTrial('${email}','yearly')" style="display:block;width:100%;padding:14px;background:transparent;border:2px solid #C9A84C;color:#C9A84C;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:24px;font-family:inherit">Start Free Trial — then $199/yr (Save $40)</button>
-      <button onclick="authLogout();document.getElementById('paywall-overlay')?.remove();document.getElementById('auth-overlay').style.display='flex'" style="background:none;border:none;color:#666;cursor:pointer;font-size:13px;font-family:inherit">Log out</button>
+      <button onclick="document.getElementById('paywall-overlay')?.remove();document.getElementById('app-container').style.display='';switchTab('dashboard')" style="background:none;border:none;color:#666;cursor:pointer;font-size:13px;font-family:inherit">Back to Dashboard</button>
     </div>
   `;
   document.body.appendChild(pw);
@@ -295,6 +292,11 @@ document.addEventListener('keydown', e => {
 });
 
 function switchTab(tab) {
+  // Gate Jobs tab behind subscription/trial
+  if (tab === 'jobs' && !_isSubscribed) {
+    showPaywall(currentUser?.email || '');
+    return;
+  }
   activeTab = tab;
   // Safe element toggle — won't crash if element missing
   function showEl(id, show) { const el = document.getElementById(id); if(el) el.style.display = show ? '' : 'none'; }
