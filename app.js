@@ -524,11 +524,52 @@ function renderList(list) {
       return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
     }
 
+    // Job type detection for color stripe
+    function jobType(l) {
+      const hay = [l.company,l.notes,l.location].filter(Boolean).join(' ').toLowerCase();
+      if (/psd|hostile|conflict|armed|combat|deployed/.test(hay)) return 'psd';
+      if (/maritime|vessel|ship|offshore|piracy/.test(hay)) return 'maritime';
+      if (/residential|static|estate|concierge|gatehouse/.test(hay)) return 'static';
+      if (/corporate|event|festival|venue/.test(hay)) return 'corporate';
+      return 'ep'; // default executive protection
+    }
+    const typeStripe = {psd:'#e74c3c',ep:'#C9A84C',maritime:'#3498db',static:'#3ecf8e',corporate:'#a855f7'};
+    const typeLabel = {psd:'PSD / HOSTILE',ep:'EXECUTIVE PROTECTION',maritime:'MARITIME',static:'STATIC / RESIDENTIAL',corporate:'CORPORATE'};
+
+    // Country flag emoji
+    function countryFlag(country) {
+      const flags = {'UK':'\u{1F1EC}\u{1F1E7}','USA':'\u{1F1FA}\u{1F1F8}','UAE':'\u{1F1E6}\u{1F1EA}','Saudi Arabia':'\u{1F1F8}\u{1F1E6}','KSA':'\u{1F1F8}\u{1F1E6}','Qatar':'\u{1F1F6}\u{1F1E6}','France':'\u{1F1EB}\u{1F1F7}','Germany':'\u{1F1E9}\u{1F1EA}','Nigeria':'\u{1F1F3}\u{1F1EC}','Kenya':'\u{1F1F0}\u{1F1EA}','South Africa':'\u{1F1FF}\u{1F1E6}','Australia':'\u{1F1E6}\u{1F1FA}','Canada':'\u{1F1E8}\u{1F1E6}','Iraq':'\u{1F1EE}\u{1F1F6}','Afghanistan':'\u{1F1E6}\u{1F1EB}','Jordan':'\u{1F1EF}\u{1F1F4}','Switzerland':'\u{1F1E8}\u{1F1ED}','Singapore':'\u{1F1F8}\u{1F1EC}','India':'\u{1F1EE}\u{1F1F3}','Brazil':'\u{1F1E7}\u{1F1F7}'};
+      return flags[country] || '\u{1F310}';
+    }
+
+    // Source icon
+    function sourceIcon(src) {
+      if (!src) return '';
+      if (src.includes('LinkedIn')) return '<span style="background:#0a66c2;color:#fff;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700">in</span>';
+      if (src.includes('Indeed')) return '<span style="background:#2164f3;color:#fff;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700">iD</span>';
+      if (src.includes('Reed')) return '<span style="background:#d4002a;color:#fff;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700">R</span>';
+      if (src.includes('Silent')) return '<span style="background:#1a1a2e;color:#C9A84C;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700;border:1px solid rgba(201,168,76,.3)">\u{1F6E1}</span>';
+      return '<span style="background:rgba(201,168,76,.1);color:#C9A84C;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:600">'+esc(src.substring(0,8))+'</span>';
+    }
+
+    // Freshness badge
+    function freshBadge(l) {
+      const posted = new Date(l.posted_at || l.created_at || 0);
+      const hours = (Date.now() - posted.getTime()) / 3600000;
+      if (hours < 24) return '<span style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;padding:2px 8px;border-radius:3px;font-size:9px;font-weight:800;letter-spacing:1px;animation:pulse 2s infinite">NEW</span>';
+      if (hours < 72) return '<span style="background:rgba(231,76,60,.15);color:#e74c3c;padding:2px 8px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:1px">HOT</span>';
+      if (hours < 168) return '';
+      return '';
+    }
+
+    // Render grouped by date
     for (const l of list) {
       const label = dateLabel(l.posted_at || l.created_at);
       if (label !== lastDateLabel) {
-        html += `<div style="padding:14px 0 8px;margin-top:${lastDateLabel?'12px':'0'};border-bottom:1px solid rgba(201,168,76,.15);display:flex;align-items:center;gap:10px">
-          <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#C9A84C">${label}</span>
+        const count = list.filter(j => dateLabel(j.posted_at || j.created_at) === label).length;
+        html += `<div style="padding:16px 0 10px;margin-top:${lastDateLabel?'16px':'0'};display:flex;align-items:center;gap:10px">
+          <span style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#C9A84C">${label}</span>
+          <span style="background:rgba(201,168,76,.15);color:#C9A84C;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">${count}</span>
           <span style="flex:1;height:1px;background:rgba(201,168,76,.1)"></span>
         </div>`;
         lastDateLabel = label;
@@ -539,25 +580,35 @@ function renderList(list) {
       const url = getApplyUrl(l);
       const cleanTitle = esc(l.company).replace(/^.*?\u2014\s*/, '');
       const companyName = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '';
+      const jt = jobType(l);
+      const flag = countryFlag(l.country);
+      const desc = (l.notes||'').replace(/\$[\d,.]+[Kk]?(?:\/\w+)?(?:\s*[-–]\s*\$[\d,.]+[Kk]?(?:\/\w+)?)?/g,'').trim();
+      const shortDesc = desc.length > 120 ? desc.substring(0,120)+'...' : desc;
+
       html += `
-      <div class="job-card">
-        <div class="job-header">
-          <div>
-            <div class="job-title" onclick="openDetail('${l.id}')">${cleanTitle || esc(l.company)}</div>
-            ${companyName ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${companyName}</div>` : ''}
+      <div onclick="openDetail('${l.id}')" style="position:relative;background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:0;margin-bottom:8px;cursor:pointer;transition:all .2s;overflow:hidden" onmouseover="this.style.borderColor='rgba(201,168,76,.3)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--card-border)';this.style.transform='none'">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${typeStripe[jt]};border-radius:10px 0 0 10px"></div>
+        <div style="padding:14px 14px 14px 16px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px">
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
+                ${freshBadge(l)}
+                <span style="font-size:9px;font-weight:600;letter-spacing:1px;color:${typeStripe[jt]};text-transform:uppercase">${typeLabel[jt]}</span>
+              </div>
+              <div style="font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.3">${cleanTitle || esc(l.company)}</div>
+              ${companyName ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px">${companyName}</div>` : ''}
+            </div>
+            ${salary ? `<div style="text-align:right;flex-shrink:0"><div style="font-size:15px;font-weight:800;color:#C9A84C;white-space:nowrap">${esc(salary)}</div><div style="font-size:9px;color:var(--text-muted);margin-top:1px">per annum</div></div>` : '<div style="font-size:11px;color:var(--text-muted);font-style:italic">Competitive</div>'}
           </div>
-          ${salary ? `<div class="job-salary">${esc(salary)}</div>` : ''}
-        </div>
-        <div class="job-row">
-          ${l.location ? `<span>\u{1F4CD} ${esc(l.location)}${l.country && l.country!=='UK' && l.country!=='USA' ? ' \u00b7 '+esc(l.country) : ''}</span>` : ''}
-          ${source ? `<span class="job-source">${source}</span>` : ''}
-          <span style="color:${statusColors[l.status]||'#52504d'};font-weight:600">\u25CF ${statusLabels[l.status]||'New'}</span>
-        </div>
-        <div class="job-actions">
-          ${url ? `<a href="${url}" target="_blank" class="btn-apply" onclick="event.stopPropagation()">Apply \u2192</a>` : ''}
-          <button class="btn btn-ghost btn-sm" onclick="openDetail('${l.id}')" style="font-size:11px">Details</button>
-          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();updateStatus('${l.id}','applied')" style="font-size:11px;color:var(--purple);border-color:rgba(168,85,247,.3)">Mark Applied</button>
-          <button onclick="event.stopPropagation();toggleSaved('${l.id}');applyFilters();updateSavedCount()" style="background:none;border:none;cursor:pointer;font-size:18px;margin-left:auto;opacity:${l.saved?'1':'.4'};transition:opacity .15s" title="${l.saved?'Unsave':'Save for later'}">${l.saved?'\u2605':'\u2606'}</button>
+          ${shortDesc ? `<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${esc(shortDesc)}</div>` : ''}
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            ${l.location ? `<span style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px">${flag} ${esc(l.location)}${l.country && l.country!=='UK' && l.country!=='USA' ? ' \u00b7 '+esc(l.country) : ''}</span>` : ''}
+            ${sourceIcon(source)}
+            <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
+              ${url ? `<a href="${url}" target="_blank" onclick="event.stopPropagation()" style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;padding:5px 14px;border-radius:5px;font-size:10px;font-weight:800;text-decoration:none;letter-spacing:0.5px">APPLY</a>` : ''}
+              <button onclick="event.stopPropagation();toggleSaved('${l.id}');applyFilters();updateSavedCount()" style="background:none;border:none;cursor:pointer;font-size:18px;opacity:${l.saved?'1':'.35'};transition:opacity .15s;padding:0" title="${l.saved?'Unsave':'Save'}">${l.saved?'\u2605':'\u2606'}</button>
+            </span>
+          </div>
         </div>
       </div>`;
     }
