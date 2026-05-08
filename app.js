@@ -217,7 +217,7 @@ function expandSeed(s){
   return{id:uid(),company:s.c,type:s.t,website:s.w||null,location:s.l||null,country:s.co||null,priority:s.p||'medium',notes:s.n||null,category:s.j?'job':'company',status:'ny',contact_person:s.cp||null,email:s.e||null,phone:s.ph||null,created_at:now,updated_at:now};
 }
 
-const SEED_VERSION = 8;
+const SEED_VERSION = 9;
 let leads;
 if (localStorage.getItem('cp_seed_version') !== String(SEED_VERSION)) {
   // Purge old data and rebuild from clean seed

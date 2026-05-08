@@ -1101,19 +1101,19 @@ body {
   .dashboard-grid { grid-template-columns: 1fr !important; }
   .dash-grid { grid-template-columns: 1fr !important; }
 
-  /* Featured Company — hide image, show text only on mobile */
+  /* Featured Company — stack vertically on mobile, show image */
   .featured-company-card {
     grid-template-columns: 1fr !important;
   }
   .featured-company-card > div:first-child {
-    display: none !important;
+    min-height: 180px !important;
   }
   .featured-company-card > div:last-child {
-    padding: 14px !important;
+    padding: 18px !important;
   }
-  .featured-company-card h3 { font-size: 0.95rem !important; }
-  .featured-company-card p { font-size: 0.68rem !important; line-height: 1.5 !important; margin-bottom: 8px !important; }
-  .featured-company-card a, .featured-company-card button { font-size: 0.72rem !important; padding: 10px !important; }
+  .featured-company-card h3 { font-size: 1.1rem !important; word-break: break-word !important; }
+  .featured-company-card p { font-size: 0.75rem !important; line-height: 1.6 !important; margin-bottom: 8px !important; }
+  .featured-company-card a, .featured-company-card button { font-size: 0.75rem !important; padding: 12px !important; }
 
   /* Topbar — hide email, compact */
   .topbar-actions #user-email { display: none; }
