@@ -1101,37 +1101,75 @@ body {
   .dashboard-grid { grid-template-columns: 1fr !important; }
   .dash-grid { grid-template-columns: 1fr !important; }
 
-  /* Featured Company — stack vertically, hide gradients that look broken */
+  /* Featured Company — COMPLETELY replace with simple card on mobile */
   .featured-company-card {
     grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
+  /* Hide the image section entirely on card — modal has the full image */
   .featured-company-card > div:first-child {
-    min-height: 200px !important;
-    max-height: 240px !important;
-  }
-  /* Hide horizontal gradient overlay — only needed for side-by-side */
-  .featured-company-card > div:first-child > div:nth-child(2) {
     display: none !important;
   }
   .featured-company-card > div:last-child {
-    padding: 20px !important;
+    padding: 24px 20px !important;
+    text-align: center !important;
+  }
+  .featured-company-card > div:last-child > div:first-child {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
   }
   .featured-company-card h3 {
-    font-size: 1.15rem !important;
+    font-size: 1.25rem !important;
+    text-align: center !important;
     word-break: normal !important;
     white-space: normal !important;
     overflow: visible !important;
-    text-overflow: unset !important;
-    line-height: 1.3 !important;
+    line-height: 1.4 !important;
+    margin-bottom: 12px !important;
   }
-  .featured-company-card p { font-size: 0.85rem !important; line-height: 1.6 !important; margin-bottom: 10px !important; }
-  .featured-company-card a, .featured-company-card button { font-size: 0.85rem !important; padding: 14px !important; }
+  .featured-company-card p {
+    font-size: 0.9rem !important;
+    line-height: 1.6 !important;
+    margin-bottom: 12px !important;
+    text-align: center !important;
+  }
+  .featured-company-card a, .featured-company-card button { font-size: 0.85rem !important; padding: 14px !important; width: 100% !important; }
 
-  /* Featured modal — full width, full image */
-  .detail-modal-bg > div { max-width: 100% !important; margin: 8px !important; }
-  .detail-modal-bg > div > div:first-child { height: auto !important; min-height: 220px !important; }
-  .detail-modal-bg > div > div:first-child img { width: 100% !important; height: auto !important; max-height: 300px !important; object-fit: cover !important; }
-  .detail-modal-bg h3 { font-size: 1.1rem !important; word-break: normal !important; }
+  /* Featured modal — fullscreen on mobile */
+  .detail-modal-bg > div {
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    max-height: 100vh !important;
+    height: 100vh !important;
+  }
+  .detail-modal-bg > div > div:first-child {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  .detail-modal-bg > div > div:first-child img {
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    object-fit: contain !important;
+  }
+  /* Hide gradient overlay on modal image on mobile */
+  .detail-modal-bg > div > div:first-child > div:nth-child(2) {
+    display: none !important;
+  }
+  .detail-modal-bg h3 {
+    font-size: 1.15rem !important;
+    word-break: normal !important;
+  }
+  /* Big close button on mobile modal */
+  .detail-modal-bg button[onclick*="remove('open')"] {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 24px !important;
+    top: 8px !important;
+    right: 8px !important;
+  }
 
   /* Topbar — compact, hide email, shrink buttons */
   .topbar { padding-left: 44px !important; padding-right: 8px !important; }
@@ -1191,6 +1229,53 @@ body {
   .threat-zone:nth-child(5) { grid-column: 1 / -1; }
   .job-title { font-size: 13px; }
   .job-row { font-size: 10px; }
+}
+
+/* Mobile bottom nav — visible only on mobile */
+.mobile-bottom-nav {
+  display: none;
+}
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: rgba(6,8,13,0.98);
+    border-top: 1px solid rgba(201,168,76,.15);
+    padding: 6px 0 env(safe-area-inset-bottom, 6px);
+    justify-content: space-around;
+    backdrop-filter: blur(12px);
+  }
+  .mobile-bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 12px;
+    color: #52504b;
+    text-decoration: none;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: color .15s;
+    min-width: 56px;
+  }
+  .mobile-bottom-nav a.active { color: #C9A84C; }
+  .mobile-bottom-nav svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* Add padding at bottom so content isn't hidden behind nav */
+  .main-content { padding-bottom: 80px !important; }
 }
 </style>
 </head>
@@ -2339,6 +2424,26 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
   } catch(e) {}
 })();
 </script>
+
+<!-- Mobile Bottom Nav -->
+<nav class="mobile-bottom-nav" id="mobile-nav">
+  <a class="active" data-page="dashboard" onclick="switchPage('dashboard',this);document.querySelectorAll('.mobile-bottom-nav a').forEach(a=>a.classList.remove('active'));this.classList.add('active')">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    Home
+  </a>
+  <a data-page="jobs" onclick="switchPage('jobs',this);document.querySelectorAll('.mobile-bottom-nav a').forEach(a=>a.classList.remove('active'));this.classList.add('active')">
+    <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+    Jobs
+  </a>
+  <a data-page="companies" onclick="switchPage('companies',this);document.querySelectorAll('.mobile-bottom-nav a').forEach(a=>a.classList.remove('active'));this.classList.add('active')">
+    <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+    Firms
+  </a>
+  <a data-page="saved" onclick="switchPage('saved',this);document.querySelectorAll('.mobile-bottom-nav a').forEach(a=>a.classList.remove('active'));this.classList.add('active')">
+    <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+    Saved
+  </a>
+</nav>
 
 </body>
 </html>
