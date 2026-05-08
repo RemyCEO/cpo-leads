@@ -121,8 +121,8 @@ function showPaywall(email) {
         You're logged in as <strong style="color:#fff">${email}</strong>.<br>
         Subscribe to CPO Leads Pro to access 500+ jobs, 89 companies, insider intel, and the operator guide.
       </p>
-      <a href="${STRIPE_MONTHLY}" style="display:block;padding:16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border-radius:8px;font-weight:800;font-size:16px;text-decoration:none;margin-bottom:10px">Subscribe — $29/month</a>
-      <a href="${STRIPE_YEARLY}" style="display:block;padding:14px;background:transparent;border:2px solid #C9A84C;color:#C9A84C;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;margin-bottom:24px">Yearly — $249/yr (Save 28%)</a>
+      <a href="${STRIPE_MONTHLY}" style="display:block;padding:16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border-radius:8px;font-weight:800;font-size:16px;text-decoration:none;margin-bottom:10px">Subscribe — $19.90/month</a>
+      <a href="${STRIPE_YEARLY}" style="display:block;padding:14px;background:transparent;border:2px solid #C9A84C;color:#C9A84C;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;margin-bottom:24px">Yearly — $199/yr (Save $40)</a>
       <button onclick="authLogout();document.getElementById('paywall-overlay')?.remove();document.getElementById('auth-overlay').style.display='flex'" style="background:none;border:none;color:#666;cursor:pointer;font-size:13px;font-family:inherit">Log out</button>
     </div>
   `;
