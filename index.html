@@ -2192,6 +2192,59 @@ section {
   </div>
 </section>
 
+<!-- ===== CONTACT ===== -->
+<section class="contact-section" id="contact" style="padding:80px 0">
+  <div class="container" style="max-width:560px">
+    <div class="section-divider"></div>
+    <div class="reveal" style="text-align:center">
+      <div class="section-label">Contact</div>
+      <h2 class="section-title">Get in <span class="gold-text">Touch</span></h2>
+      <p class="section-sub" style="margin:12px auto 32px">Questions about the platform, partnership inquiries, or employer onboarding — we respond within 24 hours.</p>
+    </div>
+    <form id="contact-form" class="reveal" onsubmit="submitContact(event)" style="display:flex;flex-direction:column;gap:14px">
+      <input type="text" id="c-name" placeholder="Your name" required style="width:100%;padding:14px 16px;background:rgba(15,20,30,.8);border:1px solid rgba(201,168,76,.15);border-radius:8px;color:#e8e6e3;font-size:15px;font-family:Inter,sans-serif;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(201,168,76,.4)'" onblur="this.style.borderColor='rgba(201,168,76,.15)'">
+      <input type="email" id="c-email" placeholder="Your email" required style="width:100%;padding:14px 16px;background:rgba(15,20,30,.8);border:1px solid rgba(201,168,76,.15);border-radius:8px;color:#e8e6e3;font-size:15px;font-family:Inter,sans-serif;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(201,168,76,.4)'" onblur="this.style.borderColor='rgba(201,168,76,.15)'">
+      <textarea id="c-message" placeholder="Your message" required rows="5" style="width:100%;padding:14px 16px;background:rgba(15,20,30,.8);border:1px solid rgba(201,168,76,.15);border-radius:8px;color:#e8e6e3;font-size:15px;font-family:Inter,sans-serif;outline:none;resize:vertical;transition:border-color .2s" onfocus="this.style.borderColor='rgba(201,168,76,.4)'" onblur="this.style.borderColor='rgba(201,168,76,.15)'"></textarea>
+      <button type="submit" id="c-submit" class="btn-gold" style="width:100%;justify-content:center;padding:16px;font-size:14px">Send Message</button>
+      <div id="c-status" style="text-align:center;font-size:13px;min-height:20px"></div>
+    </form>
+  </div>
+</section>
+
+<script>
+async function submitContact(e) {
+  e.preventDefault();
+  const btn = document.getElementById('c-submit');
+  const status = document.getElementById('c-status');
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+  status.textContent = '';
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name: document.getElementById('c-name').value,
+        email: document.getElementById('c-email').value,
+        message: document.getElementById('c-message').value
+      })
+    });
+    if (res.ok) {
+      status.style.color = '#3ecf8e';
+      status.textContent = 'Message sent! We\'ll get back to you within 24 hours.';
+      document.getElementById('contact-form').reset();
+    } else {
+      throw new Error('Failed');
+    }
+  } catch(err) {
+    status.style.color = '#e74c3c';
+    status.textContent = 'Failed to send. Please email strategioai@strategioai.com directly.';
+  }
+  btn.textContent = 'Send Message';
+  btn.disabled = false;
+}
+</script>
+
 <!-- ===== FOOTER ===== -->
 <footer class="footer">
   <div class="container">
@@ -2203,7 +2256,7 @@ section {
         <li><a href="#opportunities">Opportunities</a></li>
         <li><a href="#pricing">Pricing</a></li>
         <li><a href="#faq">FAQ</a></li>
-        <li><a href="mailto:contact@cpoleads.com">Contact</a></li>
+        <li><a href="#contact">Contact</a></li>
       </ul>
     </div>
     <div class="footer-divider"></div>
