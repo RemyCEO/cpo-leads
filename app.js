@@ -738,6 +738,8 @@ function save() {
 function openDetail(id) {
   const l = leads.find(x=>x.id===id);
   if(!l)return;
+  // Gate job details behind subscription
+  if (isJob(l) && !_isSubscribed) { showPaywall(); return; }
   const salary = extractSalary(l.notes);
   const panel = document.getElementById('detail');
   panel.innerHTML = `
