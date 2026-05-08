@@ -3,12 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>
-// Redirect to landing page if no active session
-if (!localStorage.getItem('sb-afrcpiheobzauwyftksr-auth-token') && !window.location.search.includes('login')) {
-  window.location.replace('/');
-}
-</script>
 <title>CPO Leads Dashboard — Security Jobs, Intel & Contracts</title>
 <meta name="description" content="Your CPO Leads dashboard. Browse close protection jobs, daily threat intelligence, verified security employers, and active contracts worldwide.">
 <meta name="robots" content="noindex, nofollow">
@@ -1182,7 +1176,7 @@ body {
 <body>
 
 <!-- ============ LOGIN OVERLAY ============ -->
-<div id="auth-overlay">
+<div id="auth-overlay" style="display:none">
   <div class="login-container">
     <div class="login-logo">
       <img src="cpo_leads_hero_logo.png" alt="CPO Leads" style="height:64px;filter:drop-shadow(0 2px 8px rgba(201,168,76,.25));margin-bottom:12px">
@@ -1221,7 +1215,7 @@ body {
 </div>
 
 <!-- ============ APP CONTAINER (hidden until subscription verified) ============ -->
-<div id="app-container" style="display:none">
+<div id="app-container">
 
 <!-- ============ HAMBURGER ============ -->
 <button class="hamburger" onclick="document.querySelector('.sidebar').classList.toggle('open')">

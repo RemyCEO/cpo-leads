@@ -122,7 +122,7 @@ async function startTrial(email, plan) {
   }
 }
 
-function showPaywall(email) {
+function showPaywall() {
   document.getElementById('paywall-overlay')?.remove();
 
   const pw = document.createElement('div');
@@ -136,9 +136,9 @@ function showPaywall(email) {
       <p style="color:#9a978f;font-size:13px;line-height:1.5;margin-bottom:24px">
         Access 200+ close protection contracts, apply directly to verified employers, and get daily job alerts. You won't be charged until day 4.
       </p>
-      <button onclick="startTrial('${email}','monthly')" style="display:block;width:100%;padding:16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:8px;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:10px;font-family:inherit">Start Free Trial — then $19.90/mo</button>
-      <button onclick="startTrial('${email}','yearly')" style="display:block;width:100%;padding:14px;background:transparent;border:2px solid #C9A84C;color:#C9A84C;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:24px;font-family:inherit">Start Free Trial — then $199/yr (Save $40)</button>
-      <button onclick="document.getElementById('paywall-overlay')?.remove();document.getElementById('app-container').style.display='';switchTab('dashboard')" style="background:none;border:none;color:#666;cursor:pointer;font-size:13px;font-family:inherit">Back to Dashboard</button>
+      <a href="${STRIPE_MONTHLY}" style="display:block;width:100%;padding:16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:8px;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:10px;font-family:inherit;text-decoration:none;text-align:center">Start Free Trial — then $19.90/mo</a>
+      <a href="${STRIPE_YEARLY}" style="display:block;width:100%;padding:14px;background:transparent;border:2px solid #C9A84C;color:#C9A84C;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:24px;font-family:inherit;text-decoration:none;text-align:center">Start Free Trial — then $199/yr (Save $40)</a>
+      <button onclick="document.getElementById('paywall-overlay')?.remove()" style="background:none;border:none;color:#666;cursor:pointer;font-size:13px;font-family:inherit">Back to Dashboard</button>
     </div>
   `;
   document.body.appendChild(pw);
@@ -183,13 +183,16 @@ async function loadScrapedJobs() {
   } catch(e) { console.error('Failed to load scraped jobs:', e); }
 }
 
-// Check session on load
+// Initialize app — no login required
 (async () => {
+  // Check if user is logged in (for subscription check)
   const {data:{session}} = await sb.auth.getSession();
   if(session && session.user) {
     onAuthSuccess(session.user);
+  } else {
+    // No session — show app anyway, Jobs tab will be gated
+    await loadScrapedJobs();
   }
-  // Listen for auth changes (email confirm redirect)
   sb.auth.onAuthStateChange((event, session) => {
     if(session && session.user) onAuthSuccess(session.user);
   });
@@ -294,7 +297,7 @@ document.addEventListener('keydown', e => {
 function switchTab(tab) {
   // Gate Jobs tab behind subscription/trial
   if (tab === 'jobs' && !_isSubscribed) {
-    showPaywall(currentUser?.email || '');
+    showPaywall();
     return;
   }
   activeTab = tab;
