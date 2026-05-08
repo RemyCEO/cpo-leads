@@ -1571,19 +1571,18 @@ section {
 }
 
 /* ===== MOBILE RESPONSIVE ===== */
+/* ===== LANDING PAGE RESPONSIVE ===== */
 @media (max-width: 1024px) {
   .features-grid { grid-template-columns: repeat(2, 1fr); }
   .map-regions { grid-template-columns: repeat(2, 1fr); }
   .operator-layout { grid-template-columns: 1fr; gap: 40px; }
 }
-
 @media (max-width: 768px) {
   .navbar-links { display: none; }
   .mobile-toggle { display: flex; }
   .navbar-inner { height: 60px; padding: 0 16px; }
   .navbar-logo img { height: 28px !important; }
   .navbar-cta { padding: 8px 16px; font-size: 10px; }
-
   .hero { min-height: auto; padding-bottom: 40px; }
   .hero-content { padding: 80px 20px 40px; }
   .hero-content img { width: 200px !important; margin-bottom: 16px !important; }
@@ -1595,45 +1594,103 @@ section {
   .hero-stat-label { font-size: 9px; }
   .hero-buttons { flex-direction: column; align-items: center; width: 100%; }
   .hero-buttons a { width: 100%; max-width: 280px; text-align: center; }
-
   section { padding: 60px 0; }
   .container { padding: 0 16px; }
   .section-label { font-size: 10px; }
   .section-title { font-size: 24px; }
   .section-sub { font-size: 13px; padding: 0 8px; }
-
   .intel-cards { grid-template-columns: 1fr; }
-
   .opp-row { grid-template-columns: 1fr; gap: 8px; }
   .opp-row-header { display: none; }
-
   .features-grid { grid-template-columns: 1fr; }
-
   .credibility-inner { gap: 24px; flex-direction: column; align-items: center; }
-
   .map-regions { grid-template-columns: 1fr; gap: 12px; }
-
   .pricing-card { margin: 0 8px; }
   .pricing-card-header { padding: 24px 20px 20px; }
   .pricing-card-body { padding: 24px 20px; }
   .pricing-amount { font-size: 40px; }
-
   .operator-layout { gap: 24px; }
   .operator-card { padding: 20px; }
-
   .faq-question { font-size: 14px; padding: 16px; }
   .faq-answer-inner { font-size: 13px; padding: 12px 16px; }
-
   .footer-top { flex-direction: column; text-align: center; }
   .footer-links { flex-wrap: wrap; justify-content: center; }
   .footer-bottom { flex-direction: column; text-align: center; gap: 8px; }
 }
-
 @media (max-width: 480px) {
   .hero h1 { font-size: 24px; }
   .hero-content img { width: 160px !important; }
   .hero-sub { font-size: 13px; }
   .section-title { font-size: 20px; }
+}
+
+/* ===== APP DASHBOARD RESPONSIVE ===== */
+@media (max-width: 768px) {
+  /* Sidebar & topbar */
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .hamburger { display: flex; }
+  .main-content { margin-left: 0; padding: 70px 10px 20px; }
+  .topbar { left: 0; padding-left: 52px; height: 56px; }
+  .topbar-search input { font-size: 12px; padding: 6px 10px 6px 30px; }
+  .main-content::after { left: 0; }
+
+  /* Threat Monitor */
+  #threat-regions { grid-template-columns: repeat(3, 1fr) !important; }
+  .threat-zone { padding: 10px 8px; }
+  .tz-label { font-size: 0.5rem; }
+  .tz-level { font-size: 0.6rem; }
+  .tz-detail { font-size: 0.5rem; }
+
+  /* Dashboard grids — force single column */
+  .dashboard-grid { grid-template-columns: 1fr !important; }
+  .dash-grid { grid-template-columns: 1fr !important; }
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { padding: 12px; }
+  .stat-value { font-size: 1.2rem; }
+  .stat-label { font-size: 0.55rem; }
+
+  /* Featured Company — stack image above text */
+  #page-dashboard .dashboard-grid .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+  #page-dashboard .dashboard-grid .dashboard-grid > div:first-child {
+    min-height: 180px !important;
+  }
+
+  /* Job cards */
+  .job-card { padding: 12px; }
+  .job-header { flex-direction: column; gap: 4px; }
+  .job-title { font-size: 14px; }
+  .job-salary { font-size: 12px; }
+  .job-row { font-size: 11px; flex-wrap: wrap; gap: 6px; }
+  .job-actions { flex-wrap: wrap; gap: 6px; }
+  .btn-apply { font-size: 11px; padding: 6px 12px; }
+
+  /* Lead cards */
+  .lead-card { padding: 10px; }
+  .lead-company { font-size: 13px; }
+
+  /* Detail modal */
+  .detail-modal { width: 95% !important; max-width: none !important; margin: 8px !important; padding: 14px !important; }
+
+  /* Nav items */
+  .nav-item { font-size: 0.78rem; padding: 10px 16px; }
+
+  /* Profile */
+  .profile-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .topbar { padding-left: 46px; }
+  .topbar-actions .btn-gold { font-size: 9px; padding: 4px 8px; }
+  .topbar-actions .btn-ghost { font-size: 8px; padding: 4px 6px; }
+  #global-search { min-width: 60px; font-size: 11px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  #threat-regions { grid-template-columns: repeat(2, 1fr) !important; }
+  .threat-zone:nth-child(5) { grid-column: 1 / -1; }
+  .job-title { font-size: 13px; }
+  .job-row { font-size: 10px; }
 }
 </style>
 </head>
