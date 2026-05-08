@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /api/
+Disallow: /dashboard.html
+Disallow: /import_leads.html
+Disallow: /import_active_jobs.html
+Disallow: /import_new_listings.html
+
+Sitemap: https://cpo.strategio.site/sitemap.xml
