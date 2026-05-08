@@ -564,6 +564,77 @@ def guess_country(location):
         return "Switzerland"
     return ""
 
+def scrape_google_jobs():
+    """Scrape CP/EP job listings found via Google search"""
+    jobs = []
+    queries = [
+        'site:indeed.com "close protection officer" -"data protection"',
+        'site:indeed.co.uk "close protection" -"data protection"',
+        '"close protection officer" hiring site:linkedin.com/jobs',
+        '"executive protection agent" hiring -"data protection"',
+    ]
+    for q in queries:
+        time.sleep(3)
+        try:
+            url = f"https://www.google.com/search?q={q.replace(' ', '+')}&num=20"
+            html = fetch_with_browser(url, wait_time=3)
+            if not html:
+                continue
+            # Extract search result titles and URLs
+            results = re.findall(r'<a[^>]*href="(https?://[^"]*(?:indeed|linkedin|reed)[^"]*)"[^>]*>.*?<h3[^>]*>([^<]+)</h3>', html, re.DOTALL)
+            for link, title in results:
+                title = clean(title)
+                if not title or any(skip in title.lower() for skip in ["data protection", "child protection", "fire protection", "loss prevention", "brand protection"]):
+                    continue
+                source = "Indeed" if "indeed" in link else "LinkedIn" if "linkedin" in link else "Reed"
+                jobs.append({
+                    "title": title,
+                    "company": "",
+                    "location": "",
+                    "source": f"Google/{source}",
+                    "source_url": link,
+                    "country": "",
+                    "salary": "",
+                    "notes": "",
+                })
+        except Exception as e:
+            log(f"  Google Jobs error: {e}")
+    return jobs
+
+
+def scrape_reed():
+    """Scrape Reed.co.uk — HTML scraping with strict CP/EP filtering"""
+    jobs = []
+    keywords = ["close protection", "bodyguard", "security officer close protection", "CPO security"]
+    skip_words = ["data protection", "child protection", "fire protection", "loss prevention",
+                  "brand protection", "asset protection", "insurance", "broker", "lifeguard",
+                  "governance", "compliance", "safeguarding", "trainee jobs"]
+    for kw in keywords:
+        time.sleep(2)
+        try:
+            html = fetch(f"https://www.reed.co.uk/jobs/{kw.replace(' ', '-')}-jobs")
+            if not html:
+                continue
+            cards = re.findall(r'<h2[^>]*>.*?<a\s+href="(/jobs/[^"]+)"[^>]*>([^<]+)</a>', html, re.DOTALL)
+            for url, title in cards[1:]:  # Skip first (promoted category)
+                title = clean(title)
+                if not title or any(skip in title.lower() for skip in skip_words):
+                    continue
+                jobs.append({
+                    "title": title,
+                    "company": "",
+                    "location": "United Kingdom",
+                    "source": "Reed",
+                    "source_url": f"https://www.reed.co.uk{url.split('?')[0]}",
+                    "country": "UK",
+                    "salary": "",
+                    "notes": "",
+                })
+        except Exception as e:
+            log(f"  Reed error for '{kw}': {e}")
+    return jobs
+
+
 def deduplicate(jobs):
     """Remove duplicates by title+company+source"""
     seen = set()
@@ -714,6 +785,26 @@ def main():
         log(f"  LINKEDIN POSTS FAILED: {e}")
         errors.append(f"LinkedIn Posts: {e}")
 
+    # Google Jobs
+    try:
+        log("Scraping Google Jobs...")
+        google = scrape_google_jobs()
+        log(f"  Found {len(google)} jobs")
+        all_jobs.extend(google)
+    except Exception as e:
+        log(f"  GOOGLE JOBS FAILED: {e}")
+        errors.append(f"Google Jobs: {e}")
+
+    # Reed UK
+    try:
+        log("Scraping Reed UK...")
+        reed = scrape_reed()
+        log(f"  Found {len(reed)} jobs")
+        all_jobs.extend(reed)
+    except Exception as e:
+        log(f"  REED FAILED: {e}")
+        errors.append(f"Reed: {e}")
+
     # Deduplicate
     unique = deduplicate(all_jobs)
     log(f"Total scraped: {len(all_jobs)} | Unique: {len(unique)}")
@@ -732,7 +823,7 @@ def main():
     # Summary
     log("-" * 40)
     log(f"SUMMARY:")
-    log(f"  Sources scraped: 7")
+    log(f"  Sources scraped: 9")
     log(f"  Total found: {len(all_jobs)}")
     log(f"  Unique: {len(unique)}")
     log(f"  New jobs added: {new_jobs}")
