@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+// Redirect to landing page if no active session
+if (!localStorage.getItem('sb-afrcpiheobzauwyftksr-auth-token') && !window.location.search.includes('login')) {
+  window.location.replace('landing.html');
+}
+</script>
 <title>CPO LEADS — Global Security Opportunities Network</title>
 <link rel="icon" type="image/png" href="cpo_leads_logo.png">
 <meta name="description" content="Elite intelligence and recruitment platform for close protection operators and security professionals worldwide.">
