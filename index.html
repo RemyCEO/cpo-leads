@@ -11,6 +11,12 @@ if (!localStorage.getItem('sb-afrcpiheobzauwyftksr-auth-token') && !window.locat
 </script>
 <title>CPO LEADS — Global Security Opportunities Network</title>
 <link rel="icon" type="image/png" href="cpo_leads_logo.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#C9A84C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CPO Leads">
+<link rel="apple-touch-icon" href="cpo_leads_logo.png">
 <meta name="description" content="Elite intelligence and recruitment platform for close protection operators and security professionals worldwide.">
 <meta property="og:title" content="CPO LEADS — Global Security Opportunities Network">
 <meta property="og:description" content="Access vetted contracts, threat intel, and operator networks worldwide.">
@@ -1982,6 +1988,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateDashStats();
   if(typeof updateProfilePhotos==='function') updateProfilePhotos();
 });
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
 </script>
 
 </body>
