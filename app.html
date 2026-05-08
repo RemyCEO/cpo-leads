@@ -1108,12 +1108,29 @@ body {
   .dash-grid { grid-template-columns: 1fr !important; }
 
   /* Featured Company — stack image above text */
-  #page-dashboard .dashboard-grid .dashboard-grid {
+  .featured-company-card {
     grid-template-columns: 1fr !important;
   }
-  #page-dashboard .dashboard-grid .dashboard-grid > div:first-child {
-    min-height: 180px !important;
+  .featured-company-card > div:first-child {
+    min-height: 160px !important;
+    max-height: 200px;
   }
+  .featured-company-card > div:last-child {
+    padding: 16px !important;
+  }
+  .featured-company-card h3 { font-size: 1rem !important; }
+  .featured-company-card p { font-size: 0.7rem !important; }
+
+  /* Topbar — hide email, compact */
+  .topbar-actions #user-email { display: none; }
+  .topbar-actions { gap: 4px; }
+
+  /* Intel feed compact */
+  #intel-feed a { padding: 10px 12px !important; }
+
+  /* Threat monitor header compact */
+  #threat-monitor > div:first-child { padding: 10px 12px !important; }
+  #threat-monitor > div:first-child span:first-of-type { font-size: 0.6rem !important; }
 
   /* Threat Monitor */
   #threat-regions { grid-template-columns: repeat(3, 1fr) !important; }
@@ -1337,7 +1354,7 @@ body {
     <div class="dashboard-grid" style="display:grid;gap:16px;margin-bottom:20px;align-items:start">
 
     <!-- Featured Company Card -->
-    <div class="dashboard-grid" style="display:grid;gap:0;border-radius:10px;overflow:hidden;border:1px solid rgba(201,168,76,.25);animation:borderPulse 4s ease-in-out infinite">
+    <div class="featured-company-card" style="display:grid;gap:0;border-radius:10px;overflow:hidden;border:1px solid rgba(201,168,76,.25);animation:borderPulse 4s ease-in-out infinite;grid-template-columns:1fr 1fr">
       <!-- Left: Screenshot from GDBA website -->
       <div style="position:relative;min-height:260px;background:#0c0f18;overflow:hidden">
         <img id="cotm-image" src="gdba_screenshot.png" alt="Gavin de Becker & Associates" style="width:100%;height:100%;object-fit:cover;object-position:center;opacity:.9" onerror="this.src='https://gdba.com/storage/01JPE5T53F263390ZVW13RP1TZ.jpg'">
