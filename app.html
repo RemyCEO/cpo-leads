@@ -1101,19 +1101,30 @@ body {
   .dashboard-grid { grid-template-columns: 1fr !important; }
   .dash-grid { grid-template-columns: 1fr !important; }
 
-  /* Featured Company — stack vertically on mobile, show image */
+  /* Featured Company — stack vertically on mobile, full width */
   .featured-company-card {
     grid-template-columns: 1fr !important;
   }
   .featured-company-card > div:first-child {
-    min-height: 180px !important;
+    min-height: 220px !important;
   }
   .featured-company-card > div:last-child {
-    padding: 18px !important;
+    padding: 20px !important;
   }
-  .featured-company-card h3 { font-size: 1.1rem !important; word-break: break-word !important; }
-  .featured-company-card p { font-size: 0.75rem !important; line-height: 1.6 !important; margin-bottom: 8px !important; }
-  .featured-company-card a, .featured-company-card button { font-size: 0.75rem !important; padding: 12px !important; }
+  .featured-company-card h3 {
+    font-size: 1.2rem !important;
+    word-break: normal !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    line-height: 1.3 !important;
+  }
+  .featured-company-card p { font-size: 0.8rem !important; line-height: 1.6 !important; margin-bottom: 10px !important; }
+  .featured-company-card a, .featured-company-card button { font-size: 0.8rem !important; padding: 12px !important; }
+
+  /* Featured modal — full image on mobile */
+  .detail-modal-bg > div { max-width: 100% !important; margin: 8px !important; }
+  .detail-modal-bg > div > div:first-child { height: auto !important; min-height: 250px !important; }
 
   /* Topbar — hide email, compact */
   .topbar-actions #user-email { display: none; }
@@ -1335,8 +1346,8 @@ body {
     <div id="featured-modal-bg" class="detail-modal-bg" onclick="this.classList.remove('open')" style="z-index:300">
       <div onclick="event.stopPropagation()" style="background:rgba(10,14,26,.98);border:1px solid rgba(201,168,76,.25);border-radius:12px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:0;margin:16px;animation:fadeInUp .25s ease">
         <!-- Image -->
-        <div style="position:relative;height:200px;overflow:hidden;border-radius:12px 12px 0 0">
-          <img src="gdba_screenshot.png" alt="GDBA" style="width:100%;height:100%;object-fit:cover;opacity:.85" onerror="this.src='https://gdba.com/storage/01JPE5T53F263390ZVW13RP1TZ.jpg'">
+        <div style="position:relative;overflow:hidden;border-radius:12px 12px 0 0">
+          <img src="gdba_screenshot.png" alt="GDBA" style="width:100%;height:auto;object-fit:contain;opacity:.85" onerror="this.src='https://gdba.com/storage/01JPE5T53F263390ZVW13RP1TZ.jpg'">
           <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,14,26,.95) 0%,transparent 60%)"></div>
           <button onclick="document.getElementById('featured-modal-bg').classList.remove('open')" style="position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">&times;</button>
           <div style="position:absolute;bottom:16px;left:20px;display:flex;align-items:center;gap:10px">
