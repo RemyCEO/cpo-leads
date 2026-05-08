@@ -347,7 +347,7 @@ function renderSaved() {
           ${salary?'<div class="job-salary">'+esc(salary)+'</div>':''}
         </div>
         <div class="job-actions">
-          ${url?'<a href="'+url+'" target="_blank" class="btn-apply" onclick="event.stopPropagation()">Apply \u2192</a>':''}
+          ${url?'<a href="'+url+'" target="_blank" class="btn-apply" onclick="event.stopPropagation();if(!_isSubscribed){event.preventDefault();showPaywall()}">Apply \u2192</a>':''}
           <button class="btn btn-ghost btn-sm" onclick="openDetail('${l.id}')" style="font-size:11px">Details</button>
           <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleSaved('${l.id}');renderSaved()" style="font-size:11px;color:var(--red);border-color:rgba(239,68,68,.3)">Remove</button>
           <span class="badge ${job?'badge-job':typeBadge[l.type]||'badge-security'}" style="margin-left:auto">${job?'JOB':typeLabels[l.type]||l.type}</span>
@@ -628,7 +628,7 @@ function renderList(list) {
             ${l.location ? `<span style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px">${flag} ${esc(l.location)}${l.country && l.country!=='UK' && l.country!=='USA' ? ' \u00b7 '+esc(l.country) : ''}</span>` : ''}
             ${sourceIcon(source)}
             <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
-              ${url ? `<a href="${url}" target="_blank" onclick="event.stopPropagation()" style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;padding:5px 14px;border-radius:5px;font-size:10px;font-weight:800;text-decoration:none;letter-spacing:0.5px">APPLY</a>` : ''}
+              ${url ? `<a href="${url}" target="_blank" onclick="event.stopPropagation();if(!_isSubscribed){event.preventDefault();showPaywall()}" style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;padding:5px 14px;border-radius:5px;font-size:10px;font-weight:800;text-decoration:none;letter-spacing:0.5px">APPLY</a>` : ''}
               <button onclick="event.stopPropagation();toggleSaved('${l.id}');applyFilters();updateSavedCount()" style="background:none;border:none;cursor:pointer;font-size:18px;opacity:${l.saved?'1':'.35'};transition:opacity .15s;padding:0" title="${l.saved?'Unsave':'Save'}">${l.saved?'\u2605':'\u2606'}</button>
             </span>
           </div>
