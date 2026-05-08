@@ -116,9 +116,9 @@ async function onAuthSuccess(user) {
     tb.id = 'trial-banner';
     const h = window._trialHoursLeft;
     const timeText = h > 24 ? Math.ceil(h/24) + ' days' : h + ' hours';
-    tb.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;text-align:center;padding:10px 16px;font-size:13px;font-weight:700;font-family:Inter,system-ui,sans-serif';
+    tb.style.cssText = 'background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;text-align:center;padding:8px 16px;font-size:12px;font-weight:700;font-family:Inter,system-ui,sans-serif';
     tb.innerHTML = `&#9200; Free trial — ${timeText} remaining. <a href="${STRIPE_MONTHLY}" style="color:#06080d;text-decoration:underline;font-weight:800;margin-left:6px">Subscribe now — $19.90/mo</a>`;
-    document.body.prepend(tb);
+    document.getElementById('app-container').prepend(tb);
   }
   // Load fresh scraped jobs from Supabase and merge with seed data
   await loadScrapedJobs();
