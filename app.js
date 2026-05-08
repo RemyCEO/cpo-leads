@@ -323,8 +323,8 @@ document.addEventListener('keydown', e => {
 });
 
 function switchTab(tab) {
-  // Gate Jobs tab behind subscription/trial
-  if (tab === 'jobs' && !_isSubscribed) {
+  // Gate premium tabs behind subscription/trial
+  if (['jobs','guide','strategy'].includes(tab) && !_isSubscribed) {
     showPaywall();
     return;
   }
