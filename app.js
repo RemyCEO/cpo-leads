@@ -82,24 +82,44 @@ async function onAuthSuccess(user) {
   // Check subscription status before granting access
   const isAdmin = user.email === 'remy@strategioai.com';
   if (!isAdmin) {
-    try {
-      const res = await fetch(`/api/check-subscription?email=${encodeURIComponent(user.email)}`);
-      const sub = await res.json();
-      if (!sub.active) {
-        // Show paywall — user is logged in but not subscribed
-        document.getElementById('auth-overlay').style.display = 'none';
-        showPaywall(user.email);
-        return;
+    // 3-day free trial based on account creation date
+    const createdAt = new Date(user.created_at);
+    const trialMs = 3 * 24 * 60 * 60 * 1000;
+    const trialEnd = new Date(createdAt.getTime() + trialMs);
+    const inTrial = Date.now() < trialEnd.getTime();
+
+    if (!inTrial) {
+      try {
+        const res = await fetch(`/api/check-subscription?email=${encodeURIComponent(user.email)}`);
+        const sub = await res.json();
+        if (!sub.active) {
+          document.getElementById('auth-overlay').style.display = 'none';
+          showPaywall(user.email);
+          return;
+        }
+      } catch(e) {
+        console.error('Subscription check failed:', e);
       }
-    } catch(e) {
-      console.error('Subscription check failed:', e);
-      // Allow access on API failure to not lock out paying users
+    } else {
+      const hoursLeft = Math.ceil((trialEnd.getTime() - Date.now()) / 3600000);
+      window._trialHoursLeft = hoursLeft;
     }
   }
 
   document.getElementById('auth-overlay').style.display = 'none';
   document.getElementById('paywall-overlay')?.remove();
   document.getElementById('app-container').style.display = '';
+  // Show trial banner if on free trial
+  if (window._trialHoursLeft) {
+    document.getElementById('trial-banner')?.remove();
+    const tb = document.createElement('div');
+    tb.id = 'trial-banner';
+    const h = window._trialHoursLeft;
+    const timeText = h > 24 ? Math.ceil(h/24) + ' days' : h + ' hours';
+    tb.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;text-align:center;padding:10px 16px;font-size:13px;font-weight:700;font-family:Inter,system-ui,sans-serif';
+    tb.innerHTML = `&#9200; Free trial — ${timeText} remaining. <a href="${STRIPE_MONTHLY}" style="color:#06080d;text-decoration:underline;font-weight:800;margin-left:6px">Subscribe now — $19.90/mo</a>`;
+    document.body.prepend(tb);
+  }
   // Load fresh scraped jobs from Supabase and merge with seed data
   await loadScrapedJobs();
 }
@@ -115,11 +135,11 @@ function showPaywall(email) {
   pw.style.cssText = 'position:fixed;inset:0;z-index:10000;background:#06080d;display:flex;align-items:center;justify-content:center;padding:20px';
   pw.innerHTML = `
     <div style="max-width:480px;text-align:center;font-family:Inter,system-ui,sans-serif">
-      <div style="font-size:48px;margin-bottom:16px">&#128274;</div>
-      <h2 style="color:#C9A84C;font-size:28px;margin-bottom:12px">Subscription Required</h2>
+      <div style="font-size:48px;margin-bottom:16px">&#9203;</div>
+      <h2 style="color:#C9A84C;font-size:28px;margin-bottom:12px">Your Free Trial Has Ended</h2>
       <p style="color:#9a978f;font-size:15px;line-height:1.6;margin-bottom:24px">
         You're logged in as <strong style="color:#fff">${email}</strong>.<br>
-        Subscribe to CPO Leads Pro to access 500+ jobs, 89 companies, insider intel, and the operator guide.
+        Your 3-day free trial is over. Subscribe to keep access to all jobs, companies, intel, and the operator guide.
       </p>
       <a href="${STRIPE_MONTHLY}" style="display:block;padding:16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border-radius:8px;font-weight:800;font-size:16px;text-decoration:none;margin-bottom:10px">Subscribe — $19.90/month</a>
       <a href="${STRIPE_YEARLY}" style="display:block;padding:14px;background:transparent;border:2px solid #C9A84C;color:#C9A84C;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;margin-bottom:24px">Yearly — $199/yr (Save $40)</a>
