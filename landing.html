@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CPO LEADS — Global Security Intelligence & Opportunities Network</title>
 <meta name="description" content="The premier intelligence and recruitment platform for elite security professionals. Access vetted contracts, threat intel, and operator networks worldwide.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#C9A84C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -1572,6 +1576,7 @@ section {
     <div class="hero-buttons">
       <a href="#pricing" class="btn-gold">Access Platform</a>
       <a href="#intel" class="btn-outline">View Intel Briefing</a>
+      <button id="pwa-install-btn" onclick="pwaInstall()" style="display:none;padding:12px 28px;background:none;border:1px solid rgba(201,168,76,.4);border-radius:8px;color:#C9A84C;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;letter-spacing:0.5px;transition:all .2s">&#128242; Install App</button>
     </div>
     <div class="hero-stats">
       <div class="hero-stat">
@@ -2319,6 +2324,30 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     }
   });
 });
+
+// PWA Install
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('pwa-install-btn').style.display = '';
+});
+function pwaInstall() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      document.getElementById('pwa-install-btn').style.display = 'none';
+    });
+  }
+}
+// iOS detection — show button with instructions
+if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream && !navigator.standalone) {
+  const btn = document.getElementById('pwa-install-btn');
+  btn.style.display = '';
+  btn.onclick = () => alert('Tap the Share button (↑) at the bottom of Safari, then tap "Add to Home Screen"');
+}
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
 </script>
 
 </body>
