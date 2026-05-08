@@ -916,6 +916,102 @@ function renderDashboard() {
         <button class="btn btn-ghost btn-sm" onclick="exportCSV('all')" style="justify-content:center">Export All Data</button>
       </div>
     </div>
+  </div>
+
+  <div style="margin-top:24px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:20px;overflow:hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div>
+        <h3 style="font-size:14px;font-weight:700;color:var(--fg);margin:0">Global Operations Monitor</h3>
+        <p style="font-size:11px;color:var(--muted);margin:4px 0 0">Active contracts & threat zones across 7 regions</p>
+      </div>
+      <div style="display:flex;gap:12px;font-size:10px;color:var(--muted)">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#C9A84C;display:inline-block"></span> Opportunities</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#c0392b;display:inline-block"></span> Threat Zones</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#2980b9;display:inline-block"></span> Intel Nodes</span>
+      </div>
+    </div>
+    <svg viewBox="0 0 900 440" style="width:100%;height:auto;opacity:.9">
+      <rect width="900" height="440" fill="transparent"/>
+      <!-- Grid lines -->
+      <line x1="0" y1="110" x2="900" y2="110" stroke="rgba(201,168,76,.04)" stroke-width="0.5"/>
+      <line x1="0" y1="220" x2="900" y2="220" stroke="rgba(201,168,76,.04)" stroke-width="0.5"/>
+      <line x1="0" y1="330" x2="900" y2="330" stroke="rgba(201,168,76,.04)" stroke-width="0.5"/>
+      <line x1="225" y1="0" x2="225" y2="440" stroke="rgba(201,168,76,.04)" stroke-width="0.5"/>
+      <line x1="450" y1="0" x2="450" y2="440" stroke="rgba(201,168,76,.04)" stroke-width="0.5"/>
+      <line x1="675" y1="0" x2="675" y2="440" stroke="rgba(201,168,76,.04)" stroke-width="0.5"/>
+      <!-- North America -->
+      <circle cx="180" cy="130" r="2" fill="rgba(201,168,76,0.25)"/>
+      <circle cx="200" cy="145" r="2.5" fill="rgba(201,168,76,0.3)"/>
+      <circle cx="220" cy="140" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle cx="160" cy="150" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle cx="240" cy="160" r="2.5" fill="rgba(201,168,76,0.25)"/>
+      <circle cx="170" cy="170" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle class="map-dot" cx="200" cy="145" r="5" fill="#C9A84C" opacity="0.8"><animate attributeName="r" values="5;7;5" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0.4;0.8" dur="3s" repeatCount="indefinite"/></circle>
+      <text x="200" y="185" fill="rgba(201,168,76,.4)" font-size="9" font-family="Inter,sans-serif" text-anchor="middle">AMERICAS</text>
+      <!-- Europe -->
+      <circle cx="420" cy="105" r="2" fill="rgba(201,168,76,0.25)"/>
+      <circle cx="440" cy="110" r="2.5" fill="rgba(201,168,76,0.3)"/>
+      <circle cx="460" cy="105" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle cx="435" cy="120" r="2" fill="rgba(201,168,76,0.25)"/>
+      <circle cx="450" cy="95" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle class="map-dot" cx="428" cy="112" r="4.5" fill="#C9A84C" opacity="0.8"><animate attributeName="r" values="4.5;6.5;4.5" dur="3.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0.4;0.8" dur="3.5s" repeatCount="indefinite"/></circle>
+      <circle class="map-dot" cx="458" cy="118" r="3.5" fill="#2980b9" opacity="0.7"><animate attributeName="r" values="3.5;5;3.5" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0.7" dur="4s" repeatCount="indefinite"/></circle>
+      <text x="440" y="145" fill="rgba(201,168,76,.4)" font-size="9" font-family="Inter,sans-serif" text-anchor="middle">EUROPE</text>
+      <!-- Middle East -->
+      <circle cx="520" cy="170" r="2.5" fill="rgba(201,168,76,0.3)"/>
+      <circle cx="535" cy="165" r="2" fill="rgba(201,168,76,0.25)"/>
+      <circle cx="540" cy="180" r="2.5" fill="rgba(201,168,76,0.3)"/>
+      <circle cx="510" cy="175" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle cx="548" cy="170" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle class="map-dot" cx="530" cy="172" r="5.5" fill="#c0392b" opacity="0.6"><animate attributeName="r" values="5.5;8;5.5" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0.25;0.6" dur="2.5s" repeatCount="indefinite"/></circle>
+      <circle class="map-dot" cx="540" cy="182" r="4" fill="#C9A84C" opacity="0.8"><animate attributeName="r" values="4;6;4" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0.4;0.8" dur="3s" repeatCount="indefinite"/></circle>
+      <text x="530" y="205" fill="rgba(201,168,76,.4)" font-size="9" font-family="Inter,sans-serif" text-anchor="middle">MIDDLE EAST</text>
+      <!-- Africa -->
+      <circle cx="450" cy="230" r="2.5" fill="rgba(201,168,76,0.3)"/>
+      <circle cx="465" cy="250" r="2" fill="rgba(201,168,76,0.25)"/>
+      <circle cx="440" cy="260" r="2.5" fill="rgba(201,168,76,0.3)"/>
+      <circle cx="475" cy="220" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle cx="455" cy="280" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle cx="480" cy="270" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle class="map-dot" cx="445" cy="235" r="5" fill="#c0392b" opacity="0.5"><animate attributeName="r" values="5;7.5;5" dur="2.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.2;0.5" dur="2.8s" repeatCount="indefinite"/></circle>
+      <circle class="map-dot" cx="490" cy="310" r="3" fill="#C9A84C" opacity="0.7"><animate attributeName="r" values="3;5;3" dur="3.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0.7" dur="3.2s" repeatCount="indefinite"/></circle>
+      <text x="460" y="305" fill="rgba(201,168,76,.4)" font-size="9" font-family="Inter,sans-serif" text-anchor="middle">AFRICA</text>
+      <!-- Central/South Asia -->
+      <circle cx="580" cy="160" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle cx="600" cy="170" r="2.5" fill="rgba(201,168,76,0.3)"/>
+      <circle cx="620" cy="180" r="2" fill="rgba(201,168,76,0.25)"/>
+      <circle cx="590" cy="185" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle class="map-dot" cx="595" cy="168" r="4.5" fill="#c0392b" opacity="0.5"><animate attributeName="r" values="4.5;7;4.5" dur="2.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.2;0.5" dur="2.6s" repeatCount="indefinite"/></circle>
+      <text x="600" y="200" fill="rgba(201,168,76,.4)" font-size="9" font-family="Inter,sans-serif" text-anchor="middle">SOUTH ASIA</text>
+      <!-- East Asia / Pacific -->
+      <circle cx="700" cy="160" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle cx="720" cy="150" r="2.5" fill="rgba(201,168,76,0.25)"/>
+      <circle cx="740" cy="170" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle cx="710" cy="200" r="2.5" fill="rgba(201,168,76,0.3)"/>
+      <circle class="map-dot" cx="715" cy="155" r="3.5" fill="#2980b9" opacity="0.6"><animate attributeName="r" values="3.5;5.5;3.5" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0.25;0.6" dur="4s" repeatCount="indefinite"/></circle>
+      <text x="720" y="190" fill="rgba(201,168,76,.4)" font-size="9" font-family="Inter,sans-serif" text-anchor="middle">ASIA-PACIFIC</text>
+      <!-- Australia -->
+      <circle cx="740" cy="330" r="2" fill="rgba(201,168,76,0.15)"/>
+      <circle cx="760" cy="320" r="2" fill="rgba(201,168,76,0.2)"/>
+      <circle cx="750" cy="340" r="2" fill="rgba(201,168,76,0.15)"/>
+      <!-- Connection lines -->
+      <line x1="200" y1="145" x2="428" y2="112" stroke="rgba(201,168,76,0.06)" stroke-width="0.5"/>
+      <line x1="428" y1="112" x2="530" y2="172" stroke="rgba(201,168,76,0.06)" stroke-width="0.5"/>
+      <line x1="530" y1="172" x2="595" y2="168" stroke="rgba(201,168,76,0.06)" stroke-width="0.5"/>
+      <line x1="595" y1="168" x2="715" y2="155" stroke="rgba(201,168,76,0.06)" stroke-width="0.5"/>
+      <line x1="445" y1="235" x2="530" y2="172" stroke="rgba(201,168,76,0.04)" stroke-width="0.5"/>
+      <!-- Dynamic region counters -->
+      <text x="200" y="195" fill="#C9A84C" font-size="11" font-family="Inter,sans-serif" text-anchor="middle" font-weight="700">${regionCounts['Americas']||regionCounts['USA']||0}</text>
+      <text x="440" y="155" fill="#C9A84C" font-size="11" font-family="Inter,sans-serif" text-anchor="middle" font-weight="700">${regionCounts['Europe']||regionCounts['UK']||0}</text>
+      <text x="530" y="215" fill="#C9A84C" font-size="11" font-family="Inter,sans-serif" text-anchor="middle" font-weight="700">${regionCounts['Middle East']||0}</text>
+      <text x="460" y="315" fill="#C9A84C" font-size="11" font-family="Inter,sans-serif" text-anchor="middle" font-weight="700">${regionCounts['Africa']||0}</text>
+      <text x="720" y="200" fill="#C9A84C" font-size="11" font-family="Inter,sans-serif" text-anchor="middle" font-weight="700">${regionCounts['Asia-Pacific']||0}</text>
+    </svg>
+    <div style="display:flex;justify-content:space-around;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+      ${Object.entries(regionCounts).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([r,c])=>
+        \`<div style="text-align:center"><div style="font-size:16px;font-weight:800;color:#C9A84C">\${c}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">\${r}</div></div>\`
+      ).join('')}
+    </div>
   </div>`;
 }
 
