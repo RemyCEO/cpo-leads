@@ -1514,7 +1514,10 @@ body {
       <div style="background:var(--card-bg);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:10px;overflow:hidden">
         <div style="padding:16px 20px;border-bottom:1px solid var(--card-border);display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:0.85rem;font-weight:700;letter-spacing:2px">MY PROFILE</span>
-          <span style="font-size:0.7rem;display:flex;align-items:center;gap:6px;color:var(--green)"><span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block"></span> ONLINE</span>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:0.7rem;display:flex;align-items:center;gap:6px;color:var(--green)"><span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block"></span> ONLINE</span>
+            <button onclick="switchPage('dashboard',document.querySelector('.nav-item[data-page=dashboard]'))" style="background:none;border:1px solid var(--card-border);border-radius:6px;color:var(--text-muted);cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--card-border)';this.style.color='var(--text-muted)'">&times;</button>
+          </div>
         </div>
         <div style="padding:24px 20px;display:flex;flex-direction:column;gap:16px">
           <!-- Photo -->
