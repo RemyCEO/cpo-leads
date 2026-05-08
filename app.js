@@ -14,8 +14,8 @@ const COMPANY_OF_MONTH = {
 // --- SUPABASE AUTH ---
 const SB_URL = 'https://afrcpiheobzauwyftksr.supabase.co';
 const SB_KEY = 'sb_publishable_fJWFqpHxoux8-FfxuEZH0Q_UxlBylC6';
-const STRIPE_MONTHLY = 'https://buy.stripe.com/28EeVdf423lFaGwcG37AI00';
-const STRIPE_YEARLY = 'https://buy.stripe.com/cNi8wPdZY2hB4i821p7AI01';
+const STRIPE_MONTHLY = 'https://buy.stripe.com/bJe14n3lk4pJg0Q5dB7AI02';
+const STRIPE_YEARLY = 'https://buy.stripe.com/6oUbJ12hg1dxeWMaxV7AI03';
 
 const sb = supabase.createClient(SB_URL, SB_KEY);
 let currentUser = null;
