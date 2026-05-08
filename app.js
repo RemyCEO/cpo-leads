@@ -493,13 +493,48 @@ function renderList(list) {
   }
 
   if (activeTab === 'jobs') {
-    el.innerHTML = list.map(l => {
+    // Sort by posted_at (source date) descending by default if sort is 'date' or 'priority'
+    const sortBy = document.getElementById('sort-by').value;
+    if (sortBy === 'date' || sortBy === 'priority') {
+      list.sort((a,b) => (b.posted_at||b.created_at||'').localeCompare(a.posted_at||a.created_at||''));
+    }
+
+    // Group jobs by posted date
+    let html = '';
+    let lastDateLabel = '';
+    const today = new Date(); today.setHours(0,0,0,0);
+    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
+    const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate()-7);
+
+    function dateLabel(dateStr) {
+      if (!dateStr) return 'Unknown date';
+      const d = new Date(dateStr); d.setHours(0,0,0,0);
+      if (d.getTime() === today.getTime()) return 'Today';
+      if (d.getTime() === yesterday.getTime()) return 'Yesterday';
+      if (d > weekAgo) {
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        return days[d.getDay()];
+      }
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+    }
+
+    for (const l of list) {
+      const label = dateLabel(l.posted_at || l.created_at);
+      if (label !== lastDateLabel) {
+        html += `<div style="padding:14px 0 8px;margin-top:${lastDateLabel?'12px':'0'};border-bottom:1px solid rgba(201,168,76,.15);display:flex;align-items:center;gap:10px">
+          <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#C9A84C">${label}</span>
+          <span style="flex:1;height:1px;background:rgba(201,168,76,.1)"></span>
+        </div>`;
+        lastDateLabel = label;
+      }
+
       const salary = extractSalary(l.notes);
       const source = extractSource(l);
       const url = getApplyUrl(l);
       const cleanTitle = esc(l.company).replace(/^.*?\u2014\s*/, '');
       const companyName = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '';
-      return `
+      html += `
       <div class="job-card">
         <div class="job-header">
           <div>
@@ -520,7 +555,8 @@ function renderList(list) {
           <button onclick="event.stopPropagation();toggleSaved('${l.id}');applyFilters();updateSavedCount()" style="background:none;border:none;cursor:pointer;font-size:18px;margin-left:auto;opacity:${l.saved?'1':'.4'};transition:opacity .15s" title="${l.saved?'Unsave':'Save for later'}">${l.saved?'\u2605':'\u2606'}</button>
         </div>
       </div>`;
-    }).join('');
+    }
+    el.innerHTML = html;
   } else {
     el.innerHTML = list.map(l => `
       <div class="lead-card" onclick="openDetail('${l.id}')">
