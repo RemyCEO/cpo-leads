@@ -1088,147 +1088,165 @@ body {
   .dashboard-grid { grid-template-columns: 1fr !important; }
   .profile-grid { grid-template-columns: 1fr; }
 }
+/* ============================================================
+   MOBILE RESPONSIVE — CLEAN REWRITE
+   Target: 390px (iPhone 14), tested up to 768px
+   ============================================================ */
 @media (max-width: 768px) {
+
+  /* === LAYOUT === */
   .sidebar { transform: translateX(-100%); }
   .sidebar.open { transform: translateX(0); }
   .hamburger { display: flex; }
-  .main-content { margin-left: 0; padding: 70px 10px 20px; }
-  .topbar { left: 0; padding-left: 52px; height: 56px; }
-  .topbar-search input { font-size: 12px; padding: 6px 10px 6px 30px; }
+  .main-content { margin-left: 0; padding: 64px 12px 80px; }
   .main-content::after { left: 0; }
+  .dashboard-grid, .dash-grid { grid-template-columns: 1fr !important; }
 
-  /* All grids single column */
-  .dashboard-grid { grid-template-columns: 1fr !important; }
-  .dash-grid { grid-template-columns: 1fr !important; }
+  /* === TOPBAR === */
+  .topbar { left: 0; height: 56px; padding: 0 10px 0 48px; }
+  .topbar-search { flex: 1; min-width: 0; }
+  .topbar-search input { font-size: 13px; padding: 8px 10px 8px 32px; }
+  .topbar-actions { gap: 6px; flex-shrink: 0; }
+  .topbar-actions #user-email { display: none; }
+  .topbar-actions .btn-gold { font-size: 10px; padding: 6px 10px; }
+  .topbar-actions .btn-ghost { font-size: 10px; padding: 6px 8px; }
 
-  /* Featured Company — COMPLETELY replace with simple card on mobile */
+  /* === FEATURED COMPANY CARD === */
   .featured-company-card {
-    grid-template-columns: 1fr !important;
     display: flex !important;
     flex-direction: column !important;
   }
-  /* Hide the image section entirely on card — modal has the full image */
   .featured-company-card > div:first-child {
     display: none !important;
   }
   .featured-company-card > div:last-child {
     padding: 24px 20px !important;
-    text-align: center !important;
   }
   .featured-company-card > div:last-child > div:first-child {
     justify-content: center !important;
     flex-wrap: wrap !important;
   }
   .featured-company-card h3 {
-    font-size: 1.25rem !important;
+    font-size: 1.3rem !important;
     text-align: center !important;
-    word-break: normal !important;
     white-space: normal !important;
     overflow: visible !important;
     line-height: 1.4 !important;
     margin-bottom: 12px !important;
   }
   .featured-company-card p {
-    font-size: 0.9rem !important;
+    font-size: 15px !important;
     line-height: 1.6 !important;
-    margin-bottom: 12px !important;
+    text-align: center !important;
+    margin-bottom: 14px !important;
+  }
+  .featured-company-card a,
+  .featured-company-card button {
+    font-size: 15px !important;
+    padding: 14px !important;
+    width: 100% !important;
+    display: block !important;
     text-align: center !important;
   }
-  .featured-company-card a, .featured-company-card button { font-size: 0.85rem !important; padding: 14px !important; width: 100% !important; }
 
-  /* Featured modal — fullscreen on mobile */
-  .detail-modal-bg > div {
+  /* === FEATURED MODAL (fullscreen on mobile) === */
+  #featured-modal-bg > div {
     max-width: 100% !important;
+    width: 100% !important;
     margin: 0 !important;
     border-radius: 0 !important;
     max-height: 100vh !important;
-    height: 100vh !important;
+    min-height: 100vh !important;
   }
-  .detail-modal-bg > div > div:first-child {
-    height: auto !important;
-    min-height: 0 !important;
-  }
-  .detail-modal-bg > div > div:first-child img {
+  #featured-modal-bg img {
     width: 100% !important;
     height: auto !important;
-    max-height: none !important;
     object-fit: contain !important;
+    max-height: 280px !important;
   }
-  /* Hide gradient overlay on modal image on mobile */
-  .detail-modal-bg > div > div:first-child > div:nth-child(2) {
-    display: none !important;
+  #featured-modal-bg h3 {
+    font-size: 1.2rem !important;
   }
-  .detail-modal-bg h3 {
-    font-size: 1.15rem !important;
-    word-break: normal !important;
+  #featured-modal-bg p {
+    font-size: 14px !important;
+    line-height: 1.6 !important;
   }
-  /* Big close button on mobile modal */
-  .detail-modal-bg button[onclick*="remove('open')"] {
-    width: 44px !important;
-    height: 44px !important;
-    font-size: 24px !important;
-    top: 8px !important;
-    right: 8px !important;
+  #featured-modal-bg button[onclick*="remove"] {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 28px !important;
+    top: 10px !important;
+    right: 10px !important;
+    background: rgba(0,0,0,.8) !important;
+    z-index: 10 !important;
+  }
+  #featured-modal-bg a[href*="gdba"],
+  #featured-modal-bg button[onclick*="switchPage"] {
+    font-size: 15px !important;
+    padding: 14px !important;
+  }
+  /* Stats grid inside modal */
+  #featured-modal-bg [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr 1fr !important;
   }
 
-  /* Topbar — compact, hide email, shrink buttons */
-  .topbar { padding-left: 44px !important; padding-right: 8px !important; }
-  .topbar-search { flex: 1 !important; min-width: 0 !important; }
-  .topbar-search input { font-size: 11px !important; padding: 6px 8px 6px 28px !important; }
-  .topbar-actions #user-email { display: none; }
-  .topbar-actions { gap: 4px; flex-shrink: 0; }
-  .topbar-actions .btn-gold { font-size: 9px !important; padding: 5px 8px !important; }
-  .topbar-actions .btn-ghost { font-size: 9px !important; padding: 5px 6px !important; }
+  /* === THREAT MONITOR === */
+  #threat-monitor > div:first-child { padding: 12px 14px; }
+  #threat-regions { grid-template-columns: repeat(2, 1fr) !important; gap: 1px; }
+  .threat-zone { padding: 14px 12px; text-align: center; }
+  .tz-label { font-size: 10px; }
+  .tz-level { font-size: 13px; }
+  .tz-detail { display: none; }
 
-  /* Intel feed compact */
-  #intel-feed a { padding: 10px 12px !important; }
+  /* === INTEL FEED === */
+  #intel-feed a { padding: 12px 14px !important; font-size: 13px !important; }
 
-  /* Threat monitor — 2 cols on mobile for readability */
-  #threat-monitor > div:first-child { padding: 10px 12px !important; }
-  #threat-monitor > div:first-child span:first-of-type { font-size: 0.6rem !important; }
-  #threat-regions { grid-template-columns: repeat(2, 1fr) !important; }
-  .threat-zone { padding: 12px 10px; }
-  .tz-label { font-size: 0.6rem; }
-  .tz-level { font-size: 0.75rem; }
-  .tz-detail { font-size: 0.55rem; display: none; }
-
-  /* Stats */
+  /* === STATS CARDS === */
   .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .stat-card { padding: 12px; }
-  .stat-value { font-size: 1.2rem; }
-  .stat-label { font-size: 0.55rem; }
-  .section-title { font-size: 0.85rem; }
+  .stat-card { padding: 14px; }
+  .stat-value { font-size: 1.3rem; }
+  .stat-label { font-size: 10px; }
+  .section-title { font-size: 15px; }
 
-  /* Job cards */
-  .job-card { padding: 12px; }
-  .job-header { flex-direction: column; gap: 4px; }
-  .job-title { font-size: 14px; }
-  .job-salary { font-size: 12px; }
-  .job-row { font-size: 11px; flex-wrap: wrap; gap: 6px; }
-  .job-actions { flex-wrap: wrap; gap: 6px; }
-  .btn-apply { font-size: 11px; padding: 6px 12px; }
+  /* === JOB CARDS === */
+  .job-card { padding: 14px; }
+  .job-header { flex-direction: column; gap: 6px; }
+  .job-title { font-size: 15px; }
+  .job-salary { font-size: 14px; }
+  .job-row { font-size: 13px; flex-wrap: wrap; gap: 8px; }
+  .job-actions { flex-wrap: wrap; gap: 8px; }
+  .btn-apply { font-size: 13px; padding: 10px 16px; min-height: 44px; }
 
-  /* Lead cards */
-  .lead-card { padding: 10px; }
-  .lead-company { font-size: 13px; }
+  /* === LEAD / COMPANY CARDS === */
+  .lead-card { padding: 14px; }
+  .lead-company { font-size: 15px; }
+  .lead-meta span { font-size: 13px; }
 
-  /* Detail modal */
-  .detail-modal { width: 95% !important; max-width: none !important; margin: 8px !important; padding: 14px !important; }
+  /* === DETAIL SIDE PANEL === */
+  .detail-modal {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    border-radius: 0 !important;
+    height: 100vh !important;
+  }
+  .detail-modal h2 { font-size: 18px !important; }
+  .detail-modal .detail-row { font-size: 14px; }
+  .detail-modal .close-btn { width: 44px; height: 44px; font-size: 24px; }
 
-  /* Nav & profile */
-  .nav-item { font-size: 0.78rem; padding: 10px 16px; }
+  /* === SIDEBAR NAV === */
+  .nav-item { font-size: 14px; padding: 14px 20px; }
   .profile-grid { grid-template-columns: 1fr; }
+
+  /* === PREVENT HORIZONTAL SCROLL === */
+  html, body { overflow-x: hidden; }
 }
+
 @media (max-width: 480px) {
-  .stats-grid { grid-template-columns: 1fr; }
-  .topbar { padding-left: 46px; }
-  .topbar-actions .btn-gold { font-size: 9px; padding: 4px 8px; }
-  .topbar-actions .btn-ghost { font-size: 8px; padding: 4px 6px; }
-  #global-search { min-width: 60px; font-size: 11px; }
-  #threat-regions { grid-template-columns: repeat(2, 1fr) !important; }
-  .threat-zone:nth-child(5) { grid-column: 1 / -1; }
-  .job-title { font-size: 13px; }
-  .job-row { font-size: 10px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .stat-value { font-size: 1.1rem; }
+  .job-title { font-size: 14px; }
 }
 
 /* Mobile bottom nav — visible only on mobile */
