@@ -7,4 +7,4 @@ Disallow: /import_leads.html
 Disallow: /import_active_jobs.html
 Disallow: /import_new_listings.html
 
-Sitemap: https://cpo.strategio.site/sitemap.xml
+Sitemap: https://cpoleads.com/sitemap.xml
