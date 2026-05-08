@@ -1101,48 +1101,58 @@ body {
   .dashboard-grid { grid-template-columns: 1fr !important; }
   .dash-grid { grid-template-columns: 1fr !important; }
 
-  /* Featured Company — stack vertically on mobile, full width */
+  /* Featured Company — stack vertically, hide gradients that look broken */
   .featured-company-card {
     grid-template-columns: 1fr !important;
   }
   .featured-company-card > div:first-child {
-    min-height: 220px !important;
+    min-height: 200px !important;
+    max-height: 240px !important;
+  }
+  /* Hide horizontal gradient overlay — only needed for side-by-side */
+  .featured-company-card > div:first-child > div:nth-child(2) {
+    display: none !important;
   }
   .featured-company-card > div:last-child {
     padding: 20px !important;
   }
   .featured-company-card h3 {
-    font-size: 1.2rem !important;
+    font-size: 1.15rem !important;
     word-break: normal !important;
     white-space: normal !important;
     overflow: visible !important;
     text-overflow: unset !important;
     line-height: 1.3 !important;
   }
-  .featured-company-card p { font-size: 0.8rem !important; line-height: 1.6 !important; margin-bottom: 10px !important; }
-  .featured-company-card a, .featured-company-card button { font-size: 0.8rem !important; padding: 12px !important; }
+  .featured-company-card p { font-size: 0.85rem !important; line-height: 1.6 !important; margin-bottom: 10px !important; }
+  .featured-company-card a, .featured-company-card button { font-size: 0.85rem !important; padding: 14px !important; }
 
-  /* Featured modal — full image on mobile */
+  /* Featured modal — full width, full image */
   .detail-modal-bg > div { max-width: 100% !important; margin: 8px !important; }
-  .detail-modal-bg > div > div:first-child { height: auto !important; min-height: 250px !important; }
+  .detail-modal-bg > div > div:first-child { height: auto !important; min-height: 220px !important; }
+  .detail-modal-bg > div > div:first-child img { width: 100% !important; height: auto !important; max-height: 300px !important; object-fit: cover !important; }
+  .detail-modal-bg h3 { font-size: 1.1rem !important; word-break: normal !important; }
 
-  /* Topbar — hide email, compact */
+  /* Topbar — compact, hide email, shrink buttons */
+  .topbar { padding-left: 44px !important; padding-right: 8px !important; }
+  .topbar-search { flex: 1 !important; min-width: 0 !important; }
+  .topbar-search input { font-size: 11px !important; padding: 6px 8px 6px 28px !important; }
   .topbar-actions #user-email { display: none; }
-  .topbar-actions { gap: 4px; }
+  .topbar-actions { gap: 4px; flex-shrink: 0; }
+  .topbar-actions .btn-gold { font-size: 9px !important; padding: 5px 8px !important; }
+  .topbar-actions .btn-ghost { font-size: 9px !important; padding: 5px 6px !important; }
 
   /* Intel feed compact */
   #intel-feed a { padding: 10px 12px !important; }
 
-  /* Threat monitor header compact */
+  /* Threat monitor — 2 cols on mobile for readability */
   #threat-monitor > div:first-child { padding: 10px 12px !important; }
   #threat-monitor > div:first-child span:first-of-type { font-size: 0.6rem !important; }
-
-  /* Threat Monitor */
-  #threat-regions { grid-template-columns: repeat(3, 1fr) !important; }
-  .threat-zone { padding: 10px 8px; }
-  .tz-label { font-size: 0.5rem; }
-  .tz-level { font-size: 0.6rem; }
-  .tz-detail { font-size: 0.5rem; }
+  #threat-regions { grid-template-columns: repeat(2, 1fr) !important; }
+  .threat-zone { padding: 12px 10px; }
+  .tz-label { font-size: 0.6rem; }
+  .tz-level { font-size: 0.75rem; }
+  .tz-detail { font-size: 0.55rem; display: none; }
 
   /* Stats */
   .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
