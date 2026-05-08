@@ -1332,61 +1332,17 @@ body {
       </div>
     </div>
 
-    <!-- Industry News -->
+    <!-- Industry News (dynamic) -->
     <div style="background:var(--card-bg);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:10px;overflow:hidden">
       <div style="padding:14px 16px;border-bottom:1px solid var(--card-border);display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:0.7rem;font-weight:700;letter-spacing:2px;color:var(--gold)">INDUSTRY INTEL</span>
-        <span style="font-size:0.55rem;color:var(--text-muted);letter-spacing:1px">MAY 2026</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:6px;height:6px;border-radius:50%;background:#3ecf8e;animation:pulse 2s infinite"></div>
+          <span style="font-size:0.7rem;font-weight:700;letter-spacing:2px;color:var(--gold)">INDUSTRY INTEL</span>
+        </div>
+        <span id="intel-updated" style="font-size:0.55rem;color:var(--text-muted);letter-spacing:1px">UPDATING...</span>
       </div>
-      <div style="display:flex;flex-direction:column">
-        <a href="https://www.securitysystemsnews.com/article/security-strategies-shift-as-executive-threat-landscape-evolves" target="_blank" style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(201,168,76,.06);text-decoration:none;transition:background .15s" onmouseover="this.style.background='rgba(201,168,76,.03)'" onmouseout="this.style.background='transparent'">
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--red);margin-top:5px;flex-shrink:0;animation:pulse 2s infinite"></div>
-          <div style="flex:1">
-            <div style="font-size:0.78rem;color:var(--text-primary);font-weight:600;line-height:1.3">Executive Threat Landscape Evolving Rapidly</div>
-            <div style="font-size:0.65rem;color:var(--text-secondary);margin-top:3px;line-height:1.4">42% of orgs report significantly more emphasis on EP. Industry shifting from reactive defense to proactive risk management.</div>
-            <div style="font-size:0.6rem;color:var(--text-muted);margin-top:4px">Security Systems News</div>
-          </div>
-        </a>
-        <a href="https://www.securitysystemsnews.com/article/diversified-protective-services-expands-executive-protection-services" target="_blank" style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(201,168,76,.06);text-decoration:none;transition:background .15s" onmouseover="this.style.background='rgba(201,168,76,.03)'" onmouseout="this.style.background='transparent'">
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--gold);margin-top:5px;flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:0.78rem;color:var(--text-primary);font-weight:600;line-height:1.3">DPS Expands EP for Entertainment Industry</div>
-            <div style="font-size:0.65rem;color:var(--text-secondary);margin-top:3px;line-height:1.4">Diversified Protective Services targeting actors, executives, and production teams with tailored protection.</div>
-            <div style="font-size:0.6rem;color:var(--text-muted);margin-top:4px">Security Systems News</div>
-          </div>
-        </a>
-        <a href="https://www.g4s.com/" target="_blank" style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(201,168,76,.06);text-decoration:none;transition:background .15s" onmouseover="this.style.background='rgba(201,168,76,.03)'" onmouseout="this.style.background='transparent'">
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--amber);margin-top:5px;flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:0.78rem;color:var(--text-primary);font-weight:600;line-height:1.3">G4S Wins Sizewell C Nuclear Security Contract</div>
-            <div style="font-size:0.65rem;color:var(--text-secondary);margin-top:3px;line-height:1.4">Named principal security provider for new 3.2GW nuclear power station on Suffolk coast. Major hiring expected.</div>
-            <div style="font-size:0.6rem;color:var(--text-muted);margin-top:4px">G4S Global</div>
-          </div>
-        </a>
-        <a href="https://ipsboard.glueup.com/event/171824" target="_blank" style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(201,168,76,.06);text-decoration:none;transition:background .15s" onmouseover="this.style.background='rgba(201,168,76,.03)'" onmouseout="this.style.background='transparent'">
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--blue);margin-top:5px;flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:0.78rem;color:var(--text-primary);font-weight:600;line-height:1.3">IPSB Singapore Symposium — May 15</div>
-            <div style="font-size:0.65rem;color:var(--text-secondary);margin-top:3px;line-height:1.4">Executive protection experts gathering for networking and industry best practices. Registration open.</div>
-            <div style="font-size:0.6rem;color:var(--text-muted);margin-top:4px">IPSB Event</div>
-          </div>
-        </a>
-        <a href="https://ipsboard.glueup.com/event/177096" target="_blank" style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(201,168,76,.06);text-decoration:none;transition:background .15s" onmouseover="this.style.background='rgba(201,168,76,.03)'" onmouseout="this.style.background='transparent'">
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--green);margin-top:5px;flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:0.78rem;color:var(--text-primary);font-weight:600;line-height:1.3">Frontier Risk Forum — London, Jun 23</div>
-            <div style="font-size:0.65rem;color:var(--text-secondary);margin-top:3px;line-height:1.4">Prince Philip House. Key forum for risk professionals operating in complex and hostile environments.</div>
-            <div style="font-size:0.6rem;color:var(--text-muted);margin-top:4px">IPSB Event</div>
-          </div>
-        </a>
-        <a href="https://www.businessresearchinsights.com/market-reports/private-security-service-market-124268" target="_blank" style="display:flex;gap:10px;padding:12px 16px;text-decoration:none;transition:background .15s" onmouseover="this.style.background='rgba(201,168,76,.03)'" onmouseout="this.style.background='transparent'">
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--gold);margin-top:5px;flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:0.78rem;color:var(--text-primary);font-weight:600;line-height:1.3">Market: $259B in 2026, $370B by 2035</div>
-            <div style="font-size:0.65rem;color:var(--text-secondary);margin-top:3px;line-height:1.4">Private security market growing 4% CAGR. EP spending reached $428M and projected to nearly double by 2032.</div>
-            <div style="font-size:0.6rem;color:var(--text-muted);margin-top:4px">Business Research Insights</div>
-          </div>
-        </a>
+      <div id="intel-feed" style="display:flex;flex-direction:column">
+        <div style="padding:24px;text-align:center;color:var(--text-muted);font-size:0.7rem">Loading intelligence feed...</div>
       </div>
     </div>
 
@@ -2255,6 +2211,59 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
       const el = document.getElementById(id);
       if(el) el.textContent = 'Monitoring active';
     });
+  }
+
+  // === INDUSTRY INTEL FEED (live from GDELT) ===
+  try {
+    const intelQueries = [
+      '("security contract" OR "security firm" OR "protection company") (awarded OR hiring OR expansion)',
+      '("executive protection" OR "close protection" OR "bodyguard") (market OR industry OR growth OR hiring)',
+      '("private security" OR "security services") (contract OR deal OR billion OR million)',
+    ];
+    const allIntel = [];
+    for (const q of intelQueries) {
+      try {
+        const iUrl = 'https://api.gdeltproject.org/api/v2/doc/doc?query=' + encodeURIComponent(q) + '&mode=artlist&maxrecords=8&format=json&sort=datedesc';
+        const iR = await fetch(iUrl);
+        const iData = await iR.json();
+        if (iData.articles) allIntel.push(...iData.articles);
+      } catch(e) {}
+      await new Promise(r => setTimeout(r, 500));
+    }
+
+    // Deduplicate by domain
+    const seen = new Set();
+    const uniqueIntel = allIntel.filter(a => {
+      if (!a.title || !a.url) return false;
+      const key = a.title.substring(0, 40);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      // Filter English only
+      if (a.language && a.language !== 'English') return false;
+      return true;
+    }).slice(0, 8);
+
+    const intelFeed = document.getElementById('intel-feed');
+    const intelUpdated = document.getElementById('intel-updated');
+    if (intelFeed && uniqueIntel.length > 0) {
+      const dots = ['red','gold','amber','blue','green','gold','red','amber'];
+      intelFeed.innerHTML = uniqueIntel.map((a, i) => {
+        const domain = (a.domain || a.url || '').replace(/^www\./,'').split('/')[0];
+        const timeStr = a.seendate ? a.seendate.substring(6,8)+':'+a.seendate.substring(8,10)+' UTC' : '';
+        return '<a href="'+a.url+'" target="_blank" style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(201,168,76,.06);text-decoration:none;transition:background .15s" onmouseover="this.style.background=\'rgba(201,168,76,.03)\'" onmouseout="this.style.background=\'transparent\'">' +
+          '<div style="width:6px;height:6px;border-radius:50%;background:var(--'+dots[i%dots.length]+');margin-top:5px;flex-shrink:0'+(i===0?';animation:pulse 2s infinite':'')+'"></div>' +
+          '<div style="flex:1">' +
+            '<div style="font-size:0.78rem;color:var(--text-primary);font-weight:600;line-height:1.3">'+(a.title||'').substring(0,80)+'</div>' +
+            '<div style="font-size:0.6rem;color:var(--text-muted);margin-top:4px;display:flex;justify-content:space-between"><span>'+domain+'</span><span>'+timeStr+'</span></div>' +
+          '</div></a>';
+      }).join('');
+      if (intelUpdated) intelUpdated.textContent = 'LIVE • ' + new Date().toUTCString().substring(17,22) + ' UTC';
+    } else if (intelFeed) {
+      intelFeed.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:0.7rem">Intel feed temporarily unavailable</div>';
+      if (intelUpdated) intelUpdated.textContent = 'OFFLINE';
+    }
+  } catch(e) {
+    console.log('Intel feed error:', e);
   }
 
   // Also fetch earthquake data for extra intel
