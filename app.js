@@ -32,8 +32,8 @@ async function authLogin() {
   const email = document.getElementById('auth-email').value.trim();
   const pass = document.getElementById('auth-pass').value;
   if(!email||!pass) return showAuthError('Enter email and password');
-  // Owner bypass
-  if(email==='remy@strategioai.com'&&pass==='CPOleads2026!'){return onAuthSuccess({email,id:'admin',role:'admin'});}
+  // Owner bypass — server-side verified via Supabase auth (same credentials)
+  // No hardcoded bypass needed — admin logs in through Supabase like everyone else
   try {
     const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
     if(error) return showAuthError(error.message);
@@ -70,15 +70,63 @@ async function authReset() {
 async function authLogout() {
   await sb.auth.signOut();
   currentUser = null;
+  document.getElementById('app-container').style.display = 'none';
+  document.getElementById('paywall-overlay')?.remove();
   document.getElementById('auth-overlay').style.display = 'flex';
 }
 
 async function onAuthSuccess(user) {
   currentUser = user;
-  document.getElementById('auth-overlay').style.display = 'none';
   document.getElementById('user-email').textContent = user.email;
+
+  // Check subscription status before granting access
+  const isAdmin = user.email === 'remy@strategioai.com';
+  if (!isAdmin) {
+    try {
+      const res = await fetch(`/api/check-subscription?email=${encodeURIComponent(user.email)}`);
+      const sub = await res.json();
+      if (!sub.active) {
+        // Show paywall — user is logged in but not subscribed
+        document.getElementById('auth-overlay').style.display = 'none';
+        showPaywall(user.email);
+        return;
+      }
+    } catch(e) {
+      console.error('Subscription check failed:', e);
+      // Allow access on API failure to not lock out paying users
+    }
+  }
+
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('paywall-overlay')?.remove();
+  document.getElementById('app-container').style.display = '';
   // Load fresh scraped jobs from Supabase and merge with seed data
   await loadScrapedJobs();
+}
+
+function showPaywall(email) {
+  // Hide the app content entirely
+  document.getElementById('app-container').style.display = 'none';
+  // Remove existing paywall if any
+  document.getElementById('paywall-overlay')?.remove();
+
+  const pw = document.createElement('div');
+  pw.id = 'paywall-overlay';
+  pw.style.cssText = 'position:fixed;inset:0;z-index:10000;background:#06080d;display:flex;align-items:center;justify-content:center;padding:20px';
+  pw.innerHTML = `
+    <div style="max-width:480px;text-align:center;font-family:Inter,system-ui,sans-serif">
+      <div style="font-size:48px;margin-bottom:16px">&#128274;</div>
+      <h2 style="color:#C9A84C;font-size:28px;margin-bottom:12px">Subscription Required</h2>
+      <p style="color:#9a978f;font-size:15px;line-height:1.6;margin-bottom:24px">
+        You're logged in as <strong style="color:#fff">${email}</strong>.<br>
+        Subscribe to CPO Leads Pro to access 500+ jobs, 89 companies, insider intel, and the operator guide.
+      </p>
+      <a href="${STRIPE_MONTHLY}" style="display:block;padding:16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border-radius:8px;font-weight:800;font-size:16px;text-decoration:none;margin-bottom:10px">Subscribe — $29/month</a>
+      <a href="${STRIPE_YEARLY}" style="display:block;padding:14px;background:transparent;border:2px solid #C9A84C;color:#C9A84C;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;margin-bottom:24px">Yearly — $249/yr (Save 28%)</a>
+      <button onclick="authLogout();document.getElementById('paywall-overlay')?.remove();document.getElementById('auth-overlay').style.display='flex'" style="background:none;border:none;color:#666;cursor:pointer;font-size:13px;font-family:inherit">Log out</button>
+    </div>
+  `;
+  document.body.appendChild(pw);
 }
 
 async function loadScrapedJobs() {
@@ -767,20 +815,25 @@ function renderStrategy() {
   const newCompanies = companies.filter(l=>l.status==='ny');
   const hotJobs = jobs.filter(l=>l.priority==='hot');
 
-  // Best fit scoring
-  const fitKeywords = ['legion','royal guard','trilingual','french','norwegian','royal family','uhnw','hnwi','diplomatic','nato','military','multinational'];
+  // Best fit scoring — uses operator's saved profile keywords
+  const profile = loadProfile();
+  const profileText = [profile.background, profile.languages, profile.certifications, profile.deployments, profile.clearance].filter(Boolean).join(' ').toLowerCase();
+  const defaultKeywords = ['security','protection','executive','close protection','military','law enforcement'];
+  const profileKeywords = profileText ? profileText.split(/[\s,;]+/).filter(w => w.length > 3) : defaultKeywords;
+  const fitKeywords = [...new Set(profileKeywords)].slice(0, 20);
   function fitScore(l) {
     const hay = [l.company,l.notes].filter(Boolean).join(' ').toLowerCase();
     return fitKeywords.reduce((sc,kw) => sc + (hay.includes(kw)?1:0), 0);
   }
   const bestFit = [...companies].map(c=>({...c,fit:fitScore(c)})).filter(c=>c.fit>0).sort((a,b)=>b.fit-a.fit).slice(0,10);
+  const profileSummary = profileText ? fitKeywords.slice(0,6).join(', ') : 'Fill out your Profile to get personalized matches';
 
   const el = document.getElementById('strategy-view');
   el.innerHTML = `
   <div class="dash-grid">
     <div class="dash-card" style="grid-column:1/-1">
       <h3>Your Profile Match Score</h3>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Companies ranked by how well they match your profile: French Foreign Legion + Norwegian Royal Guard + trilingual + royal/HNWI experience</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Companies ranked by your profile: ${esc(profileSummary)}</div>
       ${bestFit.map((c,i)=>`
         <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="switchTab('companies');setTimeout(()=>openDetail('${c.id}'),100)">
           <span style="font-size:20px;font-weight:800;color:var(--accent);width:30px">#${i+1}</span>
