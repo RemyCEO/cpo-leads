@@ -1009,7 +1009,7 @@ function renderDashboard() {
     </svg>
     <div style="display:flex;justify-content:space-around;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
       ${Object.entries(regionCounts).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([r,c])=>
-        \`<div style="text-align:center"><div style="font-size:16px;font-weight:800;color:#C9A84C">\${c}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">\${r}</div></div>\`
+        '<div style="text-align:center"><div style="font-size:16px;font-weight:800;color:#C9A84C">'+c+'</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">'+r+'</div></div>'
       ).join('')}
     </div>
   </div>`;
