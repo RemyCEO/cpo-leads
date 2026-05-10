@@ -1149,6 +1149,11 @@ function mSwitchNav(pageId, el) {
 
 // Page switching (works with app.js functions)
 function mSwitchPage(pageId) {
+  // Gate premium pages behind subscription
+  if (['intel','profile','strategy'].includes(pageId) && !_isSubscribed) {
+    showPaywall();
+    return;
+  }
   document.querySelectorAll('.m-page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById('page-' + pageId);
   if (target) target.classList.add('active');
