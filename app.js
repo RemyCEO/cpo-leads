@@ -144,6 +144,7 @@ async function showTelegramInvite(email) {
   } catch(e) {
     console.error('Telegram invite check failed:', e);
   }
+}
 
 async function startTrial(email, plan) {
   const btn = event.target;
