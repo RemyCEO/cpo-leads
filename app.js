@@ -109,7 +109,41 @@ async function onAuthSuccess(user) {
   document.getElementById('paywall-overlay')?.remove();
   document.getElementById('app-container').style.display = '';
   await loadScrapedJobs();
+
+  // Show Telegram channel invite for subscribers
+  if (_isSubscribed) {
+    showTelegramInvite(user.email);
+  }
 }
+
+async function showTelegramInvite(email) {
+  try {
+    const res = await fetch(`/api/telegram-invite?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    if (!data.invite_link) return;
+
+    // Remove existing banner if any
+    document.getElementById('telegram-invite-banner')?.remove();
+
+    const banner = document.createElement('div');
+    banner.id = 'telegram-invite-banner';
+    banner.style.cssText = 'background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(0,136,204,.3);border-radius:10px;padding:14px 18px;margin:12px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .2s';
+    banner.onmouseenter = () => banner.style.borderColor = 'rgba(0,136,204,.6)';
+    banner.onmouseleave = () => banner.style.borderColor = 'rgba(0,136,204,.3)';
+    banner.innerHTML = data.joined
+      ? '<div style="font-size:24px">✅</div><div><div style="color:#e8e6e3;font-size:13px;font-weight:600">Telegram Channel Active</div><div style="color:#9a978f;font-size:11px;margin-top:2px">You\'re in the CPOLEADS.COM private channel</div></div>'
+      : '<div style="font-size:24px">📡</div><div><div style="color:#e8e6e3;font-size:13px;font-weight:600">Join Private Telegram Channel</div><div style="color:#9a978f;font-size:11px;margin-top:2px">Get real-time job alerts — included with your subscription</div></div>';
+
+    if (!data.joined) {
+      banner.onclick = () => window.open(data.invite_link, '_blank');
+    }
+
+    // Insert after header/nav
+    const appContainer = document.getElementById('app-container');
+    if (appContainer) appContainer.insertBefore(banner, appContainer.firstChild);
+  } catch(e) {
+    console.error('Telegram invite check failed:', e);
+  }
 
 async function startTrial(email, plan) {
   const btn = event.target;

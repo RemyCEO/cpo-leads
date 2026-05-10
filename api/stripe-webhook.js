@@ -7,6 +7,62 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+const TELEGRAM_BOT_TOKEN = '8647809461:AAGTsrtOCXyauEo5j74X_Cn6Jq3OeLw0Q8I';
+const TELEGRAM_CHANNEL_ID = -1003542781934;
+
+async function createTelegramInvite(email, stripeCustomerId) {
+  try {
+    const resp = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/createChatInviteLink`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHANNEL_ID,
+        member_limit: 1,
+        name: email.substring(0, 32),
+      })
+    });
+    const result = await resp.json();
+    if (result.ok) {
+      await supabase.from('channel_members').upsert({
+        email,
+        stripe_customer_id: stripeCustomerId,
+        invite_link: result.result.invite_link,
+        status: 'pending'
+      }, { onConflict: 'email' });
+      return result.result.invite_link;
+    }
+  } catch (e) {
+    console.error('Telegram invite error:', e);
+  }
+  return null;
+}
+
+async function kickFromTelegram(stripeCustomerId) {
+  try {
+    const { data: member } = await supabase
+      .from('channel_members')
+      .select('telegram_user_id')
+      .eq('stripe_customer_id', stripeCustomerId)
+      .single();
+
+    if (member?.telegram_user_id) {
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/banChatMember`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHANNEL_ID,
+          user_id: member.telegram_user_id,
+        })
+      });
+      await supabase.from('channel_members')
+        .update({ status: 'kicked' })
+        .eq('stripe_customer_id', stripeCustomerId);
+    }
+  } catch (e) {
+    console.error('Telegram kick error:', e);
+  }
+}
+
 export const config = { api: { bodyParser: false } };
 
 async function buffer(readable) {
@@ -60,6 +116,9 @@ export default async function handler(req, res) {
           status: 'active'
         });
       }
+
+      // Generate Telegram invite link for new subscriber
+      await createTelegramInvite(customerEmail, customerId);
     }
   }
 
@@ -74,6 +133,11 @@ export default async function handler(req, res) {
       current_period_end: periodEnd,
       updated_at: new Date().toISOString()
     }).eq('stripe_customer_id', customerId);
+
+    // Kick from Telegram channel if canceled
+    if (status === 'canceled') {
+      await kickFromTelegram(customerId);
+    }
   }
 
   if (type === 'invoice.payment_failed') {
