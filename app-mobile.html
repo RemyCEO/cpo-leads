@@ -928,19 +928,19 @@ html, body { overflow-x: hidden; max-width: 100vw; }
       </div>
       <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Solo EP Agent';applyFilters()},200)">
         <div class="m-alert-dot red"></div>
-        <div><div class="m-alert-text">Solo EP Agent — El Salvador, $800/day</div><div class="m-alert-time">12 min ago</div></div>
+        <div><div class="m-alert-text">Solo EP Agent — Americas, $800/day</div><div class="m-alert-time">12 min ago</div></div>
       </div>
       <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='PSD';applyFilters()},200)">
         <div class="m-alert-dot amber"></div>
-        <div><div class="m-alert-text">PSD Team West Africa — Ghana, $1,100/day</div><div class="m-alert-time">43 min ago</div></div>
+        <div><div class="m-alert-text">PSD Team — West Africa, $1,100/day</div><div class="m-alert-time">43 min ago</div></div>
       </div>
       <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Maritime';applyFilters()},200)">
         <div class="m-alert-dot blue"></div>
-        <div><div class="m-alert-text">Maritime Anti-Piracy — Global, $2,000/day</div><div class="m-alert-time">2 hours ago</div></div>
+        <div><div class="m-alert-text">Maritime Anti-Piracy — Maritime, $2,000/day</div><div class="m-alert-time">2 hours ago</div></div>
       </div>
       <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Counter Surveillance';applyFilters()},200)">
         <div class="m-alert-dot green"></div>
-        <div><div class="m-alert-text">Armed Counter Surveillance — NYC, $1,000/day</div><div class="m-alert-time">6 hours ago</div></div>
+        <div><div class="m-alert-text">Armed Counter Surveillance — Americas, $1,000/day</div><div class="m-alert-time">6 hours ago</div></div>
       </div>
     </div>
 
@@ -950,15 +950,15 @@ html, body { overflow-x: hidden; max-width: 100vw; }
         <span class="m-dash-card-title">TOP PAYING CONTRACTS</span>
       </div>
       <div class="m-contract-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Maritime Anti-Piracy';applyFilters()},200)">
-        <div><div class="m-contract-title">Maritime Anti-Piracy</div><div class="m-contract-meta">Global &middot; Silent Professionals</div></div>
+        <div><div class="m-contract-title">Maritime Anti-Piracy</div><div class="m-contract-meta">Maritime &middot; Verified Employer</div></div>
         <span class="m-contract-salary">$2,000/day</span>
       </div>
-      <div class="m-contract-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='PSD Ghana';applyFilters()},200)">
-        <div><div class="m-contract-title">PSD Team — West Africa</div><div class="m-contract-meta">Ghana &middot; Silent Professionals</div></div>
+      <div class="m-contract-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='PSD';applyFilters()},200)">
+        <div><div class="m-contract-title">PSD Team — West Africa</div><div class="m-contract-meta">Africa &middot; Verified Employer</div></div>
         <span class="m-contract-salary">$1,100/day</span>
       </div>
       <div class="m-contract-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Counter Surveillance';applyFilters()},200)">
-        <div><div class="m-contract-title">Armed Counter Surveillance</div><div class="m-contract-meta">NYC &middot; Silent Professionals</div></div>
+        <div><div class="m-contract-title">Armed Counter Surveillance</div><div class="m-contract-meta">Americas &middot; Verified Employer</div></div>
         <span class="m-contract-salary">$1,000/day</span>
       </div>
     </div>
@@ -1585,12 +1585,13 @@ function updateMobileNewest() {
   el.innerHTML = jobs.map(l => {
     const salary = extractSalary(l.notes);
     const title = esc(l.company).replace(/^.*?\u2014\s*/, '');
-    const company = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '';
+    const locMasked = _isSubscribed ? (l.location ? esc(l.location) : '') : _maskRegion(l.location, l.country);
+    const companyMasked = _isSubscribed ? (esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '') : '';
     return `<div class="m-newest-item" onclick="cardClick('${l.id}')">
       <div class="m-newest-dot"></div>
       <div style="flex:1;min-width:0">
         <div class="m-newest-title">${title||esc(l.company)}</div>
-        <div class="m-newest-meta">${company?company+' &middot; ':''}${l.location?esc(l.location):''}</div>
+        <div class="m-newest-meta">${companyMasked?companyMasked+' &middot; ':''}${locMasked}</div>
       </div>
       ${salary?'<span class="m-newest-salary">'+esc(salary)+'</span>':''}
     </div>`;
