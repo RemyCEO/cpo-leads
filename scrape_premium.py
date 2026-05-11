@@ -1114,56 +1114,79 @@ def scrape_usajobs():
 # ============================================================
 
 def scrape_jooble():
-    """Scrape Jooble for international CP/EP jobs via Playwright"""
+    """Scrape Jooble via their free JSON API (POST to /api/)"""
     log("Scraping Jooble...")
     jobs = []
 
-    urls = [
-        ("https://jooble.org/jobs-close-protection", "Global"),
-        ("https://jooble.org/jobs-executive-protection", "Global"),
-        ("https://jooble.org/jobs-bodyguard", "Global"),
-        ("https://uk.jooble.org/jobs-close-protection-officer", "UK"),
+    queries = [
+        {"keywords": "close protection", "location": ""},
+        {"keywords": "executive protection", "location": ""},
+        {"keywords": "bodyguard", "location": ""},
+        {"keywords": "close protection officer", "location": "United Kingdom"},
+        {"keywords": "executive protection agent", "location": "United States"},
     ]
 
-    for url, default_country in urls:
+    for q in queries:
         try:
-            html = fetch_with_browser(url, wait_time=5)
-            if not html:
-                continue
+            # Jooble has a free partner API at jooble.org/api/
+            url = "https://jooble.org/api/"
+            headers = {
+                "Content-Type": "application/json",
+                "User-Agent": HEADERS["User-Agent"],
+            }
+            payload = {
+                "keywords": q["keywords"],
+                "location": q["location"],
+                "page": 1,
+            }
+            r = requests.post(url, headers=headers, json=payload, timeout=15)
+            if r.status_code != 200:
+                # Fallback: try scraping the search page HTML
+                search_url = f"https://jooble.org/jobs-{q['keywords'].replace(' ', '-')}"
+                html = fetch(search_url)
+                if html:
+                    # Extract from HTML - Jooble wraps jobs in header tags
+                    page_titles = re.findall(r'<header[^>]*>.*?<a[^>]*>([^<]+)</a>', html, re.DOTALL)
+                    if not page_titles:
+                        page_titles = re.findall(r'"title"\s*:\s*"([^"]+)"', html)
+                    for t in page_titles[:15]:
+                        t = clean(t)
+                        if is_cp_job(t):
+                            jobs.append({
+                                "title": t,
+                                "company": "Via Jooble",
+                                "location": q["location"] or "",
+                                "source": "Jooble",
+                                "source_url": search_url,
+                                "country": guess_country(q["location"]) or "",
+                                "salary": "",
+                                "notes": "Aggregated via Jooble.",
+                            })
+                    log(f"  Jooble '{q['keywords']}': {len(page_titles)} results (HTML fallback)")
+                    time.sleep(2)
+                    continue
 
-            # Jooble uses article tags or div.vacancy cards
-            titles = re.findall(r'class="[^"]*(?:vacancy-title|jcard-title)[^"]*"[^>]*>([^<]+)<', html, re.IGNORECASE)
-            if not titles:
-                titles = re.findall(r'<h2[^>]*><a[^>]*>([^<]+)</a></h2>', html)
-            if not titles:
-                titles = re.findall(r'aria-label="([^"]+)"', html)
-
-            links = re.findall(r'href="(/redirects?/[^"]+|https?://[^"]*jooble[^"]*redirect[^"]*)"', html)
-            companies = re.findall(r'class="[^"]*company[^"]*"[^>]*>([^<]+)<', html, re.IGNORECASE)
-
+            data = r.json()
+            results = data.get("jobs", [])
             count = 0
-            for i, title in enumerate(titles[:15]):
-                title = clean(title)
+            for item in results[:20]:
+                title = item.get("title", "")
                 if not is_cp_job(title):
                     continue
-                company = clean(companies[i]) if i < len(companies) else "Via Jooble"
-                link = links[i] if i < len(links) else url
-                if link.startswith("/"):
-                    link = "https://jooble.org" + link
                 jobs.append({
-                    "title": title,
-                    "company": company,
-                    "location": "",
+                    "title": clean(title),
+                    "company": clean(item.get("company", "Via Jooble")),
+                    "location": clean(item.get("location", "")),
                     "source": "Jooble",
-                    "source_url": link,
-                    "country": default_country,
-                    "salary": "",
-                    "notes": f"Aggregated via Jooble.",
+                    "source_url": item.get("link", ""),
+                    "country": guess_country(item.get("location", "")) or "",
+                    "salary": clean(item.get("salary", "")),
+                    "notes": f"Aggregated via Jooble. {clean(item.get('snippet', ''))[:150]}",
                 })
                 count += 1
-            log(f"  Jooble {default_country}: {count} CP jobs from {len(titles)} total")
+            log(f"  Jooble '{q['keywords']}': {count} CP jobs from {len(results)} results")
         except Exception as e:
-            log(f"  Jooble {default_country}: ERROR - {e}")
+            log(f"  Jooble '{q['keywords']}': ERROR - {e}")
         time.sleep(2)
 
     log(f"  Jooble total: {len(jobs)} jobs")
@@ -1316,7 +1339,7 @@ def scrape_cpworld():
 # ============================================================
 
 def scrape_ihiresecurity():
-    """Scrape iHireSecurity for EP/bodyguard jobs"""
+    """Scrape iHireSecurity for EP/bodyguard jobs using Playwright"""
     log("Scraping iHireSecurity...")
     jobs = []
 
@@ -1328,21 +1351,35 @@ def scrape_ihiresecurity():
 
     for url in urls:
         try:
-            html = fetch(url)
+            html = fetch_with_browser(url, wait_time=5)
+            if not html:
+                # Fallback to requests
+                html = fetch(url)
             if not html:
                 continue
 
-            titles = re.findall(r'<a[^>]*class="[^"]*job-title[^"]*"[^>]*>([^<]+)</a>', html, re.IGNORECASE)
+            # Try multiple selector patterns — iHireSecurity changes HTML often
+            titles = re.findall(r'"jobTitle"\s*:\s*"([^"]+)"', html)  # JSON-LD
             if not titles:
-                titles = re.findall(r'class="[^"]*title[^"]*"[^>]*><a[^>]*>([^<]+)</a>', html)
+                titles = re.findall(r'<a[^>]*href="[^"]*job[^"]*"[^>]*>([^<]{10,80})</a>', html, re.IGNORECASE)
+            if not titles:
+                titles = re.findall(r'<h[23][^>]*>[^<]*(?:protection|security|bodyguard|guard)[^<]*</h[23]>', html, re.IGNORECASE)
+                titles = [re.sub(r'<[^>]+>', '', t) for t in titles]
 
-            companies_raw = re.findall(r'class="[^"]*company[^"]*"[^>]*>([^<]+)<', html, re.IGNORECASE)
-            locs = re.findall(r'class="[^"]*location[^"]*"[^>]*>([^<]+)<', html, re.IGNORECASE)
+            # Extract companies and locations from JSON-LD if available
+            companies_raw = re.findall(r'"hiringOrganization"\s*:\s*\{[^}]*"name"\s*:\s*"([^"]+)"', html)
+            locs = re.findall(r'"jobLocation"\s*:\s*\{[^}]*"address"\s*:\s*\{[^}]*"addressLocality"\s*:\s*"([^"]+)"', html)
+
+            # Fallback to HTML patterns
+            if not companies_raw:
+                companies_raw = re.findall(r'class="[^"]*(?:company|employer|org)[^"]*"[^>]*>([^<]+)<', html, re.IGNORECASE)
+            if not locs:
+                locs = re.findall(r'class="[^"]*(?:location|city|place)[^"]*"[^>]*>([^<]+)<', html, re.IGNORECASE)
 
             count = 0
             for i, title in enumerate(titles[:15]):
                 title = clean(title)
-                if not is_cp_job(title):
+                if not title or not is_cp_job(title):
                     continue
                 company = clean(companies_raw[i]) if i < len(companies_raw) else "Via iHireSecurity"
                 loc = clean(locs[i]) if i < len(locs) else ""
@@ -1357,10 +1394,10 @@ def scrape_ihiresecurity():
                     "notes": "Found on iHireSecurity.",
                 })
                 count += 1
-            log(f"  iHireSecurity: {count} CP jobs")
+            log(f"  iHireSecurity '{url.split('/')[-1]}': {count} CP jobs from {len(titles)} total")
         except Exception as e:
             log(f"  iHireSecurity: ERROR - {e}")
-        time.sleep(1)
+        time.sleep(2)
 
     log(f"  iHireSecurity total: {len(jobs)} jobs")
     return jobs
