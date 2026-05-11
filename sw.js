@@ -1,15 +1,31 @@
-const CACHE = 'cpo-leads-v1';
-const ASSETS = ['/', '/index.html', '/app.html', '/app.js', '/seed_data.js', '/cpo_leads_logo.png', '/cpo_leads_hero_logo.png'];
+const CACHE = 'cpo-leads-v3';
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  // Skip waiting — activate immediately so new code takes effect
   self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
+  // Delete ALL old caches
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', e => {
-  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  // Network-first: always try fresh, fall back to cache only if offline
+  e.respondWith(
+    fetch(e.request)
+      .then(res => {
+        // Cache successful GET responses for offline use
+        if (res.ok && e.request.method === 'GET' && !e.request.url.includes('/api/')) {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
+        return res;
+      })
+      .catch(() => caches.match(e.request))
+  );
 });

@@ -1537,153 +1537,49 @@ body {
 
     <!-- Dashboard Grid -->
     <div class="dashboard-grid">
-      <!-- Intel Summary -->
+      <!-- Intel Summary (dynamic) -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">INTEL SUMMARY</span>
           <span class="card-badge live">LIVE</span>
         </div>
-        <div class="alert-list">
-          <div class="alert-item critical" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Solo EP Agent';applyFilters()},200)">
-            <div class="alert-dot red"></div>
-            <div>
-              <div class="alert-text">Solo EP Agent — Americas, $800/day contract posted</div>
-              <div class="alert-time">12 minutes ago</div>
-            </div>
-          </div>
-          <div class="alert-item warning" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='PSD';applyFilters()},200)">
-            <div class="alert-dot amber"></div>
-            <div>
-              <div class="alert-text">PSD Team — West Africa, $1,100/day. New deployment</div>
-              <div class="alert-time">43 minutes ago</div>
-            </div>
-          </div>
-          <div class="alert-item info" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Maritime';applyFilters()},200)">
-            <div class="alert-dot blue"></div>
-            <div>
-              <div class="alert-text">Maritime Anti-Piracy Operators — Maritime, $2,000/day</div>
-              <div class="alert-time">2 hours ago</div>
-            </div>
-          </div>
-          <div class="alert-item ok" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Counter Surveillance';applyFilters()},200)">
-            <div class="alert-dot green"></div>
-            <div>
-              <div class="alert-text">Armed Counter Surveillance — Americas, $1,000/day posted</div>
-              <div class="alert-time">6 hours ago</div>
-            </div>
-          </div>
+        <div id="dash-intel" class="alert-list">
+          <div style="padding:12px;color:var(--text-muted);font-size:0.75rem">Loading intel...</div>
         </div>
       </div>
 
-      <!-- Top Paying -->
+      <!-- Top Paying (dynamic) -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">TOP PAYING CONTRACTS</span>
         </div>
-        <div class="contract-list">
-          <div class="contract-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Maritime Anti-Piracy';applyFilters()},200)">
-            <div class="contract-info">
-              <span class="contract-title">Maritime Anti-Piracy Operators</span>
-              <span class="contract-meta">Maritime · Verified Employer</span>
-            </div>
-            <span class="contract-salary">$2,000/day</span>
-          </div>
-          <div class="contract-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='PSD';applyFilters()},200)">
-            <div class="contract-info">
-              <span class="contract-title">PSD Team — West Africa</span>
-              <span class="contract-meta">Africa · Verified Employer</span>
-            </div>
-            <span class="contract-salary">$1,100/day</span>
-          </div>
-          <div class="contract-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Counter Surveillance';applyFilters()},200)">
-            <div class="contract-info">
-              <span class="contract-title">Armed Counter Surveillance</span>
-              <span class="contract-meta">Americas · Verified Employer</span>
-            </div>
-            <span class="contract-salary">$1,000/day</span>
-          </div>
-          <div class="contract-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Solo EP Agent';applyFilters()},200)">
-            <div class="contract-info">
-              <span class="contract-title">Solo EP Agent</span>
-              <span class="contract-meta">Americas · Verified Employer</span>
-            </div>
-            <span class="contract-salary">$800/day</span>
-          </div>
+        <div id="dash-top-paying" class="contract-list">
+          <div style="padding:12px;color:var(--text-muted);font-size:0.75rem">Loading...</div>
         </div>
       </div>
 
-      <!-- Active Regions Mini Widget -->
+      <!-- Active Regions (dynamic) -->
       <div class="card" style="position:relative;overflow:hidden">
         <div class="card-header">
           <span class="card-title">ACTIVE REGIONS</span>
           <span class="card-badge live">LIVE</span>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
-            <div style="width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 2s infinite"></div>
-            <span style="font-size:0.8rem;flex:1">Middle East</span>
-            <span style="font-size:0.7rem;color:var(--red);font-weight:600">HIGH RISK</span>
-            <span style="font-size:0.7rem;color:var(--text-muted)">14 contracts</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
-            <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite .3s"></div>
-            <span style="font-size:0.8rem;flex:1">West Africa</span>
-            <span style="font-size:0.7rem;color:var(--amber);font-weight:600">ELEVATED</span>
-            <span style="font-size:0.7rem;color:var(--text-muted)">8 contracts</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
-            <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite .6s"></div>
-            <span style="font-size:0.8rem;flex:1">United Kingdom</span>
-            <span style="font-size:0.7rem;color:var(--green);font-weight:600">STABLE</span>
-            <span style="font-size:0.7rem;color:var(--text-muted)">22 contracts</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
-            <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);animation:pulse 2s infinite .9s"></div>
-            <span style="font-size:0.8rem;flex:1">USA / Americas</span>
-            <span style="font-size:0.7rem;color:var(--green);font-weight:600">STABLE</span>
-            <span style="font-size:0.7rem;color:var(--text-muted)">31 contracts</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
-            <div style="width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 2s infinite 1.2s"></div>
-            <span style="font-size:0.8rem;flex:1">Ukraine / Eastern Europe</span>
-            <span style="font-size:0.7rem;color:var(--red);font-weight:600">HIGH RISK</span>
-            <span style="font-size:0.7rem;color:var(--text-muted)">5 contracts</span>
-          </div>
+        <div id="dash-regions" style="display:flex;flex-direction:column;gap:8px">
+          <div style="padding:12px;color:var(--text-muted);font-size:0.75rem">Loading...</div>
         </div>
-        <!-- Subtle radar animation in corner -->
         <div style="position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;border:1px solid rgba(201,168,76,.15);overflow:hidden">
           <div style="position:absolute;top:50%;left:50%;width:50%;height:1px;background:linear-gradient(90deg,var(--gold),transparent);transform-origin:left;animation:radarSweep 4s linear infinite"></div>
           <div style="position:absolute;top:50%;left:50%;width:2px;height:2px;border-radius:50%;background:var(--gold);transform:translate(-50%,-50%)"></div>
         </div>
       </div>
 
-      <!-- Recommended -->
+      <!-- Recommended (dynamic) -->
       <div class="card" style="grid-column: 1 / -1;">
         <div class="card-header">
           <span class="card-title">RECOMMENDED FOR YOU</span>
         </div>
-        <div class="rec-list">
-          <div class="rec-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='EP East Asia';applyFilters()},200)">
-            <div class="rec-info">
-              <span class="rec-title">Protection Agents & Liaisons — East Asia</span>
-              <span class="rec-meta">Asia-Pacific · Verified Employer · $600-1,400/day · Contract</span>
-            </div>
-            <span class="match-badge">95% MATCH</span>
-          </div>
-          <div class="rec-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='Security Specialist';applyFilters()},200)">
-            <div class="rec-info">
-              <span class="rec-title">Security Specialist — IMMEDIATE NEED</span>
-              <span class="rec-meta">Americas · Verified Employer · Full-time · $90-130K</span>
-            </div>
-            <span class="match-badge">92% MATCH</span>
-          </div>
-          <div class="rec-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='EP Program Manager';applyFilters()},200)">
-            <div class="rec-info">
-              <span class="rec-title">EP Program Manager — Americas</span>
-              <span class="rec-meta">Americas · Verified Employer · $165K/yr + bonus</span>
-            </div>
-            <span class="match-badge">89% MATCH</span>
-          </div>
+        <div id="dash-recommended" class="rec-list">
+          <div style="padding:12px;color:var(--text-muted);font-size:0.75rem">Loading...</div>
         </div>
       </div>
     </div>
@@ -1718,8 +1614,113 @@ body {
         </div>`;
       }).join('') || '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:0.75rem">No jobs yet</div>';
     }
+    // Populate Intel Summary from real data
+    function updateDashIntel() {
+      const el = document.getElementById('dash-intel');
+      if (!el || typeof leads === 'undefined') return;
+      const jobs = leads.filter(l => isJob(l)).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||'')).slice(0,4);
+      if (!jobs.length) { el.innerHTML = '<div style="padding:12px;color:var(--text-muted);font-size:0.75rem">No recent intel</div>'; return; }
+      const dots = ['red','amber','blue','green'];
+      const levels = ['critical','warning','info','ok'];
+      el.innerHTML = jobs.map((l,i) => {
+        const title = esc(l.company).replace(/^.*?\u2014\s*/, '') || esc(l.company);
+        const salary = extractSalary(l.notes);
+        const region = _maskRegion(l.location, l.country);
+        const ta = typeof timeAgo === 'function' ? timeAgo(l.created_at) : '';
+        const searchTerm = title.split(/[\s—-]+/).slice(0,3).join(' ');
+        return `<div class="alert-item ${levels[i]||'ok'}" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='${esc(searchTerm)}';applyFilters()},200)">
+          <div class="alert-dot ${dots[i]||'green'}"></div>
+          <div>
+            <div class="alert-text">${title} — ${region}${salary ? ', '+esc(salary) : ''}</div>
+            <div class="alert-time">${ta}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // Populate Top Paying from real data
+    function updateDashTopPaying() {
+      const el = document.getElementById('dash-top-paying');
+      if (!el || typeof leads === 'undefined') return;
+      const jobs = leads.filter(l => isJob(l)).filter(l => {
+        const s = extractSalary(l.notes); return s && /\d/.test(s);
+      }).sort((a,b) => (parseSalaryNum ? parseSalaryNum(b.notes) - parseSalaryNum(a.notes) : 0)).slice(0,4);
+      if (!jobs.length) { el.innerHTML = '<div style="padding:12px;color:var(--text-muted);font-size:0.75rem">No salary data</div>'; return; }
+      el.innerHTML = jobs.map(l => {
+        const title = esc(l.company).replace(/^.*?\u2014\s*/, '') || esc(l.company);
+        const salary = extractSalary(l.notes);
+        const region = _maskRegion(l.location, l.country);
+        const searchTerm = title.split(/[\s—-]+/).slice(0,3).join(' ');
+        return `<div class="contract-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='${esc(searchTerm)}';applyFilters()},200)">
+          <div class="contract-info">
+            <span class="contract-title">${title}</span>
+            <span class="contract-meta">${region} · Verified Employer</span>
+          </div>
+          <span class="contract-salary">${esc(salary)}</span>
+        </div>`;
+      }).join('');
+    }
+
+    // Populate Active Regions from real data
+    function updateDashRegions() {
+      const el = document.getElementById('dash-regions');
+      if (!el || typeof leads === 'undefined') return;
+      const jobs = leads.filter(l => isJob(l));
+      const regions = {};
+      jobs.forEach(l => {
+        const r = _maskRegion(l.location, l.country);
+        regions[r] = (regions[r]||0) + 1;
+      });
+      const sorted = Object.entries(regions).sort((a,b) => b[1]-a[1]).slice(0,6);
+      const riskMap = {'Middle East':'HIGH RISK','Africa':'ELEVATED','Maritime':'HIGH RISK','Americas':'STABLE','Europe':'STABLE','Asia-Pacific':'MODERATE','Undisclosed':'UNKNOWN'};
+      const riskColor = {'HIGH RISK':'var(--red)','ELEVATED':'var(--amber)','STABLE':'var(--green)','MODERATE':'var(--blue)','UNKNOWN':'var(--text-muted)'};
+      const dotColor = {'HIGH RISK':'var(--red)','ELEVATED':'var(--amber)','STABLE':'var(--gold)','MODERATE':'var(--blue)','UNKNOWN':'var(--text-muted)'};
+      el.innerHTML = sorted.map(([r,c],i) => {
+        const risk = riskMap[r] || 'MODERATE';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(201,168,76,.04)">
+          <div style="width:8px;height:8px;border-radius:50%;background:${dotColor[risk]};animation:pulse 2s infinite ${i*0.3}s"></div>
+          <span style="font-size:0.8rem;flex:1">${r}</span>
+          <span style="font-size:0.7rem;color:${riskColor[risk]};font-weight:600">${risk}</span>
+          <span style="font-size:0.7rem;color:var(--text-muted)">${c} contracts</span>
+        </div>`;
+      }).join('');
+    }
+
+    // Populate Recommended from real data (3 random high-salary recent jobs)
+    function updateDashRecommended() {
+      const el = document.getElementById('dash-recommended');
+      if (!el || typeof leads === 'undefined') return;
+      const jobs = leads.filter(l => isJob(l)).filter(l => extractSalary(l.notes)).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||'')).slice(0,20);
+      // Pick 3 spread out
+      const picks = jobs.length >= 3 ? [jobs[0], jobs[Math.floor(jobs.length/3)], jobs[Math.floor(jobs.length*2/3)]] : jobs.slice(0,3);
+      if (!picks.length) { el.innerHTML = '<div style="padding:12px;color:var(--text-muted);font-size:0.75rem">Not enough data yet</div>'; return; }
+      const matchScores = [97,93,89,85,82];
+      el.innerHTML = picks.map((l,i) => {
+        const title = esc(l.company).replace(/^.*?\u2014\s*/, '') || esc(l.company);
+        const salary = extractSalary(l.notes);
+        const region = _maskRegion(l.location, l.country);
+        const searchTerm = title.split(/[\s—-]+/).slice(0,3).join(' ');
+        return `<div class="rec-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='${esc(searchTerm)}';applyFilters()},200)">
+          <div class="rec-info">
+            <span class="rec-title">${title}</span>
+            <span class="rec-meta">${region} · Verified Employer${salary ? ' · '+esc(salary) : ''}</span>
+          </div>
+          <span class="match-badge">${matchScores[i]||80}% MATCH</span>
+        </div>`;
+      }).join('');
+    }
+
+    // Update all dashboard widgets
+    function updateAllDashWidgets() {
+      updateNewestJobs();
+      updateDashIntel();
+      updateDashTopPaying();
+      updateDashRegions();
+      updateDashRecommended();
+    }
+
     // Run after data loads
-    document.addEventListener('DOMContentLoaded', () => { setTimeout(updateNewestJobs, 500); });
+    document.addEventListener('DOMContentLoaded', () => { setTimeout(updateAllDashWidgets, 500); });
     </script>
 
   </section>
@@ -1876,10 +1877,98 @@ body {
 
   <!-- === SETTINGS === -->
   <section id="page-settings" class="page-section">
-    <div style="padding:40px 0;text-align:center;color:var(--text-secondary)">
-      <h2 style="color:var(--gold);margin-bottom:8px">SETTINGS</h2>
-      <p>Account preferences and security configuration coming soon.</p>
+    <h2 style="font-size:18px;font-weight:700;letter-spacing:2px;color:var(--gold);margin-bottom:20px">SETTINGS</h2>
+
+    <!-- Account -->
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:20px;margin-bottom:16px">
+      <h3 style="font-size:13px;font-weight:700;color:var(--text-primary);letter-spacing:1px;margin-bottom:16px">ACCOUNT</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--card-border)">
+        <div><div style="font-size:0.85rem;font-weight:600">Email</div><div id="settings-email" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">—</div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--card-border)">
+        <div><div style="font-size:0.85rem;font-weight:600">Subscription</div><div id="settings-plan" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">—</div></div>
+        <a href="https://billing.stripe.com/p/login/9AQ9BN2p05lFboQ000" target="_blank" style="font-size:0.7rem;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid rgba(201,168,76,.3);border-radius:6px">Manage Billing</a>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0">
+        <div><div style="font-size:0.85rem;font-weight:600">Password</div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">Change your password</div></div>
+        <button onclick="resetPassword()" style="font-size:0.7rem;color:var(--gold);background:none;border:1px solid rgba(201,168,76,.3);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit">Reset Password</button>
+      </div>
     </div>
+
+    <!-- Preferences -->
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:20px;margin-bottom:16px">
+      <h3 style="font-size:13px;font-weight:700;color:var(--text-primary);letter-spacing:1px;margin-bottom:16px">PREFERENCES</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--card-border)">
+        <div><div style="font-size:0.85rem;font-weight:600">Default Job View</div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">Card or compact list</div></div>
+        <select id="pref-view" onchange="localStorage.setItem('cpo_pref_view',this.value);jobViewMode=this.value" style="background:rgba(6,8,13,.6);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);padding:6px 10px;font-size:0.75rem;font-family:inherit">
+          <option value="card">Card View</option>
+          <option value="compact">Compact List</option>
+        </select>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0">
+        <div><div style="font-size:0.85rem;font-weight:600">Default Sort</div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">How jobs are sorted by default</div></div>
+        <select id="pref-sort" onchange="localStorage.setItem('cpo_pref_sort',this.value)" style="background:rgba(6,8,13,.6);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);padding:6px 10px;font-size:0.75rem;font-family:inherit">
+          <option value="priority">Priority</option>
+          <option value="newest">Newest First</option>
+          <option value="salary">Highest Salary</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Data -->
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:20px;margin-bottom:16px">
+      <h3 style="font-size:13px;font-weight:700;color:var(--text-primary);letter-spacing:1px;margin-bottom:16px">DATA</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--card-border)">
+        <div><div style="font-size:0.85rem;font-weight:600">Export Saved Jobs</div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">Download your saved jobs as CSV</div></div>
+        <button onclick="if(typeof exportCSV==='function')exportCSV('saved')" style="font-size:0.7rem;color:var(--gold);background:none;border:1px solid rgba(201,168,76,.3);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit">Export CSV</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0">
+        <div><div style="font-size:0.85rem;font-weight:600">Clear Cache</div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">Force refresh all data</div></div>
+        <button onclick="caches.keys().then(k=>k.forEach(n=>caches.delete(n)));location.reload()" style="font-size:0.7rem;color:var(--text-muted);background:none;border:1px solid var(--card-border);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit">Clear & Reload</button>
+      </div>
+    </div>
+
+    <!-- Support -->
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:20px;margin-bottom:16px">
+      <h3 style="font-size:13px;font-weight:700;color:var(--text-primary);letter-spacing:1px;margin-bottom:16px">SUPPORT</h3>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <a href="mailto:strategioai@strategioai.com" style="font-size:0.85rem;color:var(--gold);text-decoration:none">Contact Support — strategioai@strategioai.com</a>
+        <a href="/privacy.html" target="_blank" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none">Privacy Policy</a>
+        <a href="/terms.html" target="_blank" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none">Terms of Service</a>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div style="background:var(--card-bg);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:20px">
+      <h3 style="font-size:13px;font-weight:700;color:var(--red);letter-spacing:1px;margin-bottom:16px">DANGER ZONE</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:0.85rem;font-weight:600;color:var(--red)">Delete Account</div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">Permanently remove your account and data</div></div>
+        <button onclick="if(confirm('Are you sure? This cannot be undone.'))alert('Please email strategioai@strategioai.com to request account deletion.')" style="font-size:0.7rem;color:var(--red);background:none;border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit">Delete Account</button>
+      </div>
+    </div>
+
+    <script>
+    // Populate settings on load
+    function initSettings() {
+      if (typeof currentUser !== 'undefined' && currentUser) {
+        const emailEl = document.getElementById('settings-email');
+        if (emailEl) emailEl.textContent = currentUser.email;
+        const planEl = document.getElementById('settings-plan');
+        if (planEl) planEl.textContent = _isSubscribed ? 'Active Subscriber' : 'Free Plan';
+      }
+      const pv = localStorage.getItem('cpo_pref_view');
+      if (pv) { const sel = document.getElementById('pref-view'); if(sel) sel.value = pv; }
+      const ps = localStorage.getItem('cpo_pref_sort');
+      if (ps) { const sel = document.getElementById('pref-sort'); if(sel) sel.value = ps; }
+    }
+    async function resetPassword() {
+      if (typeof sb !== 'undefined' && currentUser) {
+        await sb.auth.resetPasswordForEmail(currentUser.email);
+        alert('Password reset email sent to ' + currentUser.email);
+      }
+    }
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initSettings, 600));
+    </script>
   </section>
 
 </main>
@@ -2397,7 +2486,7 @@ function updateDashStats() {
 const _origSwitchPage = switchPage;
 switchPage = function(pageId, el) {
   _origSwitchPage(pageId, el);
-  if(pageId === 'dashboard') { updateDashStats(); if(typeof updateNewestJobs==='function') updateNewestJobs(); }
+  if(pageId === 'dashboard') { updateDashStats(); if(typeof updateAllDashWidgets==='function') updateAllDashWidgets(); }
   if(pageId === 'profile' && typeof renderProfile === 'function') renderProfile();
 };
 
