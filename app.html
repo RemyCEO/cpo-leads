@@ -2245,7 +2245,37 @@ function renderJobList(list) {
       html += topPicks.map(l => renderJobCard(l, true)).join('');
       html += '</div>';
     }
-    html += visible.map(l => renderJobCard(l, false)).join('');
+
+    // Group jobs by date category
+    function getDateGroup(dateStr) {
+      if (!dateStr) return 'OLDER';
+      const now = new Date();
+      const d = new Date(dateStr);
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+      const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
+      if (d >= today) return 'NEW TODAY';
+      if (d >= yesterday) return 'YESTERDAY';
+      if (d >= weekAgo) return 'THIS WEEK';
+      return 'OLDER';
+    }
+    const groupColors = { 'NEW TODAY': 'var(--green)', 'YESTERDAY': 'var(--gold)', 'THIS WEEK': 'var(--blue)', 'OLDER': 'var(--text-muted)' };
+    const groupIcons = { 'NEW TODAY': '\u{1F7E2}', 'YESTERDAY': '\u{1F7E1}', 'THIS WEEK': '\u{1F535}', 'OLDER': '\u26AA' };
+
+    let lastGroup = '';
+    visible.forEach(l => {
+      const group = getDateGroup(l.posted_at || l.created_at);
+      if (group !== lastGroup) {
+        const count = visible.filter(j => getDateGroup(j.posted_at || j.created_at) === group).length;
+        html += `<div style="display:flex;align-items:center;gap:10px;padding:${lastGroup?'20px':'8px'} 0 10px">
+          <span style="font-size:0.7rem;font-weight:800;letter-spacing:2px;color:${groupColors[group]}">${groupIcons[group]} ${group}</span>
+          <span style="background:${groupColors[group]}22;color:${groupColors[group]};padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:700">${count}</span>
+          <span style="flex:1;height:1px;background:${groupColors[group]}33"></span>
+        </div>`;
+        lastGroup = group;
+      }
+      html += renderJobCard(l, false);
+    });
     el.innerHTML = html;
   }
 
