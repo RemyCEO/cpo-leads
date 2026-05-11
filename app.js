@@ -348,8 +348,8 @@ document.addEventListener('keydown', e => {
 });
 
 function switchTab(tab) {
-  // Gate premium tabs behind subscription/trial
-  if (['jobs','guide','strategy'].includes(tab) && !_isSubscribed) {
+  // Gate premium tabs behind subscription/trial (except jobs — soft paywall)
+  if (['guide','strategy'].includes(tab) && !_isSubscribed) {
     showPaywall();
     return;
   }
@@ -675,10 +675,15 @@ function renderList(list) {
     }
 
     // Render grouped by date
-    for (const l of list) {
+    const FREE_PREVIEW = 5;
+    const showAll = _isSubscribed || list.length <= FREE_PREVIEW;
+    const displayList = showAll ? list : list.slice(0, FREE_PREVIEW);
+    const lockedCount = list.length - displayList.length;
+
+    for (const l of displayList) {
       const label = dateLabel(l.posted_at || l.created_at);
       if (label !== lastDateLabel) {
-        const count = list.filter(j => dateLabel(j.posted_at || j.created_at) === label).length;
+        const count = displayList.filter(j => dateLabel(j.posted_at || j.created_at) === label).length;
         html += `<div style="padding:16px 0 10px;margin-top:${lastDateLabel?'16px':'0'};display:flex;align-items:center;gap:10px">
           <span style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#C9A84C">${label}</span>
           <span style="background:rgba(201,168,76,.15);color:#C9A84C;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">${count}</span>
@@ -721,6 +726,30 @@ function renderList(list) {
               <button onclick="event.stopPropagation();toggleSaved('${l.id}');applyFilters();updateSavedCount()" style="background:none;border:none;cursor:pointer;font-size:18px;opacity:${l.saved?'1':'.35'};transition:opacity .15s;padding:0" title="${l.saved?'Unsave':'Save'}">${l.saved?'\u2605':'\u2606'}</button>
             </span>
           </div>
+        </div>
+      </div>`;
+    }
+    // Soft paywall: show blurred teasers + unlock CTA
+    if (!showAll && lockedCount > 0) {
+      const teasers = list.slice(FREE_PREVIEW, FREE_PREVIEW + 3);
+      html += `<div style="position:relative;margin-top:8px">
+        <div style="filter:blur(7px);pointer-events:none;opacity:.35">`;
+      for (const t of teasers) {
+        const s = extractSalary(t.notes);
+        const jt2 = jobType(t);
+        html += `<div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:14px 14px 14px 16px;margin-bottom:8px;position:relative;overflow:hidden">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${typeStripe[jt2]}"></div>
+          <div style="font-size:14px;font-weight:700;color:var(--text-primary)">${esc(t.company)}</div>
+          ${s?'<div style="font-size:15px;font-weight:800;color:#C9A84C;margin-top:4px">'+esc(s)+'</div>':''}
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${esc(t.location||'')} ${esc(t.country||'')}</div>
+        </div>`;
+      }
+      html += `</div>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5" style="width:40px;height:40px;margin-bottom:12px;opacity:.7"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <div style="font-size:1.3rem;font-weight:800;color:var(--gold);margin-bottom:6px">+${lockedCount} more jobs</div>
+          <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.5">Subscribe to unlock all opportunities, apply links & salary details</div>
+          <button onclick="showPaywall()" style="padding:14px 36px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.95rem;letter-spacing:0.5px;transition:all .2s" onmouseover="this.style.boxShadow='0 0 30px rgba(201,168,76,.3)'" onmouseout="this.style.boxShadow='none'">UNLOCK ALL JOBS</button>
         </div>
       </div>`;
     }
