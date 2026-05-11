@@ -1069,8 +1069,8 @@ def scrape_usajobs():
         url = f"https://data.usajobs.gov/api/search?Keyword={requests.utils.quote(q)}&ResultsPerPage=25"
         headers = {
             "Host": "data.usajobs.gov",
-            "User-Agent": HEADERS["User-Agent"],
-            "Authorization-Key": "cpo-leads-scraper",  # USAJobs requires any string here
+            "User-Agent": "strategioai@strategioai.com",
+            "Authorization-Key": "rcDPwG36Wj8DQORcy3P/qFNj35A1Ta5AHjS/Q2v+plg=",
         }
         try:
             r = requests.get(url, headers=headers, timeout=15)
