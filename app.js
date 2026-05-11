@@ -680,6 +680,31 @@ function renderList(list) {
     const displayList = showAll ? list : list.slice(0, FREE_PREVIEW);
     const lockedCount = list.length - displayList.length;
 
+    // Mask details for free users — show enough to create FOMO, not enough to google
+    const REGION_MAP = {
+      'Saudi Arabia':'Middle East','KSA':'Middle East','UAE':'Middle East','Qatar':'Middle East','Bahrain':'Middle East','Kuwait':'Middle East','Oman':'Middle East','Iraq':'Middle East','Jordan':'Middle East','Lebanon':'Middle East','Israel':'Middle East',
+      'UK':'Europe','Germany':'Europe','France':'Europe','Italy':'Europe','Spain':'Europe','Netherlands':'Europe','Switzerland':'Europe','Norway':'Europe','Sweden':'Europe','Denmark':'Europe','Poland':'Europe','Belgium':'Europe','Austria':'Europe','Greece':'Europe','Portugal':'Europe','Ireland':'Europe','Czech Republic':'Europe','Romania':'Europe','Finland':'Europe',
+      'USA':'Americas','Canada':'Americas','Mexico':'Americas','Brazil':'Americas','Colombia':'Americas','Argentina':'Americas','Chile':'Americas','Peru':'Americas',
+      'Nigeria':'Africa','Kenya':'Africa','South Africa':'Africa','Mozambique':'Africa','Ghana':'Africa','Ethiopia':'Africa','Tanzania':'Africa','Uganda':'Africa','DRC':'Africa','Somalia':'Africa','Libya':'Africa','Egypt':'Africa','Morocco':'Africa','Angola':'Africa','Mali':'Africa','Niger':'Africa','Cameroon':'Africa','Sudan':'Africa',
+      'Australia':'Asia-Pacific','Japan':'Asia-Pacific','Singapore':'Asia-Pacific','Philippines':'Asia-Pacific','Indonesia':'Asia-Pacific','Thailand':'Asia-Pacific','Malaysia':'Asia-Pacific','India':'Asia-Pacific','China':'Asia-Pacific','South Korea':'Asia-Pacific','New Zealand':'Asia-Pacific','Papua New Guinea':'Asia-Pacific'
+    };
+    function maskRegion(loc, country) {
+      if (!loc && !country) return 'Undisclosed';
+      const c = country || '';
+      if (REGION_MAP[c]) return REGION_MAP[c];
+      const locLower = (loc||'').toLowerCase();
+      if (/gulf|aden|indian ocean|horn of africa|strait|maritime|sea|ocean/.test(locLower)) return 'Maritime';
+      if (/middle east|riyadh|dubai|doha|baghdad|jeddah|muscat|abu dhabi|bahrain/i.test(locLower)) return 'Middle East';
+      if (/london|paris|berlin|rome|madrid|zurich|oslo|stockholm|munich/i.test(locLower)) return 'Europe';
+      if (/new york|washington|houston|los angeles|miami|toronto|bogota/i.test(locLower)) return 'Americas';
+      if (/lagos|nairobi|johannesburg|maputo|accra|cairo|casablanca/i.test(locLower)) return 'Africa';
+      if (/sydney|tokyo|singapore|manila|bangkok|mumbai|jakarta/i.test(locLower)) return 'Asia-Pacific';
+      return country || 'Undisclosed';
+    }
+    function maskCompany(name) {
+      return '\u{1F512} Verified Employer';
+    }
+
     for (const l of displayList) {
       const label = dateLabel(l.posted_at || l.created_at);
       if (label !== lastDateLabel) {
@@ -702,6 +727,12 @@ function renderList(list) {
       const desc = (l.notes||'').replace(/\$[\d,.]+[Kk]?(?:\/\w+)?(?:\s*[-–]\s*\$[\d,.]+[Kk]?(?:\/\w+)?)?/g,'').trim();
       const shortDesc = desc.length > 120 ? desc.substring(0,120)+'...' : desc;
 
+      // Mask for free users
+      const isFree = !showAll;
+      const displayCompany = isFree ? maskCompany(companyName || cleanTitle) : (companyName || '');
+      const displayLocation = isFree ? maskRegion(l.location, l.country) : (l.location ? `${flag} ${esc(l.location)}${l.country && l.country!=='UK' && l.country!=='USA' ? ' \u00b7 '+esc(l.country) : ''}` : '');
+      const displayDesc = isFree ? '' : shortDesc;
+
       html += `
       <div onclick="openDetail('${l.id}')" style="position:relative;background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:0;margin-bottom:8px;cursor:pointer;transition:all .2s;overflow:hidden" onmouseover="this.style.borderColor='rgba(201,168,76,.3)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--card-border)';this.style.transform='none'">
         <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${typeStripe[jt]};border-radius:10px 0 0 10px"></div>
@@ -713,14 +744,14 @@ function renderList(list) {
                 <span style="font-size:9px;font-weight:600;letter-spacing:1px;color:${typeStripe[jt]};text-transform:uppercase">${typeLabel[jt]}</span>
               </div>
               <div style="font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.3">${cleanTitle || esc(l.company)}</div>
-              ${companyName ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px">${companyName}</div>` : ''}
+              ${displayCompany ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px">${displayCompany}</div>` : ''}
             </div>
             ${salary ? `<div style="text-align:right;flex-shrink:0"><div style="font-size:15px;font-weight:800;color:#C9A84C;white-space:nowrap">${esc(salary)}</div><div style="font-size:9px;color:var(--text-muted);margin-top:1px">per annum</div></div>` : '<div style="font-size:11px;color:var(--text-muted);font-style:italic">Competitive</div>'}
           </div>
-          ${shortDesc ? `<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${esc(shortDesc)}</div>` : ''}
+          ${displayDesc ? `<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${esc(displayDesc)}</div>` : ''}
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            ${l.location ? `<span style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px">${flag} ${esc(l.location)}${l.country && l.country!=='UK' && l.country!=='USA' ? ' \u00b7 '+esc(l.country) : ''}</span>` : ''}
-            ${sourceIcon(source)}
+            ${displayLocation ? `<span style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px">${isFree ? '\u{1F30D}' : ''} ${displayLocation}</span>` : ''}
+            ${showAll ? sourceIcon(source) : ''}
             <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
               ${url ? `<a href="${url}" target="_blank" onclick="if(!gateApply(event))return" style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;padding:5px 14px;border-radius:5px;font-size:10px;font-weight:800;text-decoration:none;letter-spacing:0.5px">APPLY</a>` : ''}
               <button onclick="event.stopPropagation();toggleSaved('${l.id}');applyFilters();updateSavedCount()" style="background:none;border:none;cursor:pointer;font-size:18px;opacity:${l.saved?'1':'.35'};transition:opacity .15s;padding:0" title="${l.saved?'Unsave':'Save'}">${l.saved?'\u2605':'\u2606'}</button>

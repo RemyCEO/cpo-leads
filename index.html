@@ -440,6 +440,63 @@ a:hover { color: var(--gold-light); }
   transition: all 0.3s;
 }
 
+/* Mobile menu overlay */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #000;
+  z-index: 9999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+.mobile-menu.open {
+  display: flex;
+}
+.mobile-menu a {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+  text-decoration: none;
+  padding: 20px 40px;
+  transition: color 0.2s;
+}
+.mobile-menu a:hover { color: var(--gold); }
+.mobile-menu .mobile-menu-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: var(--gold);
+  font-size: 32px;
+  cursor: pointer;
+  padding: 8px;
+  line-height: 1;
+}
+.mobile-menu .mobile-menu-cta {
+  margin-top: 20px;
+  padding: 14px 40px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: #000;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+/* Hamburger X animation */
+.mobile-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.mobile-toggle.active span:nth-child(2) { opacity: 0; }
+.mobile-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
 /* ===== HERO ===== */
 .hero {
   position: relative;
@@ -1722,6 +1779,17 @@ section {
   </div>
 </nav>
 
+<!-- ===== MOBILE MENU ===== -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Close menu">&times;</button>
+  <a href="#opportunities">Opportunities</a>
+  <a href="#about">About</a>
+  <a href="#pricing">Pricing</a>
+  <a href="#faq">FAQ</a>
+  <a href="#contact">Contact</a>
+  <a href="app.html" class="mobile-menu-cta">Find Jobs</a>
+</div>
+
 <!-- ===== HERO ===== -->
 <section class="hero" id="hero">
   <div class="hero-grid">
@@ -1797,8 +1865,8 @@ section {
     </div>
     <div class="opp-row opp-row-header">
       <span>Position</span>
-      <span>Company</span>
-      <span>Location</span>
+      <span>Employer</span>
+      <span>Region</span>
       <span>Day Rate</span>
       <span>Risk</span>
       <span></span>
@@ -1807,55 +1875,55 @@ section {
       <div class="opp-row">
         <div>
           <div class="opp-title">Senior Close Protection Operative</div>
-          <div class="opp-company" style="display:none;">GardaWorld</div>
+          <div class="opp-company" style="display:none;">Verified Employer</div>
         </div>
-        <div class="opp-company">GardaWorld</div>
-        <div class="opp-location">Riyadh, KSA</div>
-        <div class="opp-rate">$850/day</div>
+        <div class="opp-company"><span style="opacity:.5">&#128274;</span> Verified Employer</div>
+        <div class="opp-location">Middle East</div>
+        <div class="opp-rate">$800–900/day</div>
         <div><span class="opp-risk risk-medium">Medium</span></div>
         <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
       </div>
       <div class="opp-row">
         <div>
           <div class="opp-title">PSD Team Leader</div>
-          <div class="opp-company" style="display:none;">Aegis Global</div>
+          <div class="opp-company" style="display:none;">Verified Employer</div>
         </div>
-        <div class="opp-company">Aegis Global</div>
-        <div class="opp-location">Baghdad, Iraq</div>
-        <div class="opp-rate">$1,200/day</div>
+        <div class="opp-company"><span style="opacity:.5">&#128274;</span> Verified Employer</div>
+        <div class="opp-location">Middle East</div>
+        <div class="opp-rate">$1,100–1,300/day</div>
         <div><span class="opp-risk risk-high">High</span></div>
         <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
       </div>
       <div class="opp-row">
         <div>
           <div class="opp-title">Maritime Security Officer</div>
-          <div class="opp-company" style="display:none;">Ambrey Intelligence</div>
+          <div class="opp-company" style="display:none;">Verified Employer</div>
         </div>
-        <div class="opp-company">Ambrey Intelligence</div>
-        <div class="opp-location">Gulf of Aden</div>
-        <div class="opp-rate">$650/day</div>
+        <div class="opp-company"><span style="opacity:.5">&#128274;</span> Verified Employer</div>
+        <div class="opp-location">Maritime — Indian Ocean</div>
+        <div class="opp-rate">$600–700/day</div>
         <div><span class="opp-risk risk-high">High</span></div>
         <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
       </div>
       <div class="opp-row">
         <div>
-          <div class="opp-title">Executive Protection -- UHNW Family</div>
-          <div class="opp-company" style="display:none;">Titan Security</div>
+          <div class="opp-title">Executive Protection — UHNW Family</div>
+          <div class="opp-company" style="display:none;">Verified Employer</div>
         </div>
-        <div class="opp-company">Titan Security</div>
-        <div class="opp-location">London, UK</div>
-        <div class="opp-rate">$700/day</div>
+        <div class="opp-company"><span style="opacity:.5">&#128274;</span> Verified Employer</div>
+        <div class="opp-location">Europe</div>
+        <div class="opp-rate">$650–750/day</div>
         <div><span class="opp-risk risk-low">Low</span></div>
         <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
       </div>
       <div class="opp-row">
         <div>
-          <div class="opp-title">Security Advisor -- Extractive Sector</div>
-          <div class="opp-company" style="display:none;">Control Risks</div>
+          <div class="opp-title">Security Advisor — Extractive Sector</div>
+          <div class="opp-company" style="display:none;">Verified Employer</div>
         </div>
-        <div class="opp-company">Control Risks</div>
-        <div class="opp-location">Maputo, MOZ</div>
-        <div class="opp-rate">$950/day</div>
+        <div class="opp-company"><span style="opacity:.5">&#128274;</span> Verified Employer</div>
+        <div class="opp-location">Africa</div>
+        <div class="opp-rate">$900–1,000/day</div>
         <div><span class="opp-risk risk-medium">Medium</span></div>
         <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
       </div>
@@ -2383,6 +2451,29 @@ if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream && !navigat
   btn.onclick = () => alert('Tap the Share button (↑) at the bottom of Safari, then tap "Add to Home Screen"');
 }
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+
+// Mobile menu toggle
+const mobileToggle = document.getElementById('mobileToggle');
+const mobileMenu = document.getElementById('mobileMenu');
+const mobileMenuClose = document.getElementById('mobileMenuClose');
+
+mobileToggle.addEventListener('click', () => {
+  mobileMenu.classList.add('open');
+  document.body.style.overflow = 'hidden';
+});
+
+mobileMenuClose.addEventListener('click', () => {
+  mobileMenu.classList.remove('open');
+  document.body.style.overflow = '';
+});
+
+// Close menu when clicking a link
+mobileMenu.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', () => {
+    mobileMenu.classList.remove('open');
+    document.body.style.overflow = '';
+  });
+});
 </script>
 
 </body>
