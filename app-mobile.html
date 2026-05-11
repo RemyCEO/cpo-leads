@@ -1411,6 +1411,27 @@ openDetail = openDetailModal;
 closeDetail = function() { document.getElementById('detail-bg').classList.remove('open'); };
 
 // Mobile job card renderer
+// Region masking for free users
+const _REGION_MAP = {
+  'Saudi Arabia':'Middle East','KSA':'Middle East','UAE':'Middle East','Qatar':'Middle East','Bahrain':'Middle East','Kuwait':'Middle East','Oman':'Middle East','Iraq':'Middle East','Jordan':'Middle East','Lebanon':'Middle East','Israel':'Middle East',
+  'UK':'Europe','Germany':'Europe','France':'Europe','Italy':'Europe','Spain':'Europe','Netherlands':'Europe','Switzerland':'Europe','Norway':'Europe','Sweden':'Europe','Denmark':'Europe',
+  'USA':'Americas','Canada':'Americas','Mexico':'Americas','Brazil':'Americas','Colombia':'Americas',
+  'Nigeria':'Africa','Kenya':'Africa','South Africa':'Africa','Mozambique':'Africa','Ghana':'Africa','Ethiopia':'Africa',
+  'Australia':'Asia-Pacific','Japan':'Asia-Pacific','Singapore':'Asia-Pacific','Philippines':'Asia-Pacific','India':'Asia-Pacific'
+};
+function _maskRegion(loc, country) {
+  if (!loc && !country) return 'Undisclosed';
+  if (_REGION_MAP[country]) return _REGION_MAP[country];
+  const lc = (loc||'').toLowerCase();
+  if (/gulf|aden|indian ocean|maritime|sea|ocean/.test(lc)) return 'Maritime';
+  if (/middle east|riyadh|dubai|doha|baghdad|jeddah|abu dhabi/i.test(lc)) return 'Middle East';
+  if (/london|paris|berlin|rome|madrid|zurich|oslo/i.test(lc)) return 'Europe';
+  if (/new york|washington|houston|los angeles|miami|toronto/i.test(lc)) return 'Americas';
+  if (/lagos|nairobi|johannesburg|maputo|accra|cairo/i.test(lc)) return 'Africa';
+  if (/sydney|tokyo|singapore|manila|bangkok|mumbai/i.test(lc)) return 'Asia-Pacific';
+  return country || 'Undisclosed';
+}
+
 function renderJobCard(l) {
   const salary = extractSalary(l.notes);
   const url = getApplyUrl(l);
@@ -1421,17 +1442,23 @@ function renderJobCard(l) {
   const badges = getContractBadges(l);
   const ta = timeAgo(l.posted_at || l.created_at);
 
+  // Mask for free users
+  const isFree = !_isSubscribed;
+  const showCompany = isFree ? '\u{1F512} Verified Employer' : (companyName||'');
+  const showCred = isFree ? '' : cred;
+  const showLocation = isFree ? '\u{1F30D} ' + _maskRegion(l.location, l.country) : (l.location ? esc(l.location) : '');
+
   return `<div class="m-job-card ${tier}" onclick="cardClick('${l.id}')">
     <div class="m-job-top">
       <div style="flex:1;min-width:0">
         <div class="m-job-title">${cleanTitle || esc(l.company)}</div>
-        <div class="m-job-company">${companyName||''} ${cred?'<span style="color:var(--text-muted);font-style:italic">&middot; '+cred+'</span>':''}</div>
+        <div class="m-job-company">${showCompany} ${showCred?'<span style="color:var(--text-muted);font-style:italic">&middot; '+showCred+'</span>':''}</div>
       </div>
       ${salary?'<div class="m-job-salary">'+esc(salary)+'</div>':''}
     </div>
     ${badges?'<div class="m-job-badges">'+badges+'</div>':''}
     <div class="m-job-meta">
-      ${l.location?'<span>'+esc(l.location)+'</span>':''}
+      ${showLocation?'<span>'+showLocation+'</span>':''}
       ${ta?'<span>'+ta+'</span>':''}
       <span style="color:${sColors[l.status]||'#52504d'}">${sLabels[l.status]||'New'}</span>
       ${getProgressDots(l.status)}
