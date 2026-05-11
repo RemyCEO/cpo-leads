@@ -1371,6 +1371,7 @@ function timeAgo(dateStr) {
 function openDetailModal(id) {
   const l = leads.find(x=>x.id===id);
   if(!l) return;
+  if (isJob(l) && !_isSubscribed) { showPaywall(); return; }
   const salary = extractSalary(l.notes);
   const url = l.website ? (l.website.startsWith('http') ? l.website : 'https://'+l.website) : '';
   const job = isJob(l);

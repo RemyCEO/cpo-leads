@@ -832,6 +832,7 @@ function openAdd() {
 function openEdit(id) {
   const l = leads.find(x=>x.id===id);
   if(!l)return;
+  if (isJob(l) && !_isSubscribed) { showPaywall(); return; }
   closeDetail();
   document.getElementById('modal-title').textContent = 'Edit';
   document.getElementById('edit-id').value = id;
