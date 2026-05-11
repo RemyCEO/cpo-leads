@@ -1128,8 +1128,8 @@ def scrape_jooble():
 
     for q in queries:
         try:
-            # Jooble has a free partner API at jooble.org/api/
-            url = "https://jooble.org/api/"
+            # Jooble partner API
+            url = "https://jooble.org/api/5f258171-4f21-46a5-9384-b3ce00b60791"
             headers = {
                 "Content-Type": "application/json",
                 "User-Agent": HEADERS["User-Agent"],
