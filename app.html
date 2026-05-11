@@ -1783,7 +1783,10 @@ body {
   <!-- === JOBS === -->
   <section id="page-jobs" class="page-section">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <h2 style="font-size:18px;font-weight:700;letter-spacing:2px;color:var(--gold);margin:0">JOB OPPORTUNITIES</h2>
+      <div style="display:flex;align-items:center;gap:12px">
+        <h2 style="font-size:18px;font-weight:700;letter-spacing:2px;color:var(--gold);margin:0">JOB OPPORTUNITIES</h2>
+        <span id="new-today-count" style="display:none;background:var(--green);color:#fff;font-size:10px;font-weight:800;padding:3px 10px;border-radius:12px;letter-spacing:0.5px;animation:pulse 2s infinite"></span>
+      </div>
       <div style="display:flex;gap:6px;align-items:center">
         <span id="jobs-count" style="font-size:0.75rem;color:var(--text-secondary)"></span>
         <button onclick="toggleJobView('card')" id="view-card" class="view-toggle active" title="Card view">&#9638;</button>
@@ -2311,6 +2314,19 @@ function renderJobList(list) {
   currentFilteredJobs = list;
   if(countEl) countEl.textContent = list.length + ' jobs';
 
+  // Update "new today" counter
+  const today = new Date(); today.setHours(0,0,0,0);
+  const newToday = list.filter(l => new Date(l.created_at) >= today).length;
+  const newBadge = document.getElementById('new-today-count');
+  if (newBadge) {
+    if (newToday > 0) {
+      newBadge.textContent = newToday + ' NEW TODAY';
+      newBadge.style.display = '';
+    } else {
+      newBadge.style.display = 'none';
+    }
+  }
+
   if (!list.length) {
     const total = leads.filter(l=>isJob(l)).length;
     el.innerHTML = '<div style="text-align:center;padding:60px 20px"><div style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:8px">No matches for this filter</div><div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.6">We track <strong style="color:var(--gold)">'+total+'</strong> active opportunities across <strong style="color:var(--gold)">7 global regions</strong>.<br>Try adjusting your filters or check back \u2014 new listings are added every 12 hours.</div></div>';
@@ -2447,7 +2463,13 @@ function renderJobCard(l, featured) {
   const showLocation = isFree ? '\u{1F30D} ' + _maskRegion(l.location, l.country) : (l.location ? esc(l.location)+(l.country&&l.country!=='UK'&&l.country!=='USA'?' \u00b7 '+esc(l.country):'') : '');
   const showSource = isFree ? '' : source;
 
-  return `<div class="jcard ${tier}${stale?' stale':''}" onclick="cardClick('${l.id}')">
+  const isNew = age < 24;
+  const newGlow = isNew ? 'box-shadow:0 0 12px rgba(39,174,96,.15);border-color:rgba(39,174,96,.4)' : '';
+  const newStripe = isNew ? 'background:var(--green)' : '';
+
+  return `<div class="jcard ${tier}${stale?' stale':''}" style="${newGlow}" onclick="cardClick('${l.id}')">
+    ${isNew ? '<div style="position:absolute;top:8px;right:8px;background:var(--green);color:#fff;font-size:8px;font-weight:800;padding:2px 8px;border-radius:3px;letter-spacing:1px;animation:pulse 2s infinite;z-index:1">NEW</div>' : ''}
+    <div style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;${newStripe}"></div>
     <div class="jcard-top">
       <div style="flex:1;min-width:0">
         <div class="jcard-title">${cleanTitle || esc(l.company)}</div>
