@@ -538,7 +538,12 @@ function applyFilters() {
     filtered.sort((a,b) => (so[a.status]||0) - (so[b.status]||0));
   }
   else filtered.sort((a,b) => (priorityOrder[a.priority]||1) - (priorityOrder[b.priority]||1));
-  renderList(filtered);
+  // Diversify sources so same company/scraper doesn't cluster
+  if (sortBy === 'date' || sortBy === 'priority') {
+    renderList(diversifySources(filtered));
+  } else {
+    renderList(filtered);
+  }
 }
 
 function extractSalary(notes) {
@@ -559,6 +564,37 @@ function extractSource(l) {
   if ((l.notes||'').includes('LinkedIn')) return 'LinkedIn';
   if ((l.notes||'').includes('Indeed')) return 'Indeed';
   return '';
+}
+
+// Spread out jobs so the same source doesn't cluster together
+function diversifySources(list) {
+  // Group by date bucket (same day = same group)
+  const buckets = new Map();
+  for (const item of list) {
+    const d = (item.posted_at || item.created_at || '').slice(0, 10);
+    if (!buckets.has(d)) buckets.set(d, []);
+    buckets.get(d).push(item);
+  }
+  const result = [];
+  for (const [, group] of buckets) {
+    if (group.length <= 2) { result.push(...group); continue; }
+    // Round-robin by source within each date group
+    const bySrc = new Map();
+    for (const item of group) {
+      const src = extractSource(item) || item.company || '';
+      if (!bySrc.has(src)) bySrc.set(src, []);
+      bySrc.get(src).push(item);
+    }
+    const queues = [...bySrc.values()];
+    // Sort queues by size descending so largest source gets spread most
+    queues.sort((a, b) => b.length - a.length);
+    while (queues.some(q => q.length > 0)) {
+      for (const q of queues) {
+        if (q.length > 0) result.push(q.shift());
+      }
+    }
+  }
+  return result;
 }
 
 function getApplyUrl(l) {
