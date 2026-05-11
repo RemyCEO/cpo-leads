@@ -199,8 +199,19 @@ body {
 .m-hamburger {
   width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
   background: none; border: none; cursor: pointer; flex-shrink: 0;
+  position: relative; z-index: 202;
 }
-.m-hamburger svg { width: 22px; height: 22px; stroke: var(--gold); fill: none; stroke-width: 1.5; }
+.m-hamburger-bar {
+  display: block; width: 20px; height: 2px; background: var(--gold);
+  border-radius: 2px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: absolute; left: 14px;
+}
+.m-hamburger-bar:nth-child(1) { top: 16px; }
+.m-hamburger-bar:nth-child(2) { top: 23px; opacity: 1; }
+.m-hamburger-bar:nth-child(3) { top: 30px; }
+.m-hamburger.is-active .m-hamburger-bar:nth-child(1) { top: 23px; transform: rotate(45deg); }
+.m-hamburger.is-active .m-hamburger-bar:nth-child(2) { opacity: 0; transform: translateX(8px); }
+.m-hamburger.is-active .m-hamburger-bar:nth-child(3) { top: 23px; transform: rotate(-45deg); }
 
 /* ===== SIDE MENU ===== */
 .m-menu-overlay {
@@ -747,8 +758,10 @@ html, body { overflow-x: hidden; max-width: 100vw; }
     <input type="text" id="global-search" placeholder="Search..." oninput="globalSearch(this.value)">
     <div id="search-results"></div>
   </div>
-  <button class="m-hamburger" onclick="openMobileMenu()">
-    <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  <button class="m-hamburger" id="hamburger-btn" onclick="toggleMobileMenu()">
+    <span class="m-hamburger-bar"></span>
+    <span class="m-hamburger-bar"></span>
+    <span class="m-hamburger-bar"></span>
   </button>
 </header>
 
@@ -778,6 +791,15 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   <button class="m-menu-item" onclick="closeMobileMenu();openAdd()">
     <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     Add Entry
+  </button>
+  <div style="height:1px;background:rgba(201,168,76,0.08);margin:8px 20px"></div>
+  <button class="m-menu-item" onclick="closeMobileMenu();mSwitchPage('telegram')">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M21.2 4.4L2.4 11.5c-.6.2-.6.7 0 .9l4.8 1.5 1.8 5.8c.2.5.7.5 1 .2l2.6-2.1 4.8 3.5c.5.4 1.1.1 1.2-.4L22.8 5.3c.2-.7-.4-1.2-1-.9z"/></svg>
+    Telegram Community
+  </button>
+  <button class="m-menu-item" onclick="closeMobileMenu();mSwitchPage('settings')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Settings
   </button>
   <div style="flex:1"></div>
 </div>
@@ -1047,6 +1069,42 @@ html, body { overflow-x: hidden; max-width: 100vw; }
     </div>
   </div>
 
+  <!-- === TELEGRAM COMMUNITY === -->
+  <div id="page-telegram" class="m-page">
+    <div style="padding:24px 16px">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#0088cc,#0066aa);display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" style="width:32px;height:32px"><path d="M21.2 4.4L2.4 11.5c-.6.2-.6.7 0 .9l4.8 1.5 1.8 5.8c.2.5.7.5 1 .2l2.6-2.1 4.8 3.5c.5.4 1.1.1 1.2-.4L22.8 5.3c.2-.7-.4-1.2-1-.9z"/></svg>
+        </div>
+        <h2 style="color:var(--gold);font-size:1.25rem;font-weight:800;margin-bottom:6px">CPOLEADS.COM Community</h2>
+        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5">Private Telegram channel for subscribers. Real-time job alerts, insider intel, and direct access to new contracts.</p>
+      </div>
+      <div id="m-telegram-locked" style="border:1px solid rgba(201,168,76,.15);border-radius:12px;padding:24px 16px;text-align:center;background:rgba(10,14,26,.6)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5" style="width:40px;height:40px;margin-bottom:12px;opacity:.6"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <h3 style="color:var(--text-primary);font-size:0.95rem;font-weight:700;margin-bottom:6px">Subscriber Access Only</h3>
+        <p style="color:var(--text-secondary);font-size:0.8rem;line-height:1.5;margin-bottom:16px">Join CPO Leads to unlock the private Telegram community channel.</p>
+        <button class="btn-gold" onclick="showPaywall()" style="padding:14px 28px;font-size:14px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit">Unlock Access</button>
+      </div>
+      <div id="m-telegram-unlocked" style="display:none">
+        <div style="border:1px solid rgba(0,136,204,.3);border-radius:12px;padding:24px 16px;text-align:center;background:linear-gradient(135deg,rgba(0,136,204,.05),rgba(0,102,170,.05))">
+          <div style="font-size:40px;margin-bottom:10px">📡</div>
+          <h3 style="color:var(--text-primary);font-size:0.95rem;font-weight:700;margin-bottom:6px">You're In</h3>
+          <p style="color:var(--text-secondary);font-size:0.8rem;line-height:1.5;margin-bottom:16px">Click below to join the private CPOLEADS.COM Telegram channel.</p>
+          <a id="m-telegram-join-btn" href="#" target="_blank" style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,#0088cc,#0066aa);color:#fff;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none">Join Telegram Channel</a>
+        </div>
+        <div style="margin-top:16px;border:1px solid rgba(201,168,76,.1);border-radius:10px;padding:16px;background:rgba(10,14,26,.4)">
+          <h4 style="color:var(--gold);font-size:0.7rem;font-weight:700;letter-spacing:2px;margin-bottom:12px">WHAT YOU GET</h4>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:8px"><span style="color:#3ecf8e;font-size:14px">&#10003;</span><span style="color:var(--text-primary);font-size:0.8rem">Real-time job alerts — new contracts posted instantly</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><span style="color:#3ecf8e;font-size:14px">&#10003;</span><span style="color:var(--text-primary);font-size:0.8rem">Insider intel from FB groups, LinkedIn, and private networks</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><span style="color:#3ecf8e;font-size:14px">&#10003;</span><span style="color:var(--text-primary);font-size:0.8rem">496+ active EP/CP contracts across 30+ countries</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><span style="color:#3ecf8e;font-size:14px">&#10003;</span><span style="color:var(--text-primary);font-size:0.8rem">Direct apply links — no middleman</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- === SETTINGS === -->
   <div id="page-settings" class="m-page">
     <div style="padding:40px 16px;text-align:center;color:var(--text-secondary)">
@@ -1130,14 +1188,23 @@ html, body { overflow-x: hidden; max-width: 100vw; }
 <script>
 // ===== MOBILE BRIDGE =====
 
-// Side menu
+// Side menu with animated hamburger
+function toggleMobileMenu() {
+  const overlay = document.getElementById('menu-overlay');
+  const menu = document.getElementById('mobile-menu');
+  const btn = document.getElementById('hamburger-btn');
+  const isOpen = menu.classList.contains('open');
+  if (isOpen) { closeMobileMenu(); } else { openMobileMenu(); }
+}
 function openMobileMenu() {
   document.getElementById('menu-overlay').classList.add('open');
   document.getElementById('mobile-menu').classList.add('open');
+  document.getElementById('hamburger-btn').classList.add('is-active');
 }
 function closeMobileMenu() {
   document.getElementById('menu-overlay').classList.remove('open');
   document.getElementById('mobile-menu').classList.remove('open');
+  document.getElementById('hamburger-btn').classList.remove('is-active');
 }
 
 // Bottom nav switching
@@ -1170,6 +1237,20 @@ function mSwitchPage(pageId) {
   else if (pageId === 'intel') renderGuide();
   else if (pageId === 'strategy') renderStrategy();
   else if (pageId === 'profile') { if (typeof renderProfile === 'function') renderProfile(); }
+  else if (pageId === 'telegram') {
+    // Sync telegram lock state with subscription
+    const mLocked = document.getElementById('m-telegram-locked');
+    const mUnlocked = document.getElementById('m-telegram-unlocked');
+    if (mLocked && mUnlocked) {
+      mLocked.style.display = _isSubscribed ? 'none' : 'block';
+      mUnlocked.style.display = _isSubscribed ? 'block' : 'none';
+      if (_isSubscribed) {
+        const joinBtn = document.getElementById('m-telegram-join-btn');
+        const desktopBtn = document.getElementById('telegram-join-btn');
+        if (joinBtn && desktopBtn) joinBtn.href = desktopBtn.href;
+      }
+    }
+  }
   else if (pageId === 'dashboard') { updateDashStats(); updateMobileNewest(); }
 
   // Scroll to top
@@ -1183,7 +1264,7 @@ switchPage = function(pageId, el) {
 
 // Override switchTab from app.js
 switchTab = function(tab) {
-  const map = {jobs:'jobs',companies:'companies',saved:'saved',guide:'intel',dashboard:'dashboard',strategy:'strategy'};
+  const map = {jobs:'jobs',companies:'companies',saved:'saved',guide:'intel',dashboard:'dashboard',strategy:'strategy',telegram:'telegram',settings:'settings'};
   mSwitchPage(map[tab] || tab);
 };
 
