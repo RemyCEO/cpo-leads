@@ -76,7 +76,6 @@ async function authLogout() {
 }
 
 let _isSubscribed = false;
-const _adminEmails = ['remy@strategioai.com','helgesenconsulting@gmail.com','reppin1388@gmail.com'];
 
 // Central gate — ALL job/apply interactions go through this
 function gateApply(e) {
@@ -90,18 +89,14 @@ async function onAuthSuccess(user) {
   currentUser = user;
   document.getElementById('user-email').textContent = user.email;
 
-  // Check subscription in background — don't block access
-  if (_adminEmails.includes(user.email)) {
-    _isSubscribed = true;
-  } else {
-    try {
-      const res = await fetch(`/api/check-subscription?email=${encodeURIComponent(user.email)}`);
-      const sub = await res.json();
-      _isSubscribed = !!sub.active;
-    } catch(e) {
-      console.error('Subscription check failed:', e);
-      _isSubscribed = false;
-    }
+  // Check subscription in background (admin bypass handled server-side)
+  try {
+    const res = await fetch(`/api/check-subscription?email=${encodeURIComponent(user.email)}`);
+    const sub = await res.json();
+    _isSubscribed = !!sub.active;
+  } catch(e) {
+    console.error('Subscription check failed:', e);
+    _isSubscribed = false;
   }
 
   // Let everyone in — Jobs tab is gated separately

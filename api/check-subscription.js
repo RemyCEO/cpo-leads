@@ -15,6 +15,12 @@ export default async function handler(req, res) {
   const email = req.query.email;
   if (!email) return res.status(400).json({ active: false, error: 'No email provided' });
 
+  // Admin bypass — server-side only, never exposed to client
+  const ADMIN_EMAILS = ['remy@strategioai.com', 'helgesenconsulting@gmail.com', 'reppin1388@gmail.com'];
+  if (ADMIN_EMAILS.includes(email.toLowerCase())) {
+    return res.status(200).json({ active: true, plan: 'admin' });
+  }
+
   const { data, error } = await supabase
     .from('subscribers')
     .select('status, plan, current_period_end')
