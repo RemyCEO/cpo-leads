@@ -1472,6 +1472,71 @@ def _days_ago(n):
 
 
 # ============================================================
+# TELEGRAM NOTIFICATIONS
+# ============================================================
+
+TELEGRAM_BOT_TOKEN = "8647809461:AAGTsrtOCXyauEo5j74X_Cn6Jq3OeLw0Q8I"
+TELEGRAM_CHAT_ID = "8790783341"
+
+def send_telegram(text):
+    """Send message to Telegram"""
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        r = requests.post(url, json={
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": text,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True,
+        }, timeout=10)
+        return r.status_code == 200
+    except:
+        return False
+
+def notify_new_jobs(jobs, total_new, total_db):
+    """Post new jobs to Telegram"""
+    if not jobs:
+        return
+
+    # Summary message
+    source_counts = {}
+    for j in jobs:
+        src = j.get("source", "Unknown")
+        source_counts[src] = source_counts.get(src, 0) + 1
+
+    sources_text = "\n".join(f"  • {src}: {count}" for src, count in sorted(source_counts.items(), key=lambda x: -x[1]))
+
+    summary = f"🟢 <b>CPO Leads — {total_new} nye jobber</b>\n\n{sources_text}\n\n📊 Totalt i database: {total_db}"
+    send_telegram(summary)
+
+    # Post each new job (max 15 to avoid spam)
+    for j in jobs[:15]:
+        title = j.get("title", "")
+        company = j.get("company", "")
+        location = j.get("location", "")
+        salary = j.get("salary", "")
+        source = j.get("source", "")
+        url = j.get("source_url", "")
+
+        msg = f"💼 <b>{title}</b>"
+        if company:
+            msg += f"\n🏢 {company}"
+        if location:
+            msg += f"\n📍 {location}"
+        if salary:
+            msg += f"\n💰 {salary}"
+        if source:
+            msg += f"\n📡 via {source}"
+        if url:
+            msg += f"\n🔗 <a href=\"{url}\">Apply</a>"
+
+        send_telegram(msg)
+        time.sleep(0.5)  # Rate limit
+
+    if len(jobs) > 15:
+        send_telegram(f"... og {len(jobs) - 15} flere jobber. Sjekk cpoleads.com 🔥")
+
+
+# ============================================================
 # MAIN
 # ============================================================
 
@@ -1635,7 +1700,7 @@ def main():
 
     log("-" * 40)
     log("SUMMARY:")
-    log(f"  Sources scraped: 13")
+    log(f"  Sources scraped: 20+")
     log(f"  Total found: {len(all_jobs)}")
     log(f"  Unique: {len(unique)}")
     log(f"  New jobs added: {new_jobs}")
@@ -1645,6 +1710,14 @@ def main():
         for e in errors:
             log(f"    - {e}")
     log("=" * 60)
+
+    # Notify Telegram with new jobs
+    if new_jobs > 0:
+        log("Sending to Telegram...")
+        notify_new_jobs(unique[:new_jobs], new_jobs, after)
+        log("Telegram notifications sent")
+    else:
+        send_telegram(f"📡 CPO Leads scrape done — 0 nye jobber. Database: {after} totalt.")
 
 
 if __name__ == "__main__":

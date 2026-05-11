@@ -1,6 +1,6 @@
 """
 CPO Leads - Bulletproof Daily Job Scraper
-Scrapes LinkedIn, Indeed, Silent Professionals, and GulfTalent for EP/CP jobs.
+Scrapes LinkedIn, Indeed, Silent Professionals, GulfTalent, Glassdoor UK, Recruit.net ZA, and Reed for EP/CP jobs.
 Inserts new listings into Supabase job_listings table.
 
 Run:     python scrape_jobs.py
@@ -562,6 +562,8 @@ def guess_country(location):
         return "Belgium"
     if any(x in loc for x in ["switzerland", "geneva", "zurich"]):
         return "Switzerland"
+    if any(x in loc for x in ["south africa", "johannesburg", "cape town", "durban", "pretoria", "gauteng", "western cape", "eastern cape", "kwazulu", "kzn"]):
+        return "South Africa"
     return ""
 
 def scrape_google_jobs():
@@ -599,6 +601,136 @@ def scrape_google_jobs():
                 })
         except Exception as e:
             log(f"  Google Jobs error: {e}")
+    return jobs
+
+
+def scrape_glassdoor_uk():
+    """Scrape Glassdoor UK for close protection jobs in London — uses Playwright"""
+    jobs = []
+    skip_words = ["data protection", "child protection", "fire protection", "loss prevention",
+                  "brand protection", "crop protection", "consumer protection", "asset protection",
+                  "product proposition", "legal counsel", "frontend", "apprentice", "trainee",
+                  "training contract", "intern", "cash/coin", "talent acquisition"]
+    urls = [
+        "https://www.glassdoor.co.uk/Job/london-close-protection-jobs-SRCH_IL.0,6_IC2671300_KO7,23.htm",
+        "https://www.glassdoor.co.uk/Job/uk-executive-protection-jobs-SRCH_IL.0,2_IN2_KO3,23.htm",
+        "https://www.glassdoor.co.uk/Job/uk-bodyguard-jobs-SRCH_IL.0,2_IN2_KO3,12.htm",
+    ]
+    for page_url in urls:
+        time.sleep(3)
+        log(f"  Glassdoor UK: fetching with Playwright...")
+        html = fetch_with_browser(page_url, wait_time=5)
+        if not html:
+            continue
+
+        # Extract job cards via regex on rendered HTML
+        # Glassdoor uses data-test attributes
+        titles = [clean(m) for m in re.findall(r'data-test="job-title"[^>]*>([^<]+)<', html)]
+        companies_raw = re.findall(r'data-test="emp-name"[^>]*>([^<]+)<', html)
+        locations_raw = re.findall(r'data-test="emp-location"[^>]*>([^<]+)<', html)
+        salaries_raw = re.findall(r'data-test="detailSalary"[^>]*>([^<]+)<', html)
+        job_urls = re.findall(r'href="(/job-listing/[^"]+)"', html)
+
+        if not titles:
+            # Fallback: broader pattern
+            titles = [clean(m) for m in re.findall(r'class="[^"]*jobTitle[^"]*"[^>]*>([^<]+)<', html)]
+
+        seen = set()
+        for i in range(len(titles)):
+            title = titles[i]
+            title_lower = title.lower()
+            if any(skip in title_lower for skip in skip_words):
+                continue
+            # Must contain at least one relevant keyword
+            if not any(kw in title_lower for kw in ["protection", "security", "bodyguard", "cp", "gsoc",
+                                                     "csoc", "threat", "intelligence", "surveillance",
+                                                     "door supervisor"]):
+                continue
+            company = clean(companies_raw[i]).rstrip('0123456789.') if i < len(companies_raw) else ""
+            key = title.lower() + "|" + company.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            location = clean(locations_raw[i]) if i < len(locations_raw) else "London, England"
+            salary = clean(salaries_raw[i]) if i < len(salaries_raw) else ""
+            source_url = f"https://www.glassdoor.co.uk{job_urls[i]}" if i < len(job_urls) else page_url
+
+            jobs.append({
+                "title": title,
+                "company": company,
+                "location": location,
+                "source": "Glassdoor UK",
+                "source_url": source_url,
+                "country": "UK",
+                "salary": salary,
+                "notes": "",
+            })
+        time.sleep(2)
+    return jobs
+
+
+def scrape_recruit_net_za():
+    """Scrape Recruit.net South Africa for close protection jobs — uses Playwright"""
+    jobs = []
+    skip_words = ["data protection", "child protection", "fire protection", "crop protection",
+                  "sales phone", "engineering specialist", "consultant paediatrician",
+                  "carbon projects", "telemarketer", "technical consultant", "service delivery",
+                  "project engineer", "regional manager", "sales consultant", "wet services"]
+    urls = [
+        "https://za.recruit.net/search-close-protection-jobs",
+        "https://za.recruit.net/search-executive-protection-jobs",
+        "https://za.recruit.net/search-bodyguard-jobs",
+    ]
+    for page_url in urls:
+        time.sleep(3)
+        log(f"  Recruit.net ZA: fetching with Playwright...")
+        html = fetch_with_browser(page_url, wait_time=6)
+        if not html:
+            continue
+
+        # Accept consent dialog if present
+        # Extract job links and nearby company links
+        job_links = re.findall(r'<a[^>]*href="(https://www\.recruit\.net/job/[^"]+)"[^>]*>\s*([^<]+)\s*</a>', html)
+        company_links = re.findall(r'<a[^>]*href="https://za\.recruit\.net/company-[^"]*"[^>]*>\s*([^<]+)\s*</a>', html)
+
+        seen = set()
+        for idx, (link, title) in enumerate(job_links):
+            title = clean(title)
+            title_lower = title.lower()
+            if not title or len(title) < 5:
+                continue
+            if any(skip in title_lower for skip in skip_words):
+                continue
+            # Must contain at least one relevant keyword
+            if not any(kw in title_lower for kw in ["protection", "security", "bodyguard", "cp ",
+                                                     "close protection", "executive protection",
+                                                     "surveillance", "threat"]):
+                continue
+            key = title.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+
+            company = clean(company_links[idx]) if idx < len(company_links) else ""
+            # Guess location from title
+            location = ""
+            for region in ["Western Cape", "Eastern Cape", "Gauteng", "KZN", "KwaZulu-Natal",
+                          "Johannesburg", "Cape Town", "Durban", "Pretoria", "Global"]:
+                if region.lower() in title_lower:
+                    location = region
+                    break
+
+            jobs.append({
+                "title": title,
+                "company": company,
+                "location": location or "South Africa",
+                "source": "Recruit.net ZA",
+                "source_url": link,
+                "country": "South Africa",
+                "salary": "",
+                "notes": "",
+            })
+        time.sleep(2)
     return jobs
 
 
@@ -701,6 +833,39 @@ def get_existing_count():
     except:
         pass
     return -1
+
+# --- TELEGRAM ---
+TELEGRAM_BOT_TOKEN = "8647809461:AAGTsrtOCXyauEo5j74X_Cn6Jq3OeLw0Q8I"
+TELEGRAM_CHAT_ID = "8790783341"
+
+def send_telegram(text):
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        requests.post(url, json={"chat_id": TELEGRAM_CHAT_ID, "text": text, "parse_mode": "HTML", "disable_web_page_preview": True}, timeout=10)
+    except:
+        pass
+
+def notify_telegram_jobs(jobs, total_new, total_db):
+    if not jobs or total_new == 0:
+        send_telegram(f"📡 CPO Leads scrape (main) — 0 nye. Database: {total_db}")
+        return
+    source_counts = {}
+    for j in jobs:
+        src = j.get("source", "Unknown")
+        source_counts[src] = source_counts.get(src, 0) + 1
+    sources_text = "\n".join(f"  • {src}: {c}" for src, c in sorted(source_counts.items(), key=lambda x: -x[1]))
+    send_telegram(f"🟢 <b>CPO Leads (main) — {total_new} nye jobber</b>\n\n{sources_text}\n\n📊 Totalt: {total_db}")
+    for j in jobs[:15]:
+        msg = f"💼 <b>{j.get('title','')}</b>"
+        if j.get('company'): msg += f"\n🏢 {j['company']}"
+        if j.get('location'): msg += f"\n📍 {j['location']}"
+        if j.get('salary'): msg += f"\n💰 {j['salary']}"
+        if j.get('source'): msg += f"\n📡 via {j['source']}"
+        if j.get('source_url'): msg += f"\n🔗 <a href=\"{j['source_url']}\">Apply</a>"
+        send_telegram(msg)
+        time.sleep(0.5)
+    if len(jobs) > 15:
+        send_telegram(f"... og {len(jobs) - 15} flere. cpoleads.com 🔥")
 
 # --- MAIN ---
 
@@ -805,6 +970,26 @@ def main():
         log(f"  REED FAILED: {e}")
         errors.append(f"Reed: {e}")
 
+    # Glassdoor UK
+    try:
+        log("Scraping Glassdoor UK...")
+        glassdoor = scrape_glassdoor_uk()
+        log(f"  Found {len(glassdoor)} jobs")
+        all_jobs.extend(glassdoor)
+    except Exception as e:
+        log(f"  GLASSDOOR UK FAILED: {e}")
+        errors.append(f"Glassdoor UK: {e}")
+
+    # Recruit.net South Africa
+    try:
+        log("Scraping Recruit.net ZA...")
+        recruit_za = scrape_recruit_net_za()
+        log(f"  Found {len(recruit_za)} jobs")
+        all_jobs.extend(recruit_za)
+    except Exception as e:
+        log(f"  RECRUIT.NET ZA FAILED: {e}")
+        errors.append(f"Recruit.net ZA: {e}")
+
     # Deduplicate
     unique = deduplicate(all_jobs)
     log(f"Total scraped: {len(all_jobs)} | Unique: {len(unique)}")
@@ -823,7 +1008,7 @@ def main():
     # Summary
     log("-" * 40)
     log(f"SUMMARY:")
-    log(f"  Sources scraped: 9")
+    log(f"  Sources scraped: 11")
     log(f"  Total found: {len(all_jobs)}")
     log(f"  Unique: {len(unique)}")
     log(f"  New jobs added: {new_jobs}")
@@ -835,6 +1020,13 @@ def main():
     else:
         log(f"  Errors: 0")
     log("=" * 60)
+
+    # Notify Telegram
+    if new_jobs > 0:
+        log("Sending to Telegram...")
+        notify_telegram_jobs(unique[:new_jobs], new_jobs, after)
+    else:
+        notify_telegram_jobs([], 0, after)
 
     # Cleanup
     close_browser()
