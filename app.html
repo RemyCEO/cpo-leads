@@ -1682,8 +1682,7 @@ body {
         const salary = extractSalary(l.notes);
         const region = _maskRegion(l.location, l.country);
         const ta = typeof timeAgo === 'function' ? timeAgo(l.created_at) : '';
-        const searchTerm = title.split(/[\s—-]+/).slice(0,3).join(' ');
-        return `<div class="alert-item ${levels[i]||'ok'}" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='${esc(searchTerm)}';applyFilters()},200)">
+        return `<div class="alert-item ${levels[i]||'ok'}" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>openDetail('${l.id}'),300)">
           <div class="alert-dot ${dots[i]||'green'}"></div>
           <div>
             <div class="alert-text">${title} — ${region}${salary ? ', '+esc(salary) : ''}</div>
@@ -1705,8 +1704,7 @@ body {
         const title = esc(l.company).replace(/^.*?\u2014\s*/, '') || esc(l.company);
         const salary = extractSalary(l.notes);
         const region = _maskRegion(l.location, l.country);
-        const searchTerm = title.split(/[\s—-]+/).slice(0,3).join(' ');
-        return `<div class="contract-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='${esc(searchTerm)}';applyFilters()},200)">
+        return `<div class="contract-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>openDetail('${l.id}'),300)">
           <div class="contract-info">
             <span class="contract-title">${title}</span>
             <span class="contract-meta">${region} · Verified Employer</span>
@@ -1754,8 +1752,7 @@ body {
         const title = esc(l.company).replace(/^.*?\u2014\s*/, '') || esc(l.company);
         const salary = extractSalary(l.notes);
         const region = _maskRegion(l.location, l.country);
-        const searchTerm = title.split(/[\s—-]+/).slice(0,3).join(' ');
-        return `<div class="rec-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>{document.getElementById('search').value='${esc(searchTerm)}';applyFilters()},200)">
+        return `<div class="rec-item" style="cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'));setTimeout(()=>openDetail('${l.id}'),300)">
           <div class="rec-info">
             <span class="rec-title">${title}</span>
             <span class="rec-meta">${region} · Verified Employer${salary ? ' · '+esc(salary) : ''}</span>
