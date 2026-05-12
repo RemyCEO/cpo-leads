@@ -95,6 +95,29 @@ def log(msg):
     except:
         pass
 
+# --- JOB TYPE CLASSIFIER ---
+def classify_job_type(title, company="", notes=""):
+    """Auto-classify job into CP/EP categories based on keywords"""
+    text = f"{title} {company} {notes}".lower()
+    # Order matters — more specific first
+    if any(k in text for k in ["maritime", "vessel", "ship", "offshore", "anti-piracy", "seafarer"]):
+        return "maritime"
+    if any(k in text for k in ["psd", "hostile", "conflict zone", "war zone", "armed escort", "hostile environment"]):
+        return "psd"
+    if any(k in text for k in ["pmc", "private military", "contractor", "defense contractor", "military contractor"]):
+        return "pmc"
+    if any(k in text for k in ["uhnw", "hnw", "family office", "private client", "private estate", "principal protection", "celebrity", "vip protect"]):
+        return "uhnw"
+    if any(k in text for k in ["corporate", "tech company", "corporate security", "corporate ep", "fortune 500"]):
+        return "corporate"
+    if any(k in text for k in ["static", "residential", "estate security", "site security", "gatehouse", "concierge security"]):
+        return "static"
+    if any(k in text for k in ["government", "embassy", "diplomatic", "federal", "dod", "state department", "un security", "nato"]):
+        return "government"
+    if any(k in text for k in ["close protection", "executive protection", "bodyguard", "protection officer", "cpo", "ep agent", "ep specialist", "personal protection"]):
+        return "cpo"
+    return "security"
+
 # --- HTTP WITH RETRY ---
 def fetch(url, retries=MAX_RETRIES):
     for attempt in range(1, retries + 1):
@@ -793,6 +816,11 @@ def insert_to_supabase(jobs):
         "Content-Type": "application/json",
         "Prefer": "resolution=ignore-duplicates,return=minimal"
     }
+
+    # Auto-classify job types
+    for j in jobs:
+        if not j.get("type"):
+            j["type"] = classify_job_type(j.get("title",""), j.get("company",""), j.get("notes",""))
 
     inserted = 0
     for i in range(0, len(jobs), 20):
