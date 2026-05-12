@@ -853,10 +853,30 @@ function renderList(list) {
     }
     // Pagination controls
     if (showAll && totalPages > 1) {
-      html += `<div style="display:flex;justify-content:center;align-items:center;gap:12px;padding:24px 0 16px">
-        <button onclick="currentJobPage--;applyFilters();document.getElementById('leads').scrollIntoView({behavior:'smooth'})" ${currentJobPage<=1?'disabled':''} style="padding:8px 16px;background:${currentJobPage<=1?'rgba(201,168,76,.05)':'rgba(201,168,76,.15)'};border:1px solid ${currentJobPage<=1?'rgba(201,168,76,.1)':'rgba(201,168,76,.3)'};border-radius:6px;color:${currentJobPage<=1?'rgba(201,168,76,.3)':'#C9A84C'};font-size:12px;font-weight:600;cursor:${currentJobPage<=1?'default':'pointer'};font-family:inherit">&larr; Prev</button>
-        <span style="font-size:12px;color:var(--text-muted);font-weight:600">Page ${currentJobPage} of ${totalPages}</span>
-        <button onclick="currentJobPage++;applyFilters();document.getElementById('leads').scrollIntoView({behavior:'smooth'})" ${currentJobPage>=totalPages?'disabled':''} style="padding:8px 16px;background:${currentJobPage>=totalPages?'rgba(201,168,76,.05)':'rgba(201,168,76,.15)'};border:1px solid ${currentJobPage>=totalPages?'rgba(201,168,76,.1)':'rgba(201,168,76,.3)'};border-radius:6px;color:${currentJobPage>=totalPages?'rgba(201,168,76,.3)':'#C9A84C'};font-size:12px;font-weight:600;cursor:${currentJobPage>=totalPages?'default':'pointer'};font-family:inherit">Next &rarr;</button>
+      // Build page number buttons
+      let pageButtons = '';
+      const maxVisible = 7;
+      let startP = Math.max(1, currentJobPage - Math.floor(maxVisible / 2));
+      let endP = Math.min(totalPages, startP + maxVisible - 1);
+      if (endP - startP < maxVisible - 1) startP = Math.max(1, endP - maxVisible + 1);
+
+      if (startP > 1) {
+        pageButtons += `<button onclick="currentJobPage=1;applyFilters();document.getElementById('leads').scrollIntoView({behavior:'smooth'})" style="width:32px;height:32px;border-radius:6px;border:1px solid rgba(201,168,76,.3);background:rgba(201,168,76,.1);color:#C9A84C;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">1</button>`;
+        if (startP > 2) pageButtons += `<span style="color:var(--text-muted);font-size:12px">...</span>`;
+      }
+      for (let p = startP; p <= endP; p++) {
+        const isActive = p === currentJobPage;
+        pageButtons += `<button onclick="currentJobPage=${p};applyFilters();document.getElementById('leads').scrollIntoView({behavior:'smooth'})" style="width:32px;height:32px;border-radius:6px;border:1px solid ${isActive?'#C9A84C':'rgba(201,168,76,.2)'};background:${isActive?'linear-gradient(135deg,#C9A84C,#8B7635)':'rgba(201,168,76,.05)'};color:${isActive?'#06080d':'#C9A84C'};font-size:12px;font-weight:${isActive?'800':'600'};cursor:pointer;font-family:inherit">${p}</button>`;
+      }
+      if (endP < totalPages) {
+        if (endP < totalPages - 1) pageButtons += `<span style="color:var(--text-muted);font-size:12px">...</span>`;
+        pageButtons += `<button onclick="currentJobPage=${totalPages};applyFilters();document.getElementById('leads').scrollIntoView({behavior:'smooth'})" style="width:32px;height:32px;border-radius:6px;border:1px solid rgba(201,168,76,.3);background:rgba(201,168,76,.1);color:#C9A84C;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">${totalPages}</button>`;
+      }
+
+      html += `<div style="display:flex;justify-content:center;align-items:center;gap:8px;padding:24px 0 16px;flex-wrap:wrap">
+        <button onclick="currentJobPage--;applyFilters();document.getElementById('leads').scrollIntoView({behavior:'smooth'})" ${currentJobPage<=1?'disabled':''} style="padding:8px 14px;background:${currentJobPage<=1?'rgba(201,168,76,.05)':'rgba(201,168,76,.15)'};border:1px solid ${currentJobPage<=1?'rgba(201,168,76,.1)':'rgba(201,168,76,.3)'};border-radius:6px;color:${currentJobPage<=1?'rgba(201,168,76,.3)':'#C9A84C'};font-size:12px;font-weight:600;cursor:${currentJobPage<=1?'default':'pointer'};font-family:inherit">&larr;</button>
+        ${pageButtons}
+        <button onclick="currentJobPage++;applyFilters();document.getElementById('leads').scrollIntoView({behavior:'smooth'})" ${currentJobPage>=totalPages?'disabled':''} style="padding:8px 14px;background:${currentJobPage>=totalPages?'rgba(201,168,76,.05)':'rgba(201,168,76,.15)'};border:1px solid ${currentJobPage>=totalPages?'rgba(201,168,76,.1)':'rgba(201,168,76,.3)'};border-radius:6px;color:${currentJobPage>=totalPages?'rgba(201,168,76,.3)':'#C9A84C'};font-size:12px;font-weight:600;cursor:${currentJobPage>=totalPages?'default':'pointer'};font-family:inherit">&rarr;</button>
       </div>
       <div style="text-align:center;font-size:11px;color:var(--text-muted);padding-bottom:16px">Showing ${pageStart+1}–${Math.min(pageStart+JOBS_PER_PAGE, fullList.length)} of ${fullList.length} jobs</div>`;
     }
