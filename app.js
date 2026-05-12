@@ -289,8 +289,13 @@ async function loadScrapedJobs() {
     await loadScrapedJobs();
   }
 
-  // Fade in app smoothly
+  // Remove loading screen and fade in app
   appContainer.style.opacity = '1';
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    loadingScreen.style.opacity = '0';
+    setTimeout(() => loadingScreen.remove(), 400);
+  }
 
   sb.auth.onAuthStateChange((event, session) => {
     if(session && session.user) onAuthSuccess(session.user);
