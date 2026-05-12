@@ -37,6 +37,10 @@ async function sendWelcomeEmail(email) {
     <a href="https://cpoleads.com/app.html?signup&paid=true" style="display:block;text-align:center;background:linear-gradient(135deg,#C9A84C,#b8943f);color:#000;padding:14px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;letter-spacing:1px">CREATE YOUR ACCOUNT</a>
     <p style="color:#888;font-size:12px;text-align:center;margin:16px 0 0">Use the same email address you paid with: <strong style="color:#fff">${email}</strong></p>
   </div>
+  <div style="background:#12121a;border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:24px;margin-bottom:24px;text-align:center">
+    <p style="color:#C9A84C;font-size:13px;font-weight:600;margin:0 0 8px">Join the CPO Leads Community</p>
+    <p style="color:#ccc;font-size:13px;line-height:1.5;margin:0">Connect with other operators in our exclusive Telegram channel. You'll find the invite link inside the platform after you log in.</p>
+  </div>
   <p style="color:#666;font-size:12px;text-align:center;margin:0">
     Questions? Reply to this email or contact <a href="mailto:support@strategioai.com" style="color:#C9A84C">support@strategioai.com</a>
   </p>
