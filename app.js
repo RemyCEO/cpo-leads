@@ -374,7 +374,7 @@ function switchTab(tab) {
   });
   showEl('list-view', tab==='companies'||tab==='jobs');
   showEl('saved-view', tab==='saved');
-  showEl('guide-view', tab==='guide');
+  showEl('intel-view', tab==='guide');
   showEl('dashboard-view', tab==='dashboard');
   showEl('strategy-view', tab==='strategy');
   showEl('stats', tab!=='guide');
@@ -421,62 +421,84 @@ function renderSaved() {
     }).join('') + '</div>';
 }
 
-function renderGuide() {
-  const el = document.getElementById('guide-view');
+let _intelNews = null;
+let _intelFilter = 'all';
+
+async function fetchIntelNews() {
+  if (_intelNews) return _intelNews;
+  try {
+    const r = await fetch('intel_news.json?t=' + Date.now());
+    _intelNews = await r.json();
+  } catch(e) { _intelNews = []; }
+  return _intelNews;
+}
+
+function formatIntelDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    const diff = Math.floor((Date.now() - d) / (1000*60*60));
+    if (diff < 1) return 'Just now';
+    if (diff < 24) return diff + 'h ago';
+    const days = Math.floor(diff / 24);
+    if (days < 7) return days + 'd ago';
+    return d.toLocaleDateString('en-GB', {day:'numeric',month:'short'});
+  } catch(e) { return ''; }
+}
+
+function stripHtml(str) {
+  if (!str) return '';
+  return str.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function getCatColor(cat) {
+  return {'Contractor Intel':'#C9A84C','Security Updates':'#c0392b','World News':'#2980b9'}[cat] || 'var(--muted)';
+}
+
+async function renderIntel() {
+  const el = document.getElementById('intel-view');
+  el.innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted)">Loading intel feed...</div>';
+  const news = await fetchIntelNews();
+  const categories = [...new Set(news.map(n => n.category).filter(Boolean))];
+  const filtered = _intelFilter === 'all' ? news : news.filter(n => n.category === _intelFilter);
+  const catCounts = {};
+  news.forEach(n => { catCounts[n.category] = (catCounts[n.category]||0)+1; });
+
   el.innerHTML = `
-    <h1 style="font-size:28px;font-weight:800;margin-bottom:8px">How to Land a Close Protection Job</h1>
-    <p style="color:var(--muted);margin-bottom:32px">The no-BS insider guide. Built from real operator experience.</p>
-
-    <div style="display:flex;flex-direction:column;gap:20px">
-    ${[
-      {title:'1. Where the Jobs Actually Live',icon:'\u{1F4CD}',content:'<b>Use these:</b> Silent Professionals, Circuit Magazine job board, EP Wired, BBA jobs, ASIS, IPSB, Close Protection World forum.<br><br><b>Skip:</b> Indeed and LinkedIn alone are graveyards for CP apps \u2014 80% of real CP work circulates through closed networks, WhatsApp groups, and direct referrals.<br><br><b>Red flags:</b> Any group asking upfront fees, "training first" schemes, or vague principal descriptions.<br><br><b>Quick Win:</b> Register on Silent Professionals and Circuit Magazine today \u2014 these two sources alone cover 60% of posted EP work.'},
-      {title:'2. The CV That Gets Opened',icon:'\u{1F4C4}',content:'<b>Format:</b> 2 pages max. Page 1: contact, summary, key certs, last 3 roles. Page 2: full career, training, languages.<br><br><b>Certs that matter:</b> SIA CP (UK), FPOS-I, HEAT/SSAFE, ASIS CPP/PSP, advanced driving (Tony Scotti, BSR). FAA Part 107 for drone surveillance is increasingly valued.<br><br><b>What gets you binned:</b> Photos in tactical gear, "operator" language, inflated claims, listing references publicly.<br><br><b>Quick Win:</b> Put "References from [named principal type] available on request" \u2014 signals discretion.'},
-      {title:'3. The Cold Outreach Playbook',icon:'\u{2709}',content:'<b>Find the right person:</b> Operations Manager, Head of Recruitment, Director of Protective Services \u2014 NOT info@ inbox.<br><br><b>Email structure:</b> Subject: "Experienced CPO \u2014 [Region] availability". Body: 3 lines max value prop + soft close. No attachments on first contact.<br><br><b>Follow-up:</b> 3 touches over 3 weeks, then park. Never chase more than that.<br><br><b>Quick Win:</b> Research 5 target companies on LinkedIn/Companies House today, find the right contact, send a tailored 3-line email.'},
-      {title:'4. The Recruiter Game',icon:'\u{1F465}',content:'<b>Family office recruiters:</b> Greycoat Lumleys, Tiger Recruitment, Polo & Tweed, Oplu, Bespoke Britannia \u2014 each operates differently. Register with all of them.<br><br><b>Stay top-of-mind:</b> Send a short monthly "availability email" \u2014 3 lines: current status, availability dates, any new certs/experience.<br><br><b>Reality check:</b> Recruiters earn from placement, not from you. Manage expectations. Never pay upfront fees.<br><br><b>Quick Win:</b> Email your CV to Greycoat Lumleys (info@greycoatlumleys.co.uk) and Tiger (info@tiger-recruitment.co.uk) today.'},
-      {title:'5. Networking That Generates Work',icon:'\u{1F91D}',content:'<b>Events worth the flight:</b> Security & Counter Terror Expo (London), ISC East/West (US), Intersec Dubai, Milipol Paris.<br><br><b>The 80/20 rule:</b> 80% of CP jobs come from people you’ve worked alongside. Invest in those relationships.<br><br><b>Referral script:</b> "Hey [name], I’m looking at [company]. Do you know anyone on their team? Would appreciate an intro if it makes sense."<br><br><b>Quick Win:</b> Message 3 former colleagues today and ask what they’re working on. Relationships before transactions.'},
-      {title:'6. Building a Brand That Brings Work',icon:'\u{1F464}',content:'<b>LinkedIn:</b> Discreet headline (e.g. "Close Protection | International Operations"), suit photo, short summary signaling discretion and competence. No plate carriers.<br><br><b>"Boring is professional":</b> Principals hire operators who don’t seek attention. No tactical Instagram, no "operator" content.<br><br><b>Quick Win:</b> Update your LinkedIn headline and summary today. Remove any tactical photos.'},
-      {title:'7. Geography & Market Rates (2026)',icon:'\u{1F30D}',content:'<b>Where the money is NOW:</b><br>\u2022 UAE/Saudi: $500\u2013800/day (NEOM, Red Sea projects hiring heavily)<br>\u2022 USA corporate: $130\u2013165K/yr (tech, finance, UHNW)<br>\u2022 London family office: \u00a355\u201380K/yr + benefits<br>\u2022 Hostile environment: $800\u20132,000/day (maritime anti-piracy tops)<br>\u2022 LATAM contract: $450\u2013800/day<br><br><b>Saturated:</b> UK domestic event security, generic venue work.<br><br><b>Quick Win:</b> Search GulfTalent and Silent Professionals for your target region today.'},
-      {title:'8. The Interview & Vetting Stage',icon:'\u{1F50D}',content:'<b>Background checks:</b> Expect 2\u20136 weeks. Some markets require polygraph (US government contracts).<br><br><b>The principal interview:</b> If you meet the protectee, be calm, professional, minimal. They’re assessing whether they’d be comfortable with you 24/7.<br><br><b>Questions to ask THEM:</b> Rotation pattern, team structure, escalation protocols, equipment provided, insurance coverage.<br><br><b>Quick Win:</b> Prepare a clean 1-page "operations resume" for principal meetings \u2014 no military jargon, just calm competence.'},
-      {title:'9. First 90 Days = Next 10 Years',icon:'\u{1F3AF}',content:'<b>The quiet professional reputation:</b> Show up early, kit squared away, zero drama, zero social media from the detail. This is what gets you recommended.<br><br><b>How referrals work:</b> Principals and estate managers talk to each other. One good contract opens 3 more. One bad day can close a region.<br><br><b>Avoid the bottom:</b> Don’t take lowball day-rate contracts just to stay busy. They attract bad teams and worse clients.<br><br><b>Quick Win:</b> On your current/next contract, focus on being the person the team lead calls first for the next job.'},
-      {title:'10. Honest Realities',icon:'\u26A0\uFE0F',content:'<b>The industry is small.</b> Burning one bridge can close an entire region. Professionalism is non-negotiable.<br><br><b>Nepotism is real.</b> Accept it. Build your own network instead of fighting it.<br><br><b>Dry seasons happen.</b> Keep 6 months of runway minimum. Don’t panic-take bad contracts.<br><br><b>Everything comes from YOUR pocket:</b> Insurance, kit, training, travel to interviews. Budget accordingly.<br><br><b>Mental health:</b> Long rotations are hard. Plan decompression. This isn’t weakness \u2014 it’s operational readiness.'}
-    ].map(s => `
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px">
-        <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">${s.icon} ${s.title}</h3>
-        <div style="font-size:13px;line-height:1.7;color:var(--muted)">${s.content}</div>
-      </div>
-    `).join('')}
+    <div style="margin-bottom:28px">
+      <h1 style="font-size:26px;font-weight:800;margin:0 0 6px">Industry Intel</h1>
+      <p style="color:var(--muted);font-size:13px;margin:0">Security news, threat updates & contractor intelligence</p>
     </div>
-
-    <div style="margin-top:32px;background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:24px">
-      <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--accent)">First 30 Days Action Plan</h2>
-      <div style="font-size:13px;line-height:2;color:var(--muted)">
-        <b style="color:var(--fg)">Week 1:</b><br>
-        1. Register: Silent Professionals, Circuit Magazine, CloseProtectionJobs.com<br>
-        2. Update LinkedIn (discreet headline, suit photo)<br>
-        3. Email CV to: Greycoat Lumleys, Tiger, Polo & Tweed, Oplu<br>
-        4. Register on careers.un.org + nato.taleo.net<br>
-        5. Apply to 3 active listings from Job Listings tab<br><br>
-        <b style="color:var(--fg)">Week 2:</b><br>
-        6. Cold outreach to 5 target companies (use playbook above)<br>
-        7. Register on GulfTalent + Impactpool<br>
-        8. Email Intelligent Protection + Infinite Risks + CourtesyMasters<br>
-        9. Apply to GDBA, Constellis, GardaWorld portals<br>
-        10. Message 3 former colleagues for referrals<br><br>
-        <b style="color:var(--fg)">Week 3:</b><br>
-        11. Follow up on week 1 outreach (2nd touch)<br>
-        12. Apply to 5 more job listings<br>
-        13. Research family office recruiters for your target market<br>
-        14. Set LinkedIn job alerts for target keywords<br><br>
-        <b style="color:var(--fg)">Week 4:</b><br>
-        15. Final follow-up on unanswered outreach (3rd touch)<br>
-        16. Send availability email to all registered recruiters<br>
-        17. Review and update saved jobs list<br>
-        18. Plan next month's targets based on responses<br><br>
-        <b style="color:var(--fg)">Ongoing:</b> Check job boards daily. Send monthly availability emails. Keep saved list current.
-      </div>
+    <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">
+      <button onclick="_intelFilter='all';renderIntel()" style="padding:6px 14px;border-radius:20px;border:1px solid ${_intelFilter==='all'?'var(--accent)':'var(--border)'};background:${_intelFilter==='all'?'var(--accent)':'transparent'};color:${_intelFilter==='all'?'#000':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer">All (${news.length})</button>
+      ${categories.map(c => `<button onclick="_intelFilter='${c}';renderIntel()" style="padding:6px 14px;border-radius:20px;border:1px solid ${_intelFilter===c?getCatColor(c):'var(--border)'};background:${_intelFilter===c?getCatColor(c):'transparent'};color:${_intelFilter===c?'#000':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer">${c} (${catCounts[c]||0})</button>`).join('')}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${filtered.length === 0 ? '<div style="text-align:center;padding:40px;color:var(--muted)">No articles found</div>' :
+        filtered.map(n => {
+          const summary = stripHtml(n.summary).slice(0, 180);
+          const cc = getCatColor(n.category);
+          return '<a href="'+esc(n.source_url)+'" target="_blank" rel="noopener" style="text-decoration:none;display:block;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;transition:border-color .2s" onmouseover="this.style.borderColor=\''+cc+'\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+            +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">'
+            +'<div style="flex:1;min-width:0">'
+            +'<div style="font-size:14px;font-weight:700;color:var(--fg);margin-bottom:6px;line-height:1.4">'+esc(n.title)+'</div>'
+            +(summary ? '<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px">'+esc(summary)+(stripHtml(n.summary).length>180?'...':'')+'</div>' : '')
+            +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+            +'<span style="font-size:10px;font-weight:700;color:'+cc+';text-transform:uppercase;letter-spacing:.5px">'+(n.category||'News')+'</span>'
+            +'<span style="font-size:11px;color:var(--muted)">'+esc(n.source||'')+'</span>'
+            +'<span style="font-size:11px;color:var(--muted)">'+formatIntelDate(n.published_at)+'</span>'
+            +'</div></div>'
+            +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" style="flex-shrink:0;margin-top:4px"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>'
+            +'</div></a>';
+        }).join('')}
+    </div>
+    <div style="margin-top:24px;text-align:center;padding:16px;color:var(--muted);font-size:11px">
+      Updated from Google News, ReliefWeb, BBC & security industry feeds
     </div>
   `;
 }
+
+function renderGuide() { renderIntel(); }
 
 const regionMap = {
   'UK':['UK','United Kingdom','England','Scotland','Wales'],

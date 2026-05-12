@@ -781,8 +781,8 @@ html, body { overflow-x: hidden; max-width: 100vw; }
     Profile
   </button>
   <button class="m-menu-item" onclick="closeMobileMenu();mSwitchPage('intel')">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-    Intel Guide
+    <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    Industry Intel
   </button>
   <button class="m-menu-item" onclick="closeMobileMenu();mSwitchPage('strategy')">
     <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -1020,9 +1020,9 @@ html, body { overflow-x: hidden; max-width: 100vw; }
     <div id="saved-view" style="padding:16px 0 20px"></div>
   </div>
 
-  <!-- === INTEL GUIDE === -->
+  <!-- === INDUSTRY INTEL === -->
   <div id="page-intel" class="m-page">
-    <div id="guide-view" style="padding:16px 0 20px"></div>
+    <div id="intel-view" style="padding:16px 0 20px"></div>
   </div>
 
   <!-- === STRATEGY === -->
@@ -1233,7 +1233,7 @@ function mSwitchPage(pageId) {
   if (pageId === 'jobs') { activeTab = 'jobs'; refresh(); }
   else if (pageId === 'companies') { activeTab = 'companies'; renderCompaniesPage(); }
   else if (pageId === 'saved') renderSaved();
-  else if (pageId === 'intel') renderGuide();
+  else if (pageId === 'intel') renderIntel();
   else if (pageId === 'strategy') renderStrategy();
   else if (pageId === 'profile') { if (typeof renderProfile === 'function') renderProfile(); }
   else if (pageId === 'telegram') {
