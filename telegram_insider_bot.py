@@ -24,9 +24,9 @@ import json
 from datetime import datetime
 
 # --- CONFIG ---
-# Uses same bot as telegram-calendar (or create a dedicated one)
-BOT_TOKEN = "8647809461:AAGTsrtOCXyauEo5j74X_Cn6Jq3OeLw0Q8I"
+BOT_TOKEN = "8710333843:AAEQhCUtdYF7nmWIzb7fTJ3I_kJUCsB3aTs"
 REMY_CHAT_ID = 8790783341
+CHANNEL_ID = -1003542781934  # CPOLEADS.COM channel — auto-post parsed jobs here
 
 SUPABASE_URL = "https://afrcpiheobzauwyftksr.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmcmNwaWhlb2J6YXV3eWZ0a3NyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODE1MzMwNSwiZXhwIjoyMDkzNzI5MzA1fQ.s4pyLPAiFswQ426enQpmWqYYoohrHBTnSUmwrquE3XA"
@@ -85,6 +85,41 @@ def is_job_post(text):
         return False
     return any(kw in lower for kw in CP_KEYWORDS)
 
+def clean_title(title):
+    """Strip LinkedIn share junk from titles"""
+    if not title:
+        return title
+    # Remove "share NNNN XXXX" at end (LinkedIn share IDs)
+    title = re.sub(r'\s+share\s+\d{5,}.*$', '', title, flags=re.IGNORECASE)
+    # Remove standalone long numbers (tracking IDs)
+    title = re.sub(r'\b\d{8,}\b', '', title)
+    # Remove random 4-char codes (fJoq, bUsx, xBEy, zIJV etc)
+    title = re.sub(r'\s+[a-zA-Z]{4}$', '', title)
+    # Remove "job opportunity" prefix
+    title = re.sub(r'^job\s+opportunity\s+', '', title, flags=re.IGNORECASE)
+    # Split camelCase/hashtag-style words (executiveprotection → Executive Protection)
+    title = re.sub(r'([a-z])([A-Z])', r'\1 \2', title)
+    # Split concatenated lowercase words using known keywords
+    known = ['executive','protection','close','bodyguard','security','jobs','manager',
+             'communications','specialist','officer','analyst','intelligence','maritime',
+             'residential','corporate','driver','instructor','consultant','director']
+    for kw in known:
+        title = re.sub(r'(?i)' + kw, lambda m: m.group().capitalize(), title)
+    # Remove leftover hashtag-style concatenated words with no spaces
+    # e.g. "securityjobs" → "Security Jobs"
+    for kw in known:
+        title = re.sub(r'(?i)(\w)(' + kw + r')', r'\1 \2', title)
+    # Remove generic filler words when alone
+    title = re.sub(r'\b(?:comms?|jobs?)\b', '', title, flags=re.IGNORECASE)
+    # Clean whitespace
+    title = re.sub(r'\s+', ' ', title).strip()
+    # Title case each word that is fully lowercase
+    words = title.split()
+    acronyms = {'sia','cpo','psd','ep','uae','uk','usa','vip','uhnw','pmc','dod','nato'}
+    words = [w.upper() if w.lower() in acronyms else (w.title() if w == w.lower() else w) for w in words]
+    title = ' '.join(words)
+    return title
+
 def extract_job_info(text):
     """Parse a forwarded message into structured job data"""
     lines = text.strip().split('\n')
@@ -94,16 +129,24 @@ def extract_job_info(text):
     salary = ""
     source_url = ""
 
+    # Broad title keywords — CP, intel, security, logistics, medical
+    title_keywords = [
+        "close protection", "executive protection", "bodyguard", "cpo", "ep ",
+        "security", "protection officer", "team leader", "ops manager", "psd",
+        "intelligence", "analyst", "coordinator", "supervisor", "consultant",
+        "advisor", "operator", "driver", "medic", "paramedic", "investigator",
+        "instructor", "trainer", "escort", "guard", "warden", "logistic",
+        "risk", "compliance", "surveillance", "counter", "threat", "director",
+        "manager", "specialist", "officer", "agent",
+    ]
+
     # Extract title — first substantial line or line with job keywords
     for line in lines:
         line = line.strip()
         if not line or len(line) < 5:
             continue
         line_lower = line.lower()
-        # Look for title-like lines
-        if any(kw in line_lower for kw in ["close protection", "executive protection", "bodyguard",
-                                            "cpo", "ep ", "security", "protection officer",
-                                            "team leader", "ops manager", "psd"]):
+        if any(kw in line_lower for kw in title_keywords):
             title = line[:120]
             break
     if not title:
@@ -155,6 +198,36 @@ def extract_job_info(text):
     if urls:
         source_url = urls[0].rstrip('.')
 
+    # LinkedIn URL detection — extract info from URL path
+    source = "INSIDER SOURCE"
+    for url in urls:
+        if 'linkedin.com' in url:
+            source = "LinkedIn"
+            # Try to extract readable name from URL path
+            path_match = re.search(r'linkedin\.com/(?:posts|jobs/view)/([^/?]+)', url)
+            if path_match:
+                slug = path_match.group(1).replace('-', ' ').replace('_', ' ')
+                # Clean up encoded chars
+                slug = re.sub(r'%[0-9A-Fa-f]{2}', ' ', slug)
+                slug = re.sub(r'\s+', ' ', slug).strip()
+                if slug and len(slug) > 5:
+                    title = slug[:120]
+            if not title:
+                title = f"LinkedIn — {url.split('/')[-1][:60]}"
+            break
+        if 'indeed.com' in url:
+            source = "Indeed"
+            break
+
+    # If message is just a URL with minimal text, make title unique
+    if not title and source_url:
+        title = f"Job post — {source_url[-50:]}"
+    if not title:
+        title = f"Insider Job — {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+
+    # Clean title — strip LinkedIn share junk
+    title = clean_title(title)
+
     # Guess country
     country = guess_country(location or text)
 
@@ -162,11 +235,11 @@ def extract_job_info(text):
         "title": title or "Insider Job Post",
         "company": company or "Insider Source",
         "location": location,
-        "source": "INSIDER SOURCE",
+        "source": source,
         "source_url": source_url,
         "country": country,
         "salary": salary,
-        "notes": text[:300],
+        "notes": text.strip(),
     }
 
 def guess_country(text):
@@ -201,11 +274,14 @@ def insert_to_supabase(job):
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
         "Content-Type": "application/json",
-        "Prefer": "resolution=ignore-duplicates,return=minimal"
+        "Prefer": "return=representation"
     }
     try:
-        r = requests.post(url, headers=headers, json=[job], timeout=15)
-        return r.status_code in (200, 201)
+        r = requests.post(url, headers=headers, json=job, timeout=15)
+        if r.status_code in (200, 201):
+            return True
+        log(f"  Supabase insert {r.status_code}: {r.text[:200]}")
+        return False
     except Exception as e:
         log(f"  Supabase error: {e}")
         return False
@@ -237,7 +313,7 @@ def get_updates(offset=0):
 def process_message(msg):
     """Process a single Telegram message"""
     text = msg.get("text", "") or msg.get("caption", "")
-    if not text or len(text) < 20:
+    if not text or len(text) < 10:
         return None
 
     chat_id = msg.get("chat", {}).get("id", 0)
@@ -256,15 +332,12 @@ def process_message(msg):
             return None
         return None
 
-    # Check if it's a job post
-    if not is_job_post(text):
-        # If sent by Remy, accept anything forwarded
-        from_id = msg.get("from", {}).get("id", 0)
+    # Accept all messages from Remy — he only sends job posts here
+    from_id = msg.get("from", {}).get("id", 0)
+    if from_id != REMY_CHAT_ID:
+        # For others: require CP keywords or forwarded content
         is_forwarded = msg.get("forward_date") is not None or msg.get("forward_origin") is not None
-        if from_id != REMY_CHAT_ID and not is_forwarded:
-            return None
-        # Even non-keyword messages from Remy that are forwarded = treat as insider intel
-        if not is_forwarded:
+        if not is_job_post(text) and not is_forwarded:
             return None
 
     # Parse job info
@@ -295,6 +368,49 @@ def get_db_count():
     except:
         return "?"
 
+COUNTRY_FLAGS = {
+    "USA": "🇺🇸", "UK": "🇬🇧", "UAE": "🇦🇪", "Saudi Arabia": "🇸🇦",
+    "Qatar": "🇶🇦", "Iraq": "🇮🇶", "Nigeria": "🇳🇬", "Kenya": "🇰🇪",
+    "South Africa": "🇿🇦", "Germany": "🇩🇪", "France": "🇫🇷",
+    "Australia": "🇦🇺", "Canada": "🇨🇦", "Kuwait": "🇰🇼",
+}
+
+def post_to_channel(job):
+    """Format and post job to CPOLEADS.COM Telegram channel"""
+    flag = "🌍"
+    for key, f in COUNTRY_FLAGS.items():
+        if key.lower() in (job.get("country","") or job.get("location","")).lower():
+            flag = f
+            break
+
+    lines = [f'{flag} <b>{job["title"][:100]}</b>']
+    if job.get("company"):
+        lines.append(f'🏢 {job["company"]}')
+    loc = job.get("location","")
+    country = job.get("country","")
+    if loc and country:
+        lines.append(f'📍 {loc}, {country}')
+    elif loc or country:
+        lines.append(f'📍 {loc or country}')
+    if job.get("salary"):
+        lines.append(f'💰 {job["salary"]}')
+    if job.get("source_url"):
+        lines.append(f'\n🔗 <a href="{job["source_url"]}">Apply / View Details</a>')
+    lines.append(f'\n📡 Source: INSIDER')
+    lines.append(f'🌐 More jobs: <a href="https://cpoleads.com">cpoleads.com</a>')
+
+    text = "\n".join(lines)
+    try:
+        requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={
+            "chat_id": CHANNEL_ID,
+            "text": text,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True,
+        }, timeout=10)
+        log(f"  Posted to channel: {job['title'][:50]}")
+    except Exception as e:
+        log(f"  Channel post error: {e}")
+
 def main():
     log("=" * 60)
     log("CPO LEADS — INSIDER TELEGRAM BOT STARTED")
@@ -303,47 +419,73 @@ def main():
     offset = get_offset()
     log(f"Starting from offset: {offset}")
     jobs_added = 0
+    poll_count = 0
+    errors_in_row = 0
 
     while True:
         try:
             updates = get_updates(offset)
+            poll_count += 1
+            errors_in_row = 0  # Reset on successful poll
+
+            # Heartbeat every 60 polls (~30 min)
+            if poll_count % 60 == 0:
+                log(f"Heartbeat: {poll_count} polls, {jobs_added} jobs added, offset={offset}")
 
             for update in updates:
                 offset = update["update_id"] + 1
                 save_offset(offset)
 
-                # Handle both direct messages and channel posts
-                msg = update.get("message") or update.get("channel_post")
-                if not msg:
+                try:
+                    # Handle both direct messages and channel posts
+                    msg = update.get("message") or update.get("channel_post")
+                    if not msg:
+                        continue
+
+                    text_preview = (msg.get("text","") or msg.get("caption",""))[:80]
+                    from_id = msg.get("from",{}).get("id",0)
+                    log(f"  MSG from={from_id} len={len(msg.get('text','')or msg.get('caption',''))} text={text_preview}")
+
+                    result = process_message(msg)
+                    if not result:
+                        log(f"  Skipped: not a job post")
+                        continue
+
+                    job, chat_id = result
+
+                    # Insert to Supabase
+                    success = insert_to_supabase(job)
+                    if success:
+                        jobs_added += 1
+                        log(f"INSIDER JOB ADDED: {job['title'][:60]} | {job['company']} | {job['location']}")
+                        send_telegram(chat_id,
+                            f"✅ Added to CPO Leads DB:\n"
+                            f"<b>{job['title'][:80]}</b>\n"
+                            f"Company: {job['company']}\n"
+                            f"Location: {job['location'] or 'TBD'}\n"
+                            f"Source: INSIDER\n"
+                            f"Total added this session: {jobs_added}")
+                        # Also post to CPOLEADS.COM channel
+                        post_to_channel(job)
+                    else:
+                        send_telegram(chat_id, "⚠️ Duplicate or error — not added.")
+
+                except Exception as e:
+                    log(f"  Error processing update {update.get('update_id')}: {e}")
                     continue
-
-                result = process_message(msg)
-                if not result:
-                    continue
-
-                job, chat_id = result
-
-                # Insert to Supabase
-                success = insert_to_supabase(job)
-                if success:
-                    jobs_added += 1
-                    log(f"INSIDER JOB ADDED: {job['title'][:60]} | {job['company']} | {job['location']}")
-                    send_telegram(chat_id,
-                        f"Added to CPO Leads DB:\n"
-                        f"<b>{job['title'][:80]}</b>\n"
-                        f"Company: {job['company']}\n"
-                        f"Location: {job['location'] or 'TBD'}\n"
-                        f"Source: INSIDER\n"
-                        f"Total added this session: {jobs_added}")
-                else:
-                    send_telegram(chat_id, "Duplicate or error — not added.")
 
         except KeyboardInterrupt:
             log(f"Bot stopped. Jobs added this session: {jobs_added}")
             break
         except Exception as e:
-            log(f"Error: {e}")
-            time.sleep(5)
+            errors_in_row += 1
+            log(f"Poll error ({errors_in_row}): {e}")
+            if errors_in_row > 10:
+                log("Too many errors in a row — restarting in 60s")
+                time.sleep(60)
+                errors_in_row = 0
+            else:
+                time.sleep(5)
 
 
 if __name__ == "__main__":
