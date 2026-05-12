@@ -2141,7 +2141,16 @@ function switchPage(pageId, el) {
   if (el) el.classList.add('active');
   document.querySelector('.sidebar').classList.remove('open');
 
-  if (pageId === 'jobs') { activeTab = 'jobs'; refresh(); }
+  if (pageId === 'jobs') {
+    activeTab = 'jobs';
+    // Reset all filters
+    const s = document.getElementById('search'); if(s) s.value = '';
+    const ft = document.getElementById('filter-type'); if(ft) ft.selectedIndex = 0;
+    const fs = document.getElementById('filter-status'); if(fs) fs.selectedIndex = 0;
+    const fc = document.getElementById('filter-country'); if(fc) fc.selectedIndex = 0;
+    const sb = document.getElementById('sort-by'); if(sb) sb.selectedIndex = 0;
+    refresh();
+  }
   else if (pageId === 'companies') { activeTab = 'companies'; renderCompaniesPage(); }
   else if (pageId === 'saved') renderSaved();
   else if (pageId === 'intel') renderIntel();
