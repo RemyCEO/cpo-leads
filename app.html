@@ -1405,10 +1405,10 @@ body {
       <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       Profile
     </a>
-    <!-- Strategy -->
+    <!-- Tracker -->
     <a class="nav-item" data-page="strategy" onclick="switchPage('strategy', this)">
-      <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      Strategy
+      <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      Tracker
     </a>
     <!-- Telegram Community -->
     <a class="nav-item" data-page="telegram" onclick="switchPage('telegram', this)">
@@ -1951,6 +1951,10 @@ body {
       <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0">
         <div><div style="font-size:0.85rem;font-weight:600">Cancel Subscription</div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">You can resubscribe anytime</div></div>
         <a href="https://billing.stripe.com/p/login/28EeVdf423IfaGwcG37AI00" target="_blank" style="font-size:0.7rem;color:var(--red);text-decoration:none;border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:6px 12px">Cancel</a>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--card-border)">
+        <div><div style="font-size:0.85rem;font-weight:600">Log Out</div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">Sign out of your account</div></div>
+        <button onclick="authLogout()" style="font-size:0.7rem;color:var(--text-muted);background:none;border:1px solid var(--card-border);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit">Log Out</button>
       </div>
     </div>
 
