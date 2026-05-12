@@ -770,7 +770,7 @@ function renderList(list) {
       const jt = jobType(l);
       const flag = countryFlag(l.country);
       const desc = (l.notes||'').replace(/\$[\d,.]+[Kk]?(?:\/\w+)?(?:\s*[-–]\s*\$[\d,.]+[Kk]?(?:\/\w+)?)?/g,'').trim();
-      const shortDesc = desc.length > 120 ? desc.substring(0,120)+'...' : desc;
+      const shortDesc = desc.length > 220 ? desc.substring(0,220)+'...' : desc;
 
       // Mask for free users
       const isFree = !showAll;
@@ -790,12 +790,12 @@ function renderList(list) {
               </div>
               <div style="font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.3">${cleanTitle || esc(l.company)}</div>
               ${displayCompany ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px">${displayCompany}</div>` : ''}
+              ${displayLocation ? `<div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-top:4px;display:flex;align-items:center;gap:4px">${isFree ? '\u{1F30D}' : ''} ${displayLocation}</div>` : ''}
             </div>
             ${salary ? `<div style="text-align:right;flex-shrink:0"><div style="font-size:15px;font-weight:800;color:#C9A84C;white-space:nowrap">${esc(salary)}</div><div style="font-size:9px;color:var(--text-muted);margin-top:1px">per annum</div></div>` : '<div style="font-size:11px;color:var(--text-muted);font-style:italic">Competitive</div>'}
           </div>
-          ${displayDesc ? `<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${esc(displayDesc)}</div>` : ''}
+          ${displayDesc ? `<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical">${esc(displayDesc)}</div>` : ''}
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            ${displayLocation ? `<span style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px">${isFree ? '\u{1F30D}' : ''} ${displayLocation}</span>` : ''}
             ${showAll ? sourceIcon(source) : ''}
             <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
               ${url ? `<a href="${url}" target="_blank" onclick="if(!gateApply(event))return" style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;padding:5px 14px;border-radius:5px;font-size:10px;font-weight:800;text-decoration:none;letter-spacing:0.5px">APPLY</a>` : ''}
