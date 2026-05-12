@@ -265,24 +265,13 @@ async function loadScrapedJobs() {
 
 // Initialize app — no login required
 (async () => {
-  // Check if user is logged in (for subscription check)
-  const {data:{session}} = await sb.auth.getSession();
-  if(session && session.user) {
-    onAuthSuccess(session.user);
-  } else {
-    // No session — show app anyway, Jobs tab will be gated
-    await loadScrapedJobs();
-  }
-  sb.auth.onAuthStateChange((event, session) => {
-    if(session && session.user) onAuthSuccess(session.user);
-  });
-
-  // Show auth overlay if ?login or ?signup parameter is present
+  const appContainer = document.getElementById('app-container');
   const params = window.location.search;
+
+  // Show auth overlay immediately if ?login or ?signup (no flash)
   if (params.includes('login') || params.includes('signup')) {
     const overlay = document.getElementById('auth-overlay');
     if (overlay) overlay.style.display = 'flex';
-    // Show signup form directly if ?signup (after payment)
     if (params.includes('signup')) {
       showSignup();
       if (params.includes('paid=true')) {
@@ -290,6 +279,22 @@ async function loadScrapedJobs() {
       }
     }
   }
+
+  // Check if user is logged in (for subscription check)
+  const {data:{session}} = await sb.auth.getSession();
+  if(session && session.user) {
+    await onAuthSuccess(session.user);
+  } else {
+    // No session — show app anyway, Jobs tab will be gated
+    await loadScrapedJobs();
+  }
+
+  // Fade in app smoothly
+  appContainer.style.opacity = '1';
+
+  sb.auth.onAuthStateChange((event, session) => {
+    if(session && session.user) onAuthSuccess(session.user);
+  });
 })();
 
 // Enter key support on auth forms
