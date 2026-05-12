@@ -1025,6 +1025,8 @@ def scrape_rss_job_feeds():
         {"name": "EP Wired", "url": "https://epwired.com/feed/", "type": "rss"},
         # OfficerList — EP career trends + job listings
         {"name": "OfficerList", "url": "https://officerlist.com/feed/", "type": "rss"},
+        # War Dogs Club — curated CP/PSD/PMC jobs
+        {"name": "War Dogs Club", "url": "https://wardogsclub.wordpress.com/category/7-careers/feed/", "type": "rss"},
     ]
 
     for feed in feeds:
