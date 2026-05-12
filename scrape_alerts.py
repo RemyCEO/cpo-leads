@@ -413,15 +413,30 @@ def main():
     unique = deduplicate(all_jobs)
     log(f"Total found: {len(all_jobs)} | Unique: {len(unique)}")
 
-    if unique:
-        log("Inserting to Supabase...")
-        inserted = insert_to_supabase(unique)
-    else:
-        inserted = 0
-        log("Nothing to insert")
+    # NEVER insert to job_listings — alerts are news, not jobs.
+    # Only save to intel_news.json for the Industry Intel page.
+    import json
+    intel_path = os.path.join(SCRIPT_DIR, "intel_news.json")
+    intel_items = []
+    for j in unique:
+        intel_items.append({
+            "title": j.get("title", ""),
+            "summary": j.get("notes", ""),
+            "source": j.get("company", ""),
+            "source_url": j.get("source_url", ""),
+            "category": "Security Updates",
+            "published_at": datetime.now().strftime("%a, %d %b %Y %H:%M:%S"),
+        })
+    if intel_items:
+        try:
+            with open(intel_path, "w", encoding="utf-8") as f:
+                json.dump(intel_items[:50], f, ensure_ascii=False, indent=2)
+            log(f"Saved {len(intel_items[:50])} articles to intel_news.json")
+        except Exception as e:
+            log(f"Failed to save intel_news.json: {e}")
 
+    inserted = 0
     after = get_existing_count()
-    new_jobs = max(0, after - before) if before >= 0 and after >= 0 else inserted
 
     log("-" * 40)
     log("SUMMARY:")
