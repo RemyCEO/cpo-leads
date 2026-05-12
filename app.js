@@ -226,14 +226,23 @@ function showPaywall() {
 
 async function loadScrapedJobs() {
   try {
-    const {data, error} = await sb.from('job_listings').select('*').order('scraped_at', {ascending: false}).limit(200);
+    const {data, error} = await sb.from('job_listings').select('*').order('scraped_at', {ascending: false}).limit(500);
     if (error || !data || !data.length) return;
     const now = new Date().toISOString();
+
+    // Build set of valid DB IDs
+    const dbIds = new Set(data.map(j => j.id));
+
+    // Remove local jobs that no longer exist in DB
+    const before = leads.length;
+    leads = leads.filter(l => l.category !== 'job' || dbIds.has(l.id));
+    const removed = before - leads.length;
+
+    // Add new jobs from DB
     let added = 0;
+    const localIds = new Set(leads.map(l => l.id));
     for (const j of data) {
-      // Check if already in local leads by title+company
-      const exists = leads.some(l => l.company.toLowerCase().includes(j.company?.toLowerCase() || '???') && l.company.toLowerCase().includes(j.title?.toLowerCase().substring(0,20) || '???'));
-      if (exists) continue;
+      if (localIds.has(j.id)) continue;
       leads.push({
         id: j.id || uid(),
         company: (j.company || '') + ' \u2014 ' + (j.title || ''),
@@ -255,10 +264,10 @@ async function loadScrapedJobs() {
       });
       added++;
     }
-    if (added > 0) {
+    if (added > 0 || removed > 0) {
       persist();
       refresh();
-      console.log('Loaded ' + added + ' fresh jobs from Supabase');
+      console.log(`Jobs sync: +${added} added, -${removed} removed, ${leads.filter(l=>l.category==='job').length} total`);
     }
   } catch(e) { console.error('Failed to load scraped jobs:', e); }
 }
