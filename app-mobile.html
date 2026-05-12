@@ -1220,6 +1220,8 @@ function mSwitchPage(pageId) {
     showPaywall();
     return;
   }
+  // Save current page to URL hash for refresh persistence
+  history.replaceState(null, '', '#' + pageId);
   document.querySelectorAll('.m-page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById('page-' + pageId);
   if (target) target.classList.add('active');
@@ -1637,6 +1639,11 @@ document.addEventListener('DOMContentLoaded', () => {
   updateDashStats();
   setTimeout(updateMobileNewest, 500);
   if(typeof updateProfilePhotos==='function') updateProfilePhotos();
+  // Restore page from URL hash on refresh
+  const hash = location.hash.replace('#','');
+  if (hash && document.getElementById('page-' + hash)) {
+    setTimeout(() => mSwitchPage(hash), 100);
+  }
 });
 
 // === GLOBAL THREAT MONITOR ===

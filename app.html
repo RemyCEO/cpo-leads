@@ -2137,11 +2137,18 @@ function switchPage(pageId, el) {
     showPaywall();
     return;
   }
+  // Save current page to URL hash for refresh persistence
+  history.replaceState(null, '', '#' + pageId);
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
   const target = document.getElementById('page-' + pageId);
   if (target) target.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (el) el.classList.add('active');
+  // If no el provided (e.g. from hash restore), find the right nav item
+  if (!el) {
+    const navEl = document.querySelector('.nav-item[data-page="'+pageId+'"]');
+    if (navEl) navEl.classList.add('active');
+  }
   document.querySelector('.sidebar').classList.remove('open');
 
   if (pageId === 'jobs') {
@@ -2607,6 +2614,11 @@ switchPage = function(pageId, el) {
 document.addEventListener('DOMContentLoaded', () => {
   updateDashStats();
   if(typeof updateProfilePhotos==='function') updateProfilePhotos();
+  // Restore page from URL hash on refresh
+  const hash = location.hash.replace('#','');
+  if (hash && document.getElementById('page-' + hash)) {
+    setTimeout(() => switchPage(hash), 100);
+  }
 });
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
 
