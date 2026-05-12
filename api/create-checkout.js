@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       subscription_data: {
         trial_period_days: 3,
       },
-      success_url: 'https://cpoleads.com/app.html?login&subscribed=true',
+      success_url: 'https://cpoleads.com/app.html?signup&paid=true',
       cancel_url: 'https://cpoleads.com/app.html?login',
     });
 

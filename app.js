@@ -245,10 +245,18 @@ async function loadScrapedJobs() {
     if(session && session.user) onAuthSuccess(session.user);
   });
 
-  // Show auth overlay if ?login parameter is present
-  if (window.location.search.includes('login')) {
+  // Show auth overlay if ?login or ?signup parameter is present
+  const params = window.location.search;
+  if (params.includes('login') || params.includes('signup')) {
     const overlay = document.getElementById('auth-overlay');
     if (overlay) overlay.style.display = 'flex';
+    // Show signup form directly if ?signup (after payment)
+    if (params.includes('signup')) {
+      showSignup();
+      if (params.includes('paid=true')) {
+        showAuthSuccess('Payment confirmed! Create your account below to get started.');
+      }
+    }
   }
 })();
 

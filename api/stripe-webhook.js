@@ -9,49 +9,12 @@ const supabase = createClient(
 );
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-function generatePassword(length = 12) {
-  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  const lower = 'abcdefghjkmnpqrstuvwxyz';
-  const digits = '23456789';
-  const special = '!@#$%&*';
-  const all = upper + lower + digits + special;
-  let pw = [
-    upper[Math.floor(Math.random() * upper.length)],
-    lower[Math.floor(Math.random() * lower.length)],
-    digits[Math.floor(Math.random() * digits.length)],
-    special[Math.floor(Math.random() * special.length)],
-  ];
-  for (let i = pw.length; i < length; i++) {
-    pw.push(all[Math.floor(Math.random() * all.length)]);
-  }
-  // Shuffle
-  for (let i = pw.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pw[i], pw[j]] = [pw[j], pw[i]];
-  }
-  return pw.join('');
-}
-
-async function createSupabaseAccount(email) {
-  const password = generatePassword();
-  const { data, error } = await supabase.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-  });
-  if (error) {
-    console.error('Supabase createUser error:', error.message);
-    return null;
-  }
-  return { user: data.user, password };
-}
-
-async function sendWelcomeEmail(email, password) {
+async function sendWelcomeEmail(email) {
   try {
     await resend.emails.send({
       from: 'CPO Leads <noreply@strategio.site>',
       to: email,
-      subject: 'Welcome to CPO Leads — Your Login Details',
+      subject: 'Welcome to CPO Leads — Create Your Account',
       html: `
 <!DOCTYPE html>
 <html>
@@ -63,20 +26,16 @@ async function sendWelcomeEmail(email, password) {
     <p style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:3px;margin-top:4px">Close Protection Intelligence</p>
   </div>
   <div style="background:#12121a;border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:32px;margin-bottom:24px">
-    <h2 style="color:#fff;font-size:20px;margin:0 0 16px">Welcome aboard</h2>
+    <h2 style="color:#fff;font-size:20px;margin:0 0 16px">Payment confirmed</h2>
     <p style="color:#ccc;font-size:14px;line-height:1.6;margin:0 0 24px">
-      Your CPO Leads account is ready. Use the credentials below to access the platform — real-time close protection job intelligence, company intel, and industry alerts.
+      Your subscription is active. Click the button below to create your account — choose your own password and get instant access to the platform.
     </p>
     <div style="background:#0a0a0f;border:1px solid rgba(201,168,76,0.15);border-radius:8px;padding:20px;margin-bottom:24px">
-      <p style="color:#888;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px">Login URL</p>
-      <p style="margin:0 0 16px"><a href="https://cpoleads.com/app.html?login" style="color:#C9A84C;text-decoration:none;font-size:14px">https://cpoleads.com/app.html?login</a></p>
-      <p style="color:#888;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px">Email</p>
-      <p style="color:#fff;font-size:14px;margin:0 0 16px;font-family:monospace">${email}</p>
-      <p style="color:#888;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px">Temporary Password</p>
-      <p style="color:#fff;font-size:14px;margin:0;font-family:monospace">${password}</p>
+      <p style="color:#888;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px">Your Email</p>
+      <p style="color:#fff;font-size:14px;margin:0;font-family:monospace">${email}</p>
     </div>
-    <p style="color:#e74c3c;font-size:13px;margin:0 0 24px">⚠ Please change your password after your first login.</p>
-    <a href="https://cpoleads.com/app.html?login" style="display:block;text-align:center;background:linear-gradient(135deg,#C9A84C,#b8943f);color:#000;padding:14px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;letter-spacing:1px">ACCESS PLATFORM</a>
+    <a href="https://cpoleads.com/app.html?signup&paid=true" style="display:block;text-align:center;background:linear-gradient(135deg,#C9A84C,#b8943f);color:#000;padding:14px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;letter-spacing:1px">CREATE YOUR ACCOUNT</a>
+    <p style="color:#888;font-size:12px;text-align:center;margin:16px 0 0">Use the same email address you paid with: <strong style="color:#fff">${email}</strong></p>
   </div>
   <p style="color:#666;font-size:12px;text-align:center;margin:0">
     Questions? Reply to this email or contact <a href="mailto:support@strategioai.com" style="color:#C9A84C">support@strategioai.com</a>
@@ -193,18 +152,14 @@ export default async function handler(req, res) {
           updated_at: new Date().toISOString()
         }).eq('email', customerEmail);
       } else {
-        // New subscriber — create Supabase auth account + send welcome email
-        const account = await createSupabaseAccount(customerEmail);
-        if (account) {
-          await sendWelcomeEmail(customerEmail, account.password);
-        }
-
         await supabase.from('subscribers').insert({
           email: customerEmail,
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
           status: 'active'
         });
+        // Send welcome email with signup link — user creates own password
+        await sendWelcomeEmail(customerEmail);
       }
 
       // Generate Telegram invite link for new subscriber
