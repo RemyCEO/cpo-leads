@@ -109,6 +109,9 @@ async function onAuthSuccess(user) {
   if (_isSubscribed) {
     showTelegramInvite(user.email);
   }
+
+  // Populate settings page
+  if (typeof initSettings === 'function') initSettings();
 }
 
 async function showTelegramInvite(email) {

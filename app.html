@@ -1987,7 +1987,7 @@ body {
     <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:20px;margin-bottom:16px">
       <h3 style="font-size:13px;font-weight:700;color:var(--text-primary);letter-spacing:1px;margin-bottom:16px">SUPPORT</h3>
       <div style="display:flex;flex-direction:column;gap:10px">
-        <a href="mailto:strategioai@strategioai.com" style="font-size:0.85rem;color:var(--gold);text-decoration:none">Contact Support — strategioai@strategioai.com</a>
+        <a href="https://cpoleads.com/#contact" target="_blank" style="font-size:0.85rem;color:var(--gold);text-decoration:none">Contact Support</a>
         <a href="/privacy.html" target="_blank" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none">Privacy Policy</a>
         <a href="/terms.html" target="_blank" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none">Terms of Service</a>
       </div>
@@ -2003,13 +2003,13 @@ body {
     </div>
 
     <script>
-    // Populate settings on load
+    // Populate settings — called from onAuthSuccess and on page switch
     function initSettings() {
       if (typeof currentUser !== 'undefined' && currentUser) {
         const emailEl = document.getElementById('settings-email');
         if (emailEl) emailEl.textContent = currentUser.email;
         const planEl = document.getElementById('settings-plan');
-        if (planEl) planEl.textContent = _isSubscribed ? 'Active Subscriber' : 'Free Plan';
+        if (planEl) planEl.textContent = _isSubscribed ? 'Active Subscriber ✓' : 'Free Plan';
       }
       const pv = localStorage.getItem('cpo_pref_view');
       if (pv) { const sel = document.getElementById('pref-view'); if(sel) sel.value = pv; }
@@ -2018,11 +2018,18 @@ body {
     }
     async function resetPassword() {
       if (typeof sb !== 'undefined' && currentUser) {
-        await sb.auth.resetPasswordForEmail(currentUser.email);
-        alert('Password reset email sent to ' + currentUser.email);
+        try {
+          const {error} = await sb.auth.resetPasswordForEmail(currentUser.email, {redirectTo: 'https://cpoleads.com/app.html?login'});
+          if (error) alert('Error: ' + error.message);
+          else alert('Password reset email sent to ' + currentUser.email + '. Check your inbox.');
+        } catch(e) { alert('Could not send reset email. Try again later.'); }
+      } else {
+        alert('Please log in first.');
       }
     }
-    document.addEventListener('DOMContentLoaded', () => setTimeout(initSettings, 600));
+    // Re-init settings when navigating to settings page
+    const origSwitchPage = typeof switchPage === 'function' ? switchPage : null;
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initSettings, 1500));
     </script>
   </section>
 
