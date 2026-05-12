@@ -503,14 +503,15 @@ async function renderIntel() {
 function renderGuide() { renderIntel(); }
 
 const regionMap = {
-  'UK':['UK','United Kingdom','England','Scotland','Wales'],
-  'USA':['USA','US','United States'],
-  'UAE':['UAE','Dubai','Qatar','Saudi','Saudi Arabia','Bahrain','Kuwait','Oman'],
-  'Europe':['Belgium','France','Germany','Netherlands','Switzerland','Austria','Poland','Italy','Spain','Norway','Denmark','Sweden','Finland','Ireland','Portugal','Greece','Czech','Hungary','Romania'],
-  'Africa':['Ghana','Nigeria','Kenya','South Africa','DRC','Angola','Mozambique','Tanzania','Uganda','Ethiopia','Sudan','Somalia','Egypt','Libya','Morocco','Tunisia'],
-  'Asia':['Singapore','Japan','China','Hong Kong','India','Philippines','Indonesia','Thailand','Vietnam','Australia','New Zealand','Myanmar','East Asia'],
-  'LATAM':['Colombia','Argentina','El Salvador','Guatemala','Brazil','Mexico','Chile','Peru','Ecuador','Panama','Costa Rica'],
-  'International':['International','Global','Globalt']
+  'UK':['UK','United Kingdom','England','Scotland','Wales','London','Surrey','Manchester','Birmingham','Leeds','Bristol','Liverpool','Glasgow','Edinburgh','Belfast','Cardiff','Knightsbridge','West Brompton','Melton Mowbray','Mayfair'],
+  'USA':['USA','US','United States','New York','Los Angeles','Miami','Chicago','Washington','San Francisco','Seattle','Boston','Houston','Dallas','Atlanta','Denver','Virginia','California','Texas','Florida','Pennsylvania','Massachusetts','Ohio','Tennessee','Colorado','Michigan','South Carolina','Georgia','Illinois','Kansas','Minnesota','New Jersey','Arlington','McLean','Hawthorne','Mountain View','San Carlos','Milpitas','Snowmass','Spokane','Kirkland','Princeton','Gurnee','Downey','Savannah','Greenville','Orrville','Iron Mountain','Everett','Franklin','Charleston'],
+  'UAE':['UAE','Dubai','Qatar','Saudi','Saudi Arabia','Bahrain','Kuwait','Oman','Abu Dhabi','Riyadh','Jeddah','Doha','NEOM'],
+  'Europe':['EU','Europe','Belgium','France','Germany','Netherlands','Switzerland','Austria','Poland','Italy','Spain','Norway','Denmark','Sweden','Finland','Ireland','Portugal','Greece','Czech','Hungary','Romania','Croatia','Serbia','Bulgaria','Ukraine','Latvia','Lithuania','Estonia','Luxembourg','Malta','Cyprus','Iceland','Paris','Berlin','Munich','Amsterdam','Brussels','Oslo','Stockholm','Copenhagen','Helsinki','Madrid','Rome','Milan','Vienna','Zurich','Geneva','Prague','Warsaw','Budapest','Lisbon','Dublin','Athens'],
+  'Africa':['Ghana','Nigeria','Kenya','South Africa','DRC','Angola','Mozambique','Tanzania','Uganda','Ethiopia','Sudan','Somalia','Egypt','Libya','Morocco','Tunisia','Gauteng','Western Cape','Johannesburg','Cape Town','Pretoria','Lagos','Nairobi'],
+  'Asia':['Singapore','Japan','China','Hong Kong','India','Philippines','Indonesia','Thailand','Vietnam','Australia','New Zealand','Myanmar','East Asia','Tokyo','Sydney','Melbourne','Bangkok','Kuala Lumpur','Seoul','Taipei','Jakarta','Mumbai','Delhi'],
+  'LATAM':['Colombia','Argentina','El Salvador','Guatemala','Brazil','Mexico','Chile','Peru','Ecuador','Panama','Costa Rica','Bogota','Buenos Aires','Mexico City','Sao Paulo','Lima','Santiago'],
+  'Canada':['Canada','Toronto','Vancouver','Montreal','Ottawa','Calgary'],
+  'International':['International','Global','Globalt','Remote','Worldwide']
 };
 
 function matchRegion(l, region) {
