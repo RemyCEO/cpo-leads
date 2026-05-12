@@ -76,6 +76,8 @@ async function authLogout() {
 }
 
 let _isSubscribed = false;
+let currentJobPage = 1;
+const JOBS_PER_PAGE = 25;
 
 // Central gate — ALL job/apply interactions go through this
 function gateApply(e) {
@@ -561,7 +563,8 @@ function parseSalaryNum(notes) {
   return m ? parseInt(m[1].replace(/,/g,'')) : 0;
 }
 
-function applyFilters() {
+function applyFilters(resetPage) {
+  if (resetPage) currentJobPage = 1;
   const filtered = getFiltered();
   const sortBy = document.getElementById('sort-by').value;
   if(sortBy==='salary') filtered.sort((a,b) => parseSalaryNum(b.notes) - parseSalaryNum(a.notes));
@@ -711,8 +714,15 @@ function renderList(list) {
     // Render grouped by date
     const FREE_PREVIEW = 5;
     const showAll = _isSubscribed || list.length <= FREE_PREVIEW;
-    const displayList = showAll ? list : list.slice(0, FREE_PREVIEW);
-    const lockedCount = list.length - displayList.length;
+    const fullList = showAll ? list : list.slice(0, FREE_PREVIEW);
+    const lockedCount = list.length - fullList.length;
+
+    // Pagination for subscribers
+    const totalPages = showAll ? Math.ceil(fullList.length / JOBS_PER_PAGE) : 1;
+    if (currentJobPage > totalPages) currentJobPage = totalPages;
+    if (currentJobPage < 1) currentJobPage = 1;
+    const pageStart = (currentJobPage - 1) * JOBS_PER_PAGE;
+    const displayList = showAll ? fullList.slice(pageStart, pageStart + JOBS_PER_PAGE) : fullList;
 
     // Mask details for free users — show enough to create FOMO, not enough to google
     const REGION_MAP = {
@@ -794,6 +804,16 @@ function renderList(list) {
         </div>
       </div>`;
     }
+    // Pagination controls
+    if (showAll && totalPages > 1) {
+      html += `<div style="display:flex;justify-content:center;align-items:center;gap:12px;padding:24px 0 16px">
+        <button onclick="currentJobPage--;applyFilters();document.getElementById('leads').scrollIntoView({behavior:'smooth'})" ${currentJobPage<=1?'disabled':''} style="padding:8px 16px;background:${currentJobPage<=1?'rgba(201,168,76,.05)':'rgba(201,168,76,.15)'};border:1px solid ${currentJobPage<=1?'rgba(201,168,76,.1)':'rgba(201,168,76,.3)'};border-radius:6px;color:${currentJobPage<=1?'rgba(201,168,76,.3)':'#C9A84C'};font-size:12px;font-weight:600;cursor:${currentJobPage<=1?'default':'pointer'};font-family:inherit">&larr; Prev</button>
+        <span style="font-size:12px;color:var(--text-muted);font-weight:600">Page ${currentJobPage} of ${totalPages}</span>
+        <button onclick="currentJobPage++;applyFilters();document.getElementById('leads').scrollIntoView({behavior:'smooth'})" ${currentJobPage>=totalPages?'disabled':''} style="padding:8px 16px;background:${currentJobPage>=totalPages?'rgba(201,168,76,.05)':'rgba(201,168,76,.15)'};border:1px solid ${currentJobPage>=totalPages?'rgba(201,168,76,.1)':'rgba(201,168,76,.3)'};border-radius:6px;color:${currentJobPage>=totalPages?'rgba(201,168,76,.3)':'#C9A84C'};font-size:12px;font-weight:600;cursor:${currentJobPage>=totalPages?'default':'pointer'};font-family:inherit">Next &rarr;</button>
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);padding-bottom:16px">Showing ${pageStart+1}–${Math.min(pageStart+JOBS_PER_PAGE, fullList.length)} of ${fullList.length} jobs</div>`;
+    }
+
     // Soft paywall: show blurred teasers + unlock CTA
     if (!showAll && lockedCount > 0) {
       const teasers = list.slice(FREE_PREVIEW, FREE_PREVIEW + 3);

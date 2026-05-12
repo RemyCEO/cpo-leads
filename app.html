@@ -1847,17 +1847,17 @@ body {
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-      <input type="text" id="search" placeholder="Filter..." oninput="applyFilters()" style="flex:1;min-width:140px;padding:8px 12px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:13px;outline:none;font-family:inherit">
-      <select id="filter-type" onchange="applyFilters()" style="padding:8px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:12px;font-family:inherit">
+      <input type="text" id="search" placeholder="Filter..." oninput="applyFilters(true)" style="flex:1;min-width:140px;padding:8px 12px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:13px;outline:none;font-family:inherit">
+      <select id="filter-type" onchange="applyFilters(true)" style="padding:8px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:12px;font-family:inherit">
         <option value="">All types</option><option value="cpo">Close Protection</option><option value="pmc">PMC / Contract</option><option value="uhnw">UHNW / Family Office</option><option value="corporate">Corporate EP</option><option value="maritime">Maritime</option><option value="psd">PSD / Hostile</option><option value="static">Static / Residential</option><option value="government">Government</option><option value="security">Security</option><option value="management">Management</option><option value="agency">Agency</option>
       </select>
-      <select id="filter-status" onchange="applyFilters()" style="padding:8px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:12px;font-family:inherit">
+      <select id="filter-status" onchange="applyFilters(true)" style="padding:8px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:12px;font-family:inherit">
         <option value="">All statuses</option><option value="ny">New</option><option value="kontaktet">Contacted</option><option value="applied">Applied</option><option value="interview">Interview</option><option value="offer">Offer</option><option value="rejected">Rejected</option>
       </select>
-      <select id="filter-country" onchange="applyFilters()" style="padding:8px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:12px;font-family:inherit">
+      <select id="filter-country" onchange="applyFilters(true)" style="padding:8px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:12px;font-family:inherit">
         <option value="">All regions</option><option value="UK">UK</option><option value="USA">USA</option><option value="UAE">UAE/Gulf</option><option value="Europe">Europe</option><option value="Africa">Africa</option><option value="Asia">Asia</option><option value="LATAM">LATAM</option><option value="International">International</option>
       </select>
-      <select id="sort-by" onchange="applyFilters()" style="padding:8px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:12px;font-family:inherit">
+      <select id="sort-by" onchange="applyFilters(true)" style="padding:8px;background:rgba(15,20,30,0.8);border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);font-size:12px;font-family:inherit">
         <option value="priority">Sort: Priority</option><option value="salary">Sort: Salary</option><option value="date">Sort: Newest</option><option value="name">Sort: A-Z</option>
       </select>
     </div>
