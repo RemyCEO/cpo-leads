@@ -299,7 +299,7 @@ leads = leads.filter(l => !/jobleads/i.test(l.company || '') && !/jobleads/i.tes
 if (leads.length < _before) { persist(); console.log('Removed ' + (_before - leads.length) + ' JobLeads entries'); }
 let activeTab = 'companies';
 
-const typeLabels = {security:'Security',management:'Management',agency:'Agency'};
+const typeLabels = {security:'Security',management:'Management',agency:'Agency',cpo:'Close Protection',pmc:'PMC / Contract',uhnw:'UHNW / Family Office',corporate:'Corporate EP',maritime:'Maritime',psd:'PSD / Hostile',static:'Static / Residential',government:'Government'};
 const typeBadge = {security:'badge-security',management:'badge-management',agency:'badge-agency'};
 const statusColors = {ny:'#52504d',kontaktet:'#2980b9',applied:'#8e44ad',interview:'#D4AF37',offer:'#27ae60',rejected:'#c0392b','s\u00f8kt':'#a855f7',tilbud:'#27ae60',avslag:'#c0392b'};
 const statusLabels = {ny:'New',kontaktet:'Contacted',applied:'Applied',interview:'Interview',offer:'Offer',rejected:'Rejected','s\u00f8kt':'Applied',tilbud:'Offer',avslag:'Rejected'};
