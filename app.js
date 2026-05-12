@@ -621,13 +621,13 @@ function applyFilters(resetPage) {
     const so={ny:0,kontaktet:1,applied:2,interview:3,offer:4,rejected:5};
     filtered.sort((a,b) => (so[a.status]||0) - (so[b.status]||0));
   }
-  else filtered.sort((a,b) => (priorityOrder[a.priority]||1) - (priorityOrder[b.priority]||1));
-  // Diversify sources so same company/scraper doesn't cluster
-  if (sortBy === 'date' || sortBy === 'priority') {
-    renderList(diversifySources(filtered));
-  } else {
-    renderList(filtered);
-  }
+  else filtered.sort((a,b) => (b.created_at||b.scraped_at||'').localeCompare(a.created_at||a.scraped_at||''));
+  // Always pin insider/telegram jobs to top
+  const pinSources = ['insider source','telegram','insider'];
+  const pinned = filtered.filter(l => pinSources.includes((l.source||'').toLowerCase()));
+  const rest = filtered.filter(l => !pinSources.includes((l.source||'').toLowerCase()));
+  const final = [...pinned, ...rest];
+  renderList(final);
 }
 
 function extractSalary(notes) {
