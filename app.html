@@ -2261,7 +2261,7 @@ function openDetailModal(id) {
     <!-- Action Bar -->
     <div style="display:flex;gap:8px;padding-top:20px;border-top:1px solid var(--card-border)">
       ${url ? '<a href="'+url+'" target="_blank" '+(job?'onclick="if(!gateApply(event))return"':'')+' style="flex:1;text-align:center;padding:12px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border-radius:8px;font-weight:700;font-size:0.85rem;text-decoration:none;letter-spacing:0.5px;transition:all .2s" onmouseover="this.style.boxShadow=\'0 0 20px rgba(201,168,76,.3)\'" onmouseout="this.style.boxShadow=\'none\'">'+(job?'APPLY NOW':'VISIT WEBSITE')+'</a>' : ''}
-      <button onclick="event.stopPropagation();toggleSaved('${l.id}');openDetailModal('${l.id}')" style="padding:12px 18px;background:none;border:1px solid var(--card-border);border-radius:8px;color:var(--gold);cursor:pointer;font-family:inherit;font-size:0.85rem;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--card-border)'">${l.saved?'\u2605':'\u2606'}</button>
+      <button onclick="event.stopPropagation();toggleSaved('${l.id}');openDetailModal('${l.id}')" style="padding:12px 18px;background:none;border:1px solid var(--card-border);border-radius:8px;color:var(--gold);cursor:pointer;font-family:inherit;font-size:0.85rem;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--card-border)'" title="${l.saved?'Remove from saved':'Save to watchlist'}">${l.saved?'\u2605':'\u2606'}</button>
       <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='flex'?'none':'flex'" style="padding:12px 14px;background:none;border:1px solid var(--card-border);border-radius:8px;color:var(--text-muted);cursor:pointer;font-family:inherit;font-size:0.85rem;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--card-border)'">&middot;&middot;&middot;</button>
       <div style="display:none;position:absolute;bottom:70px;right:24px;flex-direction:column;gap:2px;background:rgba(10,14,26,.97);border:1px solid var(--card-border);border-radius:8px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:10">
         <button onclick="openEdit('${l.id}')" style="padding:8px 16px;background:none;border:none;color:var(--text-primary);font-size:0.78rem;cursor:pointer;font-family:inherit;text-align:left;border-radius:6px;transition:background .15s" onmouseover="this.style.background='rgba(201,168,76,.06)'" onmouseout="this.style.background='none'">Edit</button>
@@ -2399,7 +2399,7 @@ function renderCompactRow(l) {
     '<div class="cr-salary">'+(salary?esc(salary):'')+'</div>'+
     '<div class="cr-date">'+ta+'</div>'+
     '<div style="color:'+(sColors[l.status]||'#52504d')+';font-size:0.65rem">'+(sLabels[l.status]||'New')+'</div>'+
-    '<button class="co-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters()" style="opacity:'+(l.saved?'1':'.35')+';font-size:14px;background:none;border:none;cursor:pointer">'+(l.saved?'\u2605':'\u2606')+'</button>'+
+    '<button class="co-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters()" style="opacity:'+(l.saved?'1':'.35')+';font-size:14px;background:none;border:none;cursor:pointer" title="'+(l.saved?'Remove from saved':'Save to watchlist')+'">'+(l.saved?'\u2605':'\u2606')+'</button>'+
   '</div>';
 }
 
@@ -2586,7 +2586,7 @@ function renderJobCard(l, featured) {
     </div>
     <div class="jcard-actions">
       ${url?'<a href="'+url+'" target="_blank" class="jcard-apply" onclick="if(!gateApply(event))return">APPLY</a>':''}
-      <button class="co-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters()" style="opacity:${l.saved?'1':'.35'};font-size:16px">${l.saved?'\u2605':'\u2606'}</button>
+      <button class="co-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters()" style="opacity:${l.saved?'1':'.35'};font-size:16px" title="${l.saved?'Remove from saved':'Save to watchlist'}">${l.saved?'\u2605':'\u2606'}</button>
       ${showSource?'<span style="font-size:0.6rem;color:var(--text-muted);margin-left:auto">via '+showSource+'</span>':''}
     </div>
   </div>`;
