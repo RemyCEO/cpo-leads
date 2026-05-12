@@ -901,7 +901,7 @@ html, body { overflow-x: hidden; max-width: 100vw; }
           <p style="font-size:0.875rem;color:var(--text-secondary);line-height:1.7;margin-bottom:16px">Their client list includes Jeff Bezos, the CIA, FBI, U.S. Supreme Court, and over 80 of the world's most high-profile families. Having GDBA on your CV is the equivalent of Special Forces on a military resume — it's the benchmark everyone else is measured against.</p>
           <p style="font-size:0.8rem;color:var(--gold);line-height:1.5;margin-bottom:16px;padding:12px;border-left:2px solid rgba(201,168,76,.4);background:rgba(201,168,76,.03);border-radius:0 6px 6px 0"><strong>WHY NOW:</strong> Massive hiring push — 22 immediate openings across LA, NYC, DC, Miami, and Seattle. Military and law enforcement backgrounds highly valued. This is your shot at the gold standard.</p>
           <a href="https://gdba.com/open-positions/" target="_blank" onclick="if(!gateApply(event))return" style="display:block;text-align:center;padding:16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:8px;font-weight:800;font-size:1rem;text-decoration:none;letter-spacing:1px;margin-bottom:10px;min-height:52px">APPLY NOW</a>
-          <button onclick="document.getElementById('featured-modal-bg').classList.remove('open');mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Gavin de Becker';applyFilters()},200)" style="width:100%;padding:14px;background:none;border:1px solid rgba(201,168,76,.2);border-radius:8px;color:var(--gold);font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;min-height:48px">View All GDBA Jobs</button>
+          <button onclick="document.getElementById('featured-modal-bg').classList.remove('open');mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Gavin de Becker';applyFilters(true)},200)" style="width:100%;padding:14px;background:none;border:1px solid rgba(201,168,76,.2);border-radius:8px;color:var(--gold);font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;min-height:48px">View All GDBA Jobs</button>
         </div>
       </div>
     </div>
@@ -926,19 +926,19 @@ html, body { overflow-x: hidden; max-width: 100vw; }
         <span class="m-dash-card-title">INTEL SUMMARY</span>
         <span class="m-card-badge-live">LIVE</span>
       </div>
-      <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Solo EP Agent';applyFilters()},200)">
+      <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Solo EP Agent';applyFilters(true)},200)">
         <div class="m-alert-dot red"></div>
         <div><div class="m-alert-text">Solo EP Agent — Americas, $800/day</div><div class="m-alert-time">12 min ago</div></div>
       </div>
-      <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='PSD';applyFilters()},200)">
+      <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='PSD';applyFilters(true)},200)">
         <div class="m-alert-dot amber"></div>
         <div><div class="m-alert-text">PSD Team — West Africa, $1,100/day</div><div class="m-alert-time">43 min ago</div></div>
       </div>
-      <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Maritime';applyFilters()},200)">
+      <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Maritime';applyFilters(true)},200)">
         <div class="m-alert-dot blue"></div>
         <div><div class="m-alert-text">Maritime Anti-Piracy — Maritime, $2,000/day</div><div class="m-alert-time">2 hours ago</div></div>
       </div>
-      <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Counter Surveillance';applyFilters()},200)">
+      <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Counter Surveillance';applyFilters(true)},200)">
         <div class="m-alert-dot green"></div>
         <div><div class="m-alert-text">Armed Counter Surveillance — Americas, $1,000/day</div><div class="m-alert-time">6 hours ago</div></div>
       </div>
@@ -949,15 +949,15 @@ html, body { overflow-x: hidden; max-width: 100vw; }
       <div class="m-dash-card-header">
         <span class="m-dash-card-title">TOP PAYING CONTRACTS</span>
       </div>
-      <div class="m-contract-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Maritime Anti-Piracy';applyFilters()},200)">
+      <div class="m-contract-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Maritime Anti-Piracy';applyFilters(true)},200)">
         <div><div class="m-contract-title">Maritime Anti-Piracy</div><div class="m-contract-meta">Maritime &middot; Verified Employer</div></div>
         <span class="m-contract-salary">$2,000/day</span>
       </div>
-      <div class="m-contract-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='PSD';applyFilters()},200)">
+      <div class="m-contract-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='PSD';applyFilters(true)},200)">
         <div><div class="m-contract-title">PSD Team — West Africa</div><div class="m-contract-meta">Africa &middot; Verified Employer</div></div>
         <span class="m-contract-salary">$1,100/day</span>
       </div>
-      <div class="m-contract-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Counter Surveillance';applyFilters()},200)">
+      <div class="m-contract-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Counter Surveillance';applyFilters(true)},200)">
         <div><div class="m-contract-title">Armed Counter Surveillance</div><div class="m-contract-meta">Americas &middot; Verified Employer</div></div>
         <span class="m-contract-salary">$1,000/day</span>
       </div>
@@ -981,20 +981,20 @@ html, body { overflow-x: hidden; max-width: 100vw; }
       <span id="jobs-count" style="font-size:0.8rem;color:var(--text-secondary)"></span>
     </div>
     <div class="m-filters">
-      <input type="text" id="search" placeholder="Filter jobs..." oninput="applyFilters()" class="m-filter-input">
+      <input type="text" id="search" placeholder="Filter jobs..." oninput="applyFilters(true)" class="m-filter-input">
       <div class="m-filter-row">
-        <select id="filter-type" onchange="applyFilters()" class="m-filter-select">
+        <select id="filter-type" onchange="applyFilters(true)" class="m-filter-select">
           <option value="">All types</option><option value="cpo">Close Protection</option><option value="pmc">PMC / Contract</option><option value="uhnw">UHNW / Family Office</option><option value="corporate">Corporate EP</option><option value="maritime">Maritime</option><option value="psd">PSD / Hostile</option><option value="static">Static / Residential</option><option value="government">Government</option><option value="security">Security</option><option value="management">Management</option><option value="agency">Agency</option>
         </select>
-        <select id="filter-status" onchange="applyFilters()" class="m-filter-select">
+        <select id="filter-status" onchange="applyFilters(true)" class="m-filter-select">
           <option value="">All statuses</option><option value="ny">New</option><option value="kontaktet">Contacted</option><option value="applied">Applied</option><option value="interview">Interview</option><option value="offer">Offer</option><option value="rejected">Rejected</option>
         </select>
       </div>
       <div class="m-filter-row">
-        <select id="filter-country" onchange="applyFilters()" class="m-filter-select">
+        <select id="filter-country" onchange="applyFilters(true)" class="m-filter-select">
           <option value="">All regions</option><option value="UK">UK</option><option value="USA">USA</option><option value="UAE">UAE/Gulf</option><option value="Europe">Europe</option><option value="Africa">Africa</option><option value="Asia">Asia</option><option value="LATAM">LATAM</option><option value="International">International</option>
         </select>
-        <select id="sort-by" onchange="applyFilters()" class="m-filter-select">
+        <select id="sort-by" onchange="applyFilters(true)" class="m-filter-select">
           <option value="priority">Sort: Priority</option><option value="salary">Sort: Salary</option><option value="date">Sort: Newest</option><option value="name">Sort: A-Z</option>
         </select>
       </div>
