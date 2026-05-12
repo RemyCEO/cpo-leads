@@ -244,6 +244,12 @@ async function loadScrapedJobs() {
   sb.auth.onAuthStateChange((event, session) => {
     if(session && session.user) onAuthSuccess(session.user);
   });
+
+  // Show auth overlay if ?login parameter is present
+  if (window.location.search.includes('login')) {
+    const overlay = document.getElementById('auth-overlay');
+    if (overlay) overlay.style.display = 'flex';
+  }
 })();
 
 // Enter key support on auth forms
