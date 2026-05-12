@@ -845,7 +845,7 @@ function renderList(list) {
             ${showAll ? sourceIcon(source) : ''}
             <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
               ${url ? `<a href="${url}" target="_blank" onclick="if(!gateApply(event,'${l.id}'))return" style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;padding:5px 14px;border-radius:5px;font-size:10px;font-weight:800;text-decoration:none;letter-spacing:0.5px">APPLY</a>` : ''}
-              <select onchange="event.stopPropagation();updateStatus('${l.id}',this.value)" style="background:${l.status&&l.status!=='ny'?'rgba(201,168,76,.15)':'rgba(255,255,255,.05)'};border:1px solid ${l.status&&l.status!=='ny'?'rgba(201,168,76,.3)':'rgba(255,255,255,.1)'};border-radius:5px;color:${l.status&&l.status!=='ny'?'#C9A84C':'#888'};padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;appearance:auto">
+              <select title="Track your application status for this job" onchange="event.stopPropagation();updateStatus('${l.id}',this.value)" style="background:${l.status&&l.status!=='ny'?'rgba(201,168,76,.15)':'rgba(255,255,255,.05)'};border:1px solid ${l.status&&l.status!=='ny'?'rgba(201,168,76,.3)':'rgba(255,255,255,.1)'};border-radius:5px;color:${l.status&&l.status!=='ny'?'#C9A84C':'#888'};padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;appearance:auto">
                 <option value="ny" ${l.status==='ny'?'selected':''}>Track</option>
                 <option value="applied" ${l.status==='applied'?'selected':''}>Applied</option>
                 <option value="interview" ${l.status==='interview'?'selected':''}>Interview</option>
