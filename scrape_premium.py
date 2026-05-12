@@ -1452,9 +1452,9 @@ def insert_to_supabase(jobs):
         "Prefer": "resolution=ignore-duplicates,return=minimal"
     }
 
+    # Strip type field until column exists in Supabase
     for j in jobs:
-        if not j.get("type"):
-            j["type"] = classify_job_type(j.get("title",""), j.get("company",""), j.get("notes",""))
+        j.pop("type", None)
 
     inserted = 0
     for i in range(0, len(jobs), 20):
