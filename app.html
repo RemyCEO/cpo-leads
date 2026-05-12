@@ -2689,7 +2689,7 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
     const allIntel = [];
     for (const q of intelQueries) {
       try {
-        const iUrl = 'https://api.gdeltproject.org/api/v2/doc/doc?query=' + encodeURIComponent(q) + '&mode=artlist&maxrecords=8&format=json&sort=datedesc';
+        const iUrl = 'https://api.gdeltproject.org/api/v2/doc/doc?query=' + encodeURIComponent(q) + '&mode=artlist&maxrecords=16&format=json&sort=datedesc';
         const iR = await fetch(iUrl);
         const iData = await iR.json();
         if (iData.articles) allIntel.push(...iData.articles);
@@ -2707,7 +2707,7 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
       // Filter English only
       if (a.language && a.language !== 'English') return false;
       return true;
-    }).slice(0, 8);
+    }).slice(0, 16);
 
     const intelFeed = document.getElementById('intel-feed');
     const intelUpdated = document.getElementById('intel-updated');
