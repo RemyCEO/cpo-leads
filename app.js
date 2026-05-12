@@ -80,11 +80,38 @@ let currentJobPage = 1;
 const JOBS_PER_PAGE = 25;
 
 // Central gate — ALL job/apply interactions go through this
-function gateApply(e) {
-  if (_isSubscribed) return true;
-  if (e) { e.preventDefault(); e.stopPropagation(); }
-  showPaywall();
-  return false;
+function gateApply(e, leadId) {
+  if (!_isSubscribed) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    showPaywall();
+    return false;
+  }
+  // Auto-add to application tracker
+  if (leadId) {
+    const l = leads.find(x=>x.id===leadId);
+    if (l) {
+      const apps = loadTracker();
+      const already = apps.some(a => a.company === l.company && a.role === (l.title||l.company));
+      if (!already) {
+        apps.unshift({
+          id: Date.now().toString(36),
+          company: l.company||'',
+          role: l.title||l.company||'',
+          location: l.location||'',
+          salary: extractSalary(l.notes)||'',
+          contact: l.contact_person||'',
+          source: l.source||'',
+          status: 'applied',
+          applied_at: new Date().toISOString().slice(0,10),
+          followups: [],
+          notes: ''
+        });
+        saveTracker(apps);
+        showToast('Added to Tracker');
+      }
+    }
+  }
+  return true;
 }
 
 async function onAuthSuccess(user) {
@@ -414,7 +441,7 @@ function renderSaved() {
           ${salary?'<div class="job-salary">'+esc(salary)+'</div>':''}
         </div>
         <div class="job-actions">
-          ${url?'<a href="'+url+'" target="_blank" class="btn-apply" onclick="if(!gateApply(event))return">Apply \u2192</a>':''}
+          ${url?'<a href="'+url+'" target="_blank" class="btn-apply" onclick="if(!gateApply(event,\''+l.id+'\'))return">Apply \u2192</a>':''}
           <button class="btn btn-ghost btn-sm" onclick="openDetail('${l.id}')" style="font-size:11px">Details</button>
           <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleSaved('${l.id}');renderSaved()" style="font-size:11px;color:var(--red);border-color:rgba(239,68,68,.3)">Remove</button>
           <span class="badge ${job?'badge-job':typeBadge[l.type]||'badge-security'}" style="margin-left:auto">${job?'JOB':typeLabels[l.type]||l.type}</span>
@@ -798,7 +825,7 @@ function renderList(list) {
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             ${showAll ? sourceIcon(source) : ''}
             <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
-              ${url ? `<a href="${url}" target="_blank" onclick="if(!gateApply(event))return" style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;padding:5px 14px;border-radius:5px;font-size:10px;font-weight:800;text-decoration:none;letter-spacing:0.5px">APPLY</a>` : ''}
+              ${url ? `<a href="${url}" target="_blank" onclick="if(!gateApply(event,'${l.id}'))return" style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;padding:5px 14px;border-radius:5px;font-size:10px;font-weight:800;text-decoration:none;letter-spacing:0.5px">APPLY</a>` : ''}
               <button onclick="event.stopPropagation();toggleSaved('${l.id}');applyFilters();updateSavedCount()" style="background:none;border:none;cursor:pointer;font-size:18px;opacity:${l.saved?'1':'.35'};transition:opacity .15s;padding:0" title="${l.saved?'Unsave':'Save'}">${l.saved?'\u2605':'\u2606'}</button>
             </span>
           </div>
@@ -961,7 +988,7 @@ function openDetail(id) {
       ${l.contact_person?`<div class="detail-row"><span class="detail-label">Contact</span><span class="detail-value">${esc(l.contact_person)}</span></div>`:''}
       ${l.email?`<div class="detail-row"><span class="detail-label">Email</span><span class="detail-value"><a href="mailto:${esc(l.email)}">${esc(l.email)}</a></span></div>`:''}
       ${l.phone?`<div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value"><a href="tel:${esc(l.phone)}">${esc(l.phone)}</a></span></div>`:''}
-      ${l.website?`<div class="detail-row"><span class="detail-label">${isJob(l)?'Apply':'Website'}</span><span class="detail-value"><a href="${l.website.startsWith('http')?esc(l.website):'https://'+esc(l.website)}" target="_blank" ${isJob(l)?'onclick="if(!gateApply(event))return"':''}>${isJob(l)?'Apply Now \u2192':esc(l.website)}</a></span></div>`:''}
+      ${l.website?`<div class="detail-row"><span class="detail-label">${isJob(l)?'Apply':'Website'}</span><span class="detail-value"><a href="${l.website.startsWith('http')?esc(l.website):'https://'+esc(l.website)}" target="_blank" ${isJob(l)?'onclick="if(!gateApply(event,\''+l.id+'\'))return"':''}>${isJob(l)?'Apply Now \u2192':esc(l.website)}</a></span></div>`:''}
       ${l.location?`<div class="detail-row"><span class="detail-label">Location</span><span class="detail-value">${esc(l.location)}${l.country?' \u00b7 '+esc(l.country):''}</span></div>`:''}
       ${l.notes?`<div style="margin-top:16px"><div class="detail-label" style="margin-bottom:6px">Notes</div><div style="font-size:13px;color:var(--muted);line-height:1.5;white-space:pre-wrap">${esc(l.notes)}</div></div>`:''}
     </div>
@@ -1226,89 +1253,131 @@ function renderDashboard() {
 }
 
 // === STRATEGY VIEW ===
-function renderStrategy() {
-  const companies = leads.filter(l=>!isJob(l));
-  const jobs = leads.filter(l=>isJob(l));
-  const hotCompanies = companies.filter(l=>l.priority==='hot');
-  const newCompanies = companies.filter(l=>l.status==='ny');
-  const hotJobs = jobs.filter(l=>l.priority==='hot');
+// === APPLICATION TRACKER ===
+const TRACKER_KEY = 'cp_app_tracker';
 
-  // Best fit scoring — uses operator's saved profile keywords
-  const profile = loadProfile();
-  const profileText = [profile.background, profile.languages, profile.certifications, profile.deployments, profile.clearance].filter(Boolean).join(' ').toLowerCase();
-  const defaultKeywords = ['security','protection','executive','close protection','military','law enforcement'];
-  const profileKeywords = profileText ? profileText.split(/[\s,;]+/).filter(w => w.length > 3) : defaultKeywords;
-  const fitKeywords = [...new Set(profileKeywords)].slice(0, 20);
-  function fitScore(l) {
-    const hay = [l.company,l.notes].filter(Boolean).join(' ').toLowerCase();
-    return fitKeywords.reduce((sc,kw) => sc + (hay.includes(kw)?1:0), 0);
-  }
-  const bestFit = [...companies].map(c=>({...c,fit:fitScore(c)})).filter(c=>c.fit>0).sort((a,b)=>b.fit-a.fit).slice(0,10);
-  const profileSummary = profileText ? fitKeywords.slice(0,6).join(', ') : 'Fill out your Profile to get personalized matches';
+function loadTracker() { return JSON.parse(localStorage.getItem(TRACKER_KEY)||'[]'); }
+function saveTracker(apps) { localStorage.setItem(TRACKER_KEY, JSON.stringify(apps)); }
+
+function addApplication(e) {
+  if(e) e.preventDefault();
+  const get = id => { const el=document.getElementById(id); return el?el.value.trim():''; };
+  const company = get('app-company');
+  if(!company) return;
+  const apps = loadTracker();
+  apps.unshift({
+    id: Date.now().toString(36),
+    company,
+    role: get('app-role'),
+    location: get('app-location'),
+    salary: get('app-salary'),
+    contact: get('app-contact'),
+    source: get('app-source'),
+    status: 'applied',
+    applied_at: new Date().toISOString().slice(0,10),
+    followups: [],
+    notes: ''
+  });
+  saveTracker(apps);
+  renderStrategy();
+}
+
+function updateAppStatus(appId, status) {
+  const apps = loadTracker();
+  const app = apps.find(a=>a.id===appId);
+  if(app) { app.status = status; saveTracker(apps); renderStrategy(); }
+}
+
+function addFollowup(appId) {
+  const apps = loadTracker();
+  const app = apps.find(a=>a.id===appId);
+  if(!app) return;
+  app.followups.push({date: new Date().toISOString().slice(0,10), note: 'Follow-up sent'});
+  saveTracker(apps);
+  renderStrategy();
+}
+
+function deleteApplication(appId) {
+  if(!confirm('Remove this application?')) return;
+  const apps = loadTracker().filter(a=>a.id!==appId);
+  saveTracker(apps);
+  renderStrategy();
+}
+
+function renderStrategy() {
+  const apps = loadTracker();
+  const stages = {applied:'Applied',contacted:'Contacted',interview:'Interview',offer:'Offer',rejected:'Rejected',ghosted:'Ghosted'};
+  const stageColors = {applied:'#8e44ad',contacted:'#2980b9',interview:'#D4AF37',offer:'#27ae60',rejected:'#c0392b',ghosted:'#52504d'};
+  const stageCounts = {};
+  Object.keys(stages).forEach(s => stageCounts[s] = apps.filter(a=>a.status===s).length);
+  const active = apps.filter(a=>!['rejected','ghosted'].includes(a.status));
 
   const el = document.getElementById('strategy-view');
-  el.innerHTML = `
-  <div class="dash-grid">
-    <div class="dash-card" style="grid-column:1/-1">
-      <h3>Your Profile Match Score</h3>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Companies ranked by your profile: ${esc(profileSummary)}</div>
-      ${bestFit.map((c,i)=>`
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="switchTab('companies');setTimeout(()=>openDetail('${c.id}'),100)">
-          <span style="font-size:20px;font-weight:800;color:var(--accent);width:30px">#${i+1}</span>
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:600;font-size:14px">${esc(c.company)}</div>
-            <div style="font-size:11px;color:var(--muted)">${c.location?esc(c.location):''} ${c.country?'· '+esc(c.country):''}</div>
-          </div>
-          <div style="display:flex;gap:4px">${'*'.repeat(c.fit).split('').map(()=>'<span style="color:var(--accent)">&#9733;</span>').join('')}</div>
-          <span style="font-size:11px;color:${statusColors[c.status]||'#52504d'};font-weight:600">${statusLabels[c.status]||'New'}</span>
-        </div>
-      `).join('')}
-    </div>
+  el.innerHTML = '<div style="max-width:900px">'
+    +'<div style="margin-bottom:24px"><h1 style="font-size:26px;font-weight:800;margin:0 0 6px">Application Tracker</h1>'
+    +'<p style="color:var(--muted);font-size:13px;margin:0">Track your applications, follow-ups & pipeline</p></div>'
 
-    <div class="dash-card">
-      <h3>This Week's Priorities</h3>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">${hotCompanies.filter(c=>c.status==='ny').length} hot companies still untouched</div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        ${hotCompanies.filter(c=>c.status==='ny').slice(0,8).map(c=>`
-          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--surface2);border-radius:6px;cursor:pointer" onclick="switchTab('companies');setTimeout(()=>openDetail('${c.id}'),100)">
-            <div style="width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0"></div>
-            <span style="font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.company)}</span>
-            <span style="font-size:10px;color:var(--muted)">${c.location?esc(c.location):''}</span>
-          </div>
-        `).join('')}
-      </div>
-    </div>
+    // Pipeline overview
+    +'<div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">'
+    +Object.entries(stages).map(function(e){var s=e[0],label=e[1]; return '<div style="flex:1;min-width:80px;text-align:center;padding:12px 8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">'
+      +'<div style="font-size:24px;font-weight:800;color:'+stageColors[s]+'">'+stageCounts[s]+'</div>'
+      +'<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">'+label+'</div></div>';}).join('')
+    +'</div>'
 
-    <div class="dash-card">
-      <h3>Immediate Job Opportunities</h3>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">${hotJobs.filter(j=>j.status==='ny').length} hot jobs you haven't applied to</div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        ${hotJobs.filter(j=>j.status==='ny').slice(0,8).map(j=>{
-          const salary = extractSalary(j.notes);
-          return `
-          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--surface2);border-radius:6px;cursor:pointer" onclick="switchTab('jobs');setTimeout(()=>openDetail('${j.id}'),100)">
-            <span style="font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(j.company)}</span>
-            ${salary?`<span style="color:var(--accent);font-weight:700;font-size:11px">${esc(salary)}</span>`:''}
-          </div>`;
-        }).join('')}
-      </div>
-    </div>
+    // Add new form
+    +'<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:24px">'
+    +'<h3 style="font-size:14px;font-weight:700;margin:0 0 12px">Log Application</h3>'
+    +'<form onsubmit="addApplication(event)" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +'<input id="app-company" placeholder="Company *" required style="padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--fg);font-size:12px;font-family:inherit">'
+    +'<input id="app-role" placeholder="Role / Position" style="padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--fg);font-size:12px;font-family:inherit">'
+    +'<input id="app-location" placeholder="Location" style="padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--fg);font-size:12px;font-family:inherit">'
+    +'<input id="app-salary" placeholder="Salary / Day rate" style="padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--fg);font-size:12px;font-family:inherit">'
+    +'<input id="app-contact" placeholder="Contact person" style="padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--fg);font-size:12px;font-family:inherit">'
+    +'<input id="app-source" placeholder="Source (LinkedIn, referral...)" style="padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--fg);font-size:12px;font-family:inherit">'
+    +'<button type="submit" style="grid-column:1/-1;padding:10px;background:var(--accent);color:#000;border:none;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">+ Add Application</button>'
+    +'</form></div>'
 
-    <div class="dash-card">
-      <h3>Action Plan Summary</h3>
-      <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
-        <div style="padding:12px;background:rgba(192,57,43,.08);border-radius:8px;border-left:3px solid #c0392b">
-          <strong style="color:#c0392b">Urgent:</strong> ${hotJobs.filter(j=>j.status==='ny').length} hot jobs + ${hotCompanies.filter(c=>c.status==='ny').length} hot companies need action
-        </div>
-        <div style="padding:12px;background:rgba(201,168,76,.08);border-radius:8px;border-left:3px solid var(--accent)">
-          <strong style="color:var(--accent)">Pipeline:</strong> ${Object.entries({Contacted:leads.filter(l=>l.status==='kontaktet').length,Applied:leads.filter(l=>l.status==='applied').length,Interview:leads.filter(l=>l.status==='interview').length}).filter(([_,c])=>c>0).map(([s,c])=>c+' '+s).join(', ')||'Empty - start reaching out!'}
-        </div>
-        <div style="padding:12px;background:rgba(41,128,185,.08);border-radius:8px;border-left:3px solid #2980b9">
-          <strong style="color:#2980b9">Focus regions:</strong> ${Object.entries(regionMap).map(([r])=>({r,c:leads.filter(l=>matchRegion(l,r)&&l.priority==='hot').length})).filter(x=>x.c>0).sort((a,b)=>b.c-a.c).slice(0,3).map(x=>x.r+' ('+x.c+')').join(', ')}
-        </div>
-      </div>
-    </div>
-  </div>`;
+    // Applications list
+    +'<div style="display:flex;flex-direction:column;gap:10px">'
+    +(apps.length === 0 ? '<div style="text-align:center;padding:40px;color:var(--muted)">No applications tracked yet. Log your first one above.</div>' :
+      apps.map(function(a) {
+        var sc = stageColors[a.status]||'#52504d';
+        var daysSince = Math.floor((Date.now()-new Date(a.applied_at))/(1000*60*60*24));
+        var needsFollowup = ['applied','contacted'].includes(a.status) && a.followups.length === 0 && daysSince >= 7;
+        return '<div style="background:var(--surface);border:1px solid '+(needsFollowup?'#D4AF37':'var(--border)')+';border-radius:var(--radius);padding:16px">'
+          +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px">'
+          +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:15px;font-weight:700;color:var(--fg)">'+esc(a.company)+'</div>'
+          +(a.role?'<div style="font-size:12px;color:var(--muted);margin-top:2px">'+esc(a.role)+'</div>':'')
+          +'</div>'
+          +'<span style="font-size:10px;font-weight:700;color:'+sc+';text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;border:1px solid '+sc+';border-radius:12px">'+esc(stages[a.status]||a.status)+'</span>'
+          +'</div>'
+          +'<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:10px">'
+          +(a.location?'<span>'+esc(a.location)+'</span>':'')
+          +(a.salary?'<span style="color:var(--accent);font-weight:600">'+esc(a.salary)+'</span>':'')
+          +(a.contact?'<span>Contact: '+esc(a.contact)+'</span>':'')
+          +(a.source?'<span>via '+esc(a.source)+'</span>':'')
+          +'<span>Applied '+esc(a.applied_at)+'</span>'
+          +(a.followups.length?'<span>'+a.followups.length+' follow-up'+(a.followups.length>1?'s':'')+'</span>':'')
+          +(needsFollowup?'<span style="color:#D4AF37;font-weight:600">Needs follow-up</span>':'')
+          +'</div>'
+          +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+          +'<select onchange="updateAppStatus(\''+a.id+'\',this.value)" style="padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--fg);font-size:11px;font-family:inherit">'
+          +Object.entries(stages).map(function(e){return '<option value="'+e[0]+'"'+(a.status===e[0]?' selected':'')+'>'+e[1]+'</option>';}).join('')
+          +'</select>'
+          +'<button onclick="addFollowup(\''+a.id+'\')" style="padding:4px 10px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit">+ Follow-up</button>'
+          +'<button onclick="deleteApplication(\''+a.id+'\')" style="padding:4px 8px;background:none;border:1px solid rgba(231,76,60,.2);border-radius:4px;color:#e74c3c;font-size:11px;cursor:pointer;font-family:inherit">Remove</button>'
+          +'</div></div>';
+      }).join(''))
+    +'</div>'
+
+    // Summary
+    +(active.length > 0 ? '<div style="margin-top:20px;padding:14px;background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);font-size:12px;color:var(--muted)">'
+      +'<strong style="color:var(--accent)">Active pipeline:</strong> '+active.length+' application'+(active.length>1?'s':'')+' in progress'
+      +(apps.filter(function(a){var d=Math.floor((Date.now()-new Date(a.applied_at))/(1000*60*60*24));return ['applied','contacted'].includes(a.status)&&a.followups.length===0&&d>=7;}).length > 0
+        ? ' &middot; <span style="color:#D4AF37">'+apps.filter(function(a){var d=Math.floor((Date.now()-new Date(a.applied_at))/(1000*60*60*24));return ['applied','contacted'].includes(a.status)&&a.followups.length===0&&d>=7;}).length+' need follow-up</span>' : '')
+      +'</div>' : '')
+    +'</div>';
 }
 
 // === ACTIVITY LOG ===
@@ -1340,7 +1409,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'j') switchTab('jobs');
   if (e.key === 'c') switchTab('companies');
   if (e.key === 's') switchTab('strategy');
-  if (e.key === '?') alert('Keyboard shortcuts:\n\nN = New lead\n/ = Global search\nC = Companies\nJ = Jobs\nD = Dashboard\nS = Strategy\nEsc = Close panel');
+  if (e.key === '?') alert('Keyboard shortcuts:\n\nN = New lead\n/ = Global search\nC = Companies\nJ = Jobs\nD = Dashboard\nS = Tracker\nEsc = Close panel');
 });
 
 // === OPERATOR PROFILE ===
