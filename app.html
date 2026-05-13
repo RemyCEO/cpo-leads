@@ -1351,14 +1351,14 @@ body {
         <div id="auth-success" style="display:none;color:#3ecf8e;font-size:0.8rem;text-align:center"></div>
         <button class="login-btn" onclick="authLogin()">ACCESS</button>
         <div style="text-align:center;font-size:0.8rem;color:var(--text-secondary);margin-top:8px">
-          <span onclick="showSignup()" style="color:var(--gold);cursor:pointer">Create account</span>
+          <a href="/#pricing" style="color:var(--gold);cursor:pointer;text-decoration:none">Subscribe</a>
           <span style="margin:0 8px">&middot;</span>
           <span onclick="showReset()" style="cursor:pointer">Forgot password?</span>
         </div>
       </div>
     </div>
 
-    <!-- Signup -->
+    <!-- Signup (only accessible after Stripe payment redirect) -->
     <div id="auth-form-signup" style="display:none">
       <div class="login-form">
         <input class="login-input" id="signup-email" type="email" placeholder="Email" autocomplete="email">
