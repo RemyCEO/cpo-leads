@@ -399,7 +399,7 @@ def main():
         except Exception as e:
             log(f"Failed to save intel_news.json: {e}")
 
-    inserted = 0
+    saved = len(intel_items[:50]) if intel_items else 0
     after = get_existing_count()
 
     log("-" * 40)
@@ -407,16 +407,9 @@ def main():
     log(f"  RSS feeds checked: {len(GOOGLE_ALERTS_RSS) + len(NICHE_RSS)}")
     log(f"  Relevant entries: {len(all_jobs)}")
     log(f"  Unique: {len(unique)}")
-    log(f"  New jobs added: {new_jobs}")
-    log(f"  Total in database: {after}")
+    log(f"  Saved to intel_news.json: {saved}")
+    log(f"  Total articles in file: {after}")
     log("=" * 60)
-
-    # Notify Telegram
-    if new_jobs > 0:
-        log("Sending to Telegram...")
-        notify_telegram_jobs(unique[:new_jobs], new_jobs, after)
-    else:
-        notify_telegram_jobs([], 0, after)
 
 
 if __name__ == "__main__":
