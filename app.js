@@ -82,6 +82,7 @@ async function authLogout() {
 }
 
 let _isSubscribed = false;
+let _isAdmin = false;
 let currentJobPage = 1;
 const JOBS_PER_PAGE = 25;
 
@@ -129,15 +130,19 @@ async function onAuthSuccess(user) {
     const res = await fetch(`/api/check-subscription?email=${encodeURIComponent(user.email)}`);
     const sub = await res.json();
     _isSubscribed = !!sub.active;
+    _isAdmin = sub.plan === 'admin';
   } catch(e) {
     console.error('Subscription check failed:', e);
     _isSubscribed = false;
+    _isAdmin = false;
   }
 
   // Let everyone in — Jobs tab is gated separately
   document.getElementById('auth-overlay').style.display = 'none';
   document.getElementById('paywall-overlay')?.remove();
-  document.getElementById('app-container').style.display = '';
+  const ac = document.getElementById('app-container');
+  ac.style.display = '';
+  ac.style.opacity = '1';
   await loadScrapedJobs();
 
   // Show Telegram channel invite for subscribers
@@ -253,6 +258,9 @@ async function loadScrapedJobs() {
       leads.push({
         id: j.id || uid(),
         company: (j.company || '') + ' \u2014 ' + (j.title || ''),
+        _dbTitle: j.title || '',
+        _dbCompany: j.company || '',
+        source: j.source || '',
         type: 'security',
         website: j.source_url || '',
         location: j.location || '',
@@ -301,11 +309,12 @@ async function loadScrapedJobs() {
   if(session && session.user) {
     await onAuthSuccess(session.user);
   } else {
-    // No session — show app anyway, Jobs tab will be gated
-    await loadScrapedJobs();
+    // No session — require login, do NOT show app
+    document.getElementById('auth-overlay').style.display = 'flex';
+    document.getElementById('app-container').style.display = 'none';
   }
 
-  // Remove loading screen and fade in app
+  // Remove loading screen
   appContainer.style.opacity = '1';
   const loadingScreen = document.getElementById('loading-screen');
   if (loadingScreen) {
@@ -1026,12 +1035,26 @@ function openDetail(id) {
   // Gate job details behind subscription
   if (isJob(l) && !_isSubscribed) { showPaywall(); return; }
   const salary = extractSalary(l.notes);
+  const isInsider = l.source === 'INSIDER SOURCE';
   const panel = document.getElementById('detail');
   panel.innerHTML = `
     <div class="detail-header">
       <h2>${esc(l.company)}</h2>
       <button class="close-btn" onclick="closeDetail()">\u2715</button>
     </div>
+    ${_isAdmin && isInsider ? `<div style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:12px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:#C9A84C;margin-bottom:8px">INSIDER JOB \u2014 REVIEW & EDIT</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <input id="review-title" value="${esc(l._dbTitle||'')}" placeholder="Job title" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:13px">
+        <input id="review-company" value="${esc(l._dbCompany||'')}" placeholder="Company" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:13px">
+        <div style="display:flex;gap:8px">
+          <input id="review-location" value="${esc(l.location||'')}" placeholder="Location" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:13px">
+          <input id="review-country" value="${esc(l.country||'')}" placeholder="Country" style="width:120px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:13px">
+        </div>
+        <textarea id="review-notes" placeholder="Description / notes" rows="3" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:13px;resize:vertical">${esc(l.notes||'')}</textarea>
+        <button onclick="saveInsiderReview('${l.id}')" style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:6px;padding:10px;font-weight:700;font-size:13px;cursor:pointer">Save to Database</button>
+      </div>
+    </div>` : ''}
     <div class="detail-section">
       ${isJob(l)?'<div class="detail-row"><span class="detail-label">Category</span><span class="detail-value"><span class="badge badge-job">JOB LISTING</span></span></div>':''}
       <div class="detail-row"><span class="detail-label">Type</span><span class="detail-value"><span class="badge ${typeBadge[l.type]}">${typeLabels[l.type]||l.type}</span></span></div>
@@ -1058,6 +1081,38 @@ function openDetail(id) {
 function closeDetail() {
   document.getElementById('detail').classList.remove('open');
   document.getElementById('detail-bg').classList.remove('open');
+}
+
+async function saveInsiderReview(id) {
+  const title = document.getElementById('review-title').value.trim();
+  const company = document.getElementById('review-company').value.trim();
+  const location = document.getElementById('review-location').value.trim();
+  const country = document.getElementById('review-country').value.trim();
+  const notes = document.getElementById('review-notes').value.trim();
+  if (!title) { document.getElementById('review-title').style.borderColor='#e74c3c'; return; }
+
+  const patch = {title, company: company||'Insider Source', location, country, notes};
+  try {
+    const {error} = await sb.from('job_listings').update(patch).eq('id', id);
+    if (error) throw error;
+    const l = leads.find(x=>x.id===id);
+    if (l) {
+      l.company = patch.company + ' \u2014 ' + patch.title;
+      l._dbTitle = patch.title;
+      l._dbCompany = patch.company;
+      l.location = patch.location;
+      l.country = patch.country;
+      l.notes = patch.notes;
+      l.source = 'INSIDER SOURCE';
+      persist();
+    }
+    closeDetail();
+    refresh();
+    if (typeof showToast === 'function') showToast('Insider job updated');
+  } catch(e) {
+    console.error('Failed to save insider review:', e);
+    alert('Save failed: ' + (e.message||e));
+  }
 }
 
 function deleteLead(id) {
