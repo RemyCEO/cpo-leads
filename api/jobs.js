@@ -91,7 +91,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ jobs, paid: true });
   }
 
-  // Free users: first FREE_LIMIT jobs full, rest masked
-  const result = jobs.map((j, i) => i < FREE_LIMIT ? j : maskJob(j));
-  return res.status(200).json({ jobs: result, paid: false });
+  // Free users: ONLY get FREE_LIMIT masked jobs — no extra data sent
+  const preview = jobs.slice(0, FREE_LIMIT).map(j => maskJob(j));
+  return res.status(200).json({ jobs: preview, paid: false, totalJobs: jobs.length, locked: jobs.length - FREE_LIMIT });
 }

@@ -790,13 +790,28 @@ def scrape_reed():
     return jobs
 
 
+def is_bad_title(title):
+    """Reject non-job titles: person names, raw URLs, vague posts"""
+    t = (title or '').lower().strip()
+    if len(t) < 10: return True
+    if any(x in t for x in ['https://', 'http://', '?src=', '/jobba-', 'candidates europe']):
+        return True
+    if t.startswith('post ') or t.startswith('hiring ') and len(t) < 30:
+        return True
+    # Reject if title is mostly numbers/IDs
+    digits = sum(1 for c in t if c.isdigit())
+    if digits > len(t) * 0.3 and len(t) > 15: return True
+    return False
+
 def deduplicate(jobs):
-    """Remove duplicates by title+company+source"""
+    """Remove duplicates by title+company+source, filter bad titles"""
     seen = set()
     unique = []
     for j in jobs:
+        if not j["title"] or is_bad_title(j["title"]):
+            continue
         key = (j["title"].lower().strip(), j["company"].lower().strip(), j["source"])
-        if key not in seen and j["title"]:
+        if key not in seen:
             seen.add(key)
             unique.append(j)
     return unique
