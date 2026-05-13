@@ -11,7 +11,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Auth: enkel secret for å beskytte endpointet
 const HEALTH_SECRET = process.env.HEALTH_SECRET || 'cpo-guardian-2026';
-const REPORT_EMAIL = 'remy@strategioai.com';
+const REPORT_EMAIL = 'strategioai@strategioai.com';
 
 // Kjente problemer i jobbtitler/beskrivelser
 const BAD_TITLE_PATTERNS = [
