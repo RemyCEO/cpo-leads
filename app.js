@@ -284,14 +284,32 @@ async function loadScrapedJobs() {
     leads = leads.filter(l => l.category !== 'job' || dbIds.has(l.id));
     const removed = before - leads.length;
 
-    // Add new jobs from DB (already masked server-side for free users)
-    let added = 0;
-    const localIds = new Set(leads.map(l => l.id));
+    // Sync jobs from DB: add new, update existing titles/data
+    let added = 0, updated = 0;
+    const localMap = new Map(leads.map((l,i) => [l.id, i]));
     for (const j of data) {
-      if (localIds.has(j.id)) continue;
+      const idx = localMap.get(j.id);
+      const newCompany = (j.company || '') + ' \u2014 ' + (j.title || '');
+      if (idx !== undefined) {
+        // Update existing job if data changed
+        const local = leads[idx];
+        if (local.company !== newCompany || local._dbTitle !== (j.title||'') || local.location !== (j.location||'') || local.notes !== ((j.description||'') + (j.salary ? ' ' + j.salary + '.' : '') + (j.requirements ? ' Requirements: ' + j.requirements : ''))) {
+          local.company = newCompany;
+          local._dbTitle = j.title || '';
+          local._dbCompany = j.company || '';
+          local._masked = j._masked || false;
+          local.website = j.source_url || '';
+          local.location = j.location || '';
+          local.country = j.country || '';
+          local.notes = (j.description || '') + (j.salary ? ' ' + j.salary + '.' : '') + (j.requirements ? ' Requirements: ' + j.requirements : '');
+          local.updated_at = j.scraped_at || now;
+          updated++;
+        }
+        continue;
+      }
       leads.push({
         id: j.id || uid(),
-        company: (j.company || '') + ' \u2014 ' + (j.title || ''),
+        company: newCompany,
         _dbTitle: j.title || '',
         _dbCompany: j.company || '',
         _masked: j._masked || false,
@@ -314,10 +332,10 @@ async function loadScrapedJobs() {
       });
       added++;
     }
-    if (added > 0 || removed > 0) {
+    if (added > 0 || removed > 0 || updated > 0) {
       persist();
       refresh();
-      console.log(`Jobs sync: +${added} added, -${removed} removed, ${leads.filter(l=>l.category==='job').length} total`);
+      console.log(`Jobs sync: +${added} added, ~${updated} updated, -${removed} removed, ${leads.filter(l=>l.category==='job').length} total`);
     }
   } catch(e) { console.error('Failed to load scraped jobs:', e); }
 }
