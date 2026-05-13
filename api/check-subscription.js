@@ -13,6 +13,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const email = req.query.email;
+  const cid = req.query.cid; // Stripe customer ID for email-mismatch recovery
   if (!email) return res.status(400).json({ active: false, error: 'No email provided' });
 
   // Admin bypass — server-side only, never exposed to client
@@ -21,14 +22,32 @@ export default async function handler(req, res) {
     return res.status(200).json({ active: true, plan: 'admin' });
   }
 
-  const { data, error } = await supabase
+  // Try exact email match first
+  let { data } = await supabase
     .from('subscribers')
     .select('status, plan, current_period_end')
     .eq('email', email)
     .in('status', ['active', 'trialing'])
     .single();
 
-  if (error || !data) {
+  // Fallback: match by Stripe customer ID (handles email mismatch)
+  if (!data && cid) {
+    const fallback = await supabase
+      .from('subscribers')
+      .select('status, plan, current_period_end')
+      .eq('stripe_customer_id', cid)
+      .in('status', ['active', 'trialing'])
+      .single();
+    if (fallback.data) {
+      data = fallback.data;
+      // Auto-fix: update the subscriber record with the auth email
+      await supabase.from('subscribers')
+        .update({ email, updated_at: new Date().toISOString() })
+        .eq('stripe_customer_id', cid);
+    }
+  }
+
+  if (!data) {
     return res.status(200).json({ active: false });
   }
 

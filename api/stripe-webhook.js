@@ -9,7 +9,7 @@ const supabase = createClient(
 );
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-async function sendWelcomeEmail(email) {
+async function sendWelcomeEmail(email, customerId) {
   try {
     await resend.emails.send({
       from: 'CPO Leads <noreply@strategio.site>',
@@ -34,7 +34,7 @@ async function sendWelcomeEmail(email) {
       <p style="color:#888;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px">Your Email</p>
       <p style="color:#fff;font-size:14px;margin:0;font-family:monospace">${email}</p>
     </div>
-    <a href="https://cpoleads.com/app.html?signup&paid=true" style="display:block;text-align:center;background:linear-gradient(135deg,#C9A84C,#b8943f);color:#000;padding:14px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;letter-spacing:1px">CREATE YOUR ACCOUNT</a>
+    <a href="https://cpoleads.com/app.html?signup&paid=true&email=${encodeURIComponent(email)}&cid=${customerId || ''}" style="display:block;text-align:center;background:linear-gradient(135deg,#C9A84C,#b8943f);color:#000;padding:14px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;letter-spacing:1px">CREATE YOUR ACCOUNT</a>
     <p style="color:#888;font-size:12px;text-align:center;margin:16px 0 0">Use the same email address you paid with: <strong style="color:#fff">${email}</strong></p>
   </div>
   <div style="background:#12121a;border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:24px;margin-bottom:24px;text-align:center">
@@ -141,33 +141,40 @@ export default async function handler(req, res) {
     const subscriptionId = session.subscription;
 
     if (customerEmail) {
-      // Check if subscriber exists
+      // Check if subscriber already exists
       const { data: existing } = await supabase
         .from('subscribers')
         .select('id')
         .eq('email', customerEmail)
-        .single();
+        .maybeSingle();
 
       if (existing) {
-        await supabase.from('subscribers').update({
+        const { error: updateErr } = await supabase.from('subscribers').update({
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
           status: 'active',
           updated_at: new Date().toISOString()
         }).eq('email', customerEmail);
+        if (updateErr) console.error('Subscriber update error:', updateErr);
       } else {
-        await supabase.from('subscribers').insert({
+        const { error: insertErr } = await supabase.from('subscribers').insert({
           email: customerEmail,
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
           status: 'active'
         });
-        // Send welcome email with signup link — user creates own password
-        await sendWelcomeEmail(customerEmail);
+        if (insertErr) console.error('Subscriber insert error:', insertErr);
       }
 
-      // Generate Telegram invite link for new subscriber
+      // Always send welcome email on checkout completion
+      await sendWelcomeEmail(customerEmail, customerId);
+
+      // Generate Telegram invite link
       await createTelegramInvite(customerEmail, customerId);
+
+      console.log('checkout.session.completed processed for:', customerEmail, '| customer:', customerId);
+    } else {
+      console.error('checkout.session.completed: no email found in session', session.id);
     }
   }
 
@@ -177,11 +184,14 @@ export default async function handler(req, res) {
     const status = ['active','trialing'].includes(subscription.status) ? subscription.status : subscription.status === 'canceled' ? 'canceled' : subscription.status;
     const periodEnd = new Date(subscription.current_period_end * 1000).toISOString();
 
-    await supabase.from('subscribers').update({
+    const { error: updateErr } = await supabase.from('subscribers').update({
       status,
       current_period_end: periodEnd,
       updated_at: new Date().toISOString()
     }).eq('stripe_customer_id', customerId);
+
+    if (updateErr) console.error('Subscription update error:', updateErr);
+    console.log('Subscription update:', customerId, '→', status);
 
     // Kick from Telegram channel if canceled
     if (status === 'canceled') {

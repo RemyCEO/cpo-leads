@@ -1250,7 +1250,7 @@ function mSwitchNav(pageId, el) {
 // Page switching (works with app.js functions)
 function mSwitchPage(pageId) {
   // Gate premium pages behind subscription
-  if (['intel','profile','strategy','companies','settings'].includes(pageId) && !_isSubscribed) {
+  if (['intel','profile','strategy','companies','settings'].includes(pageId) && !_verifySub()) {
     showPaywall();
     return;
   }
@@ -1277,9 +1277,9 @@ function mSwitchPage(pageId) {
     const mLocked = document.getElementById('m-telegram-locked');
     const mUnlocked = document.getElementById('m-telegram-unlocked');
     if (mLocked && mUnlocked) {
-      mLocked.style.display = _isSubscribed ? 'none' : 'block';
-      mUnlocked.style.display = _isSubscribed ? 'block' : 'none';
-      if (_isSubscribed) {
+      mLocked.style.display = _verifySub() ? 'none' : 'block';
+      mUnlocked.style.display = _verifySub() ? 'block' : 'none';
+      if (_verifySub()) {
         const joinBtn = document.getElementById('m-telegram-join-btn');
         const desktopBtn = document.getElementById('telegram-join-btn');
         if (joinBtn && desktopBtn) joinBtn.href = desktopBtn.href;
@@ -1407,7 +1407,7 @@ function timeAgo(dateStr) {
 function openDetailModal(id) {
   const l = leads.find(x=>x.id===id);
   if(!l) return;
-  if (isJob(l) && !_isSubscribed) { showPaywall(); return; }
+  if (isJob(l) && !_verifySub()) { showPaywall(); return; }
   const salary = extractSalary(l.notes);
   const url = l.website ? (l.website.startsWith('http') ? l.website : 'https://'+l.website) : '';
   const job = isJob(l);
@@ -1482,7 +1482,7 @@ function renderJobCard(l) {
   const ta = timeAgo(l.posted_at || l.created_at);
 
   // Mask for free users
-  const isFree = !_isSubscribed;
+  const isFree = !_verifySub();
   const showCompany = isFree ? '\u{1F512} Verified Employer' : (companyName||'');
   const showCred = isFree ? '' : cred;
   const showLocation = isFree ? '\u{1F30D} ' + _maskRegion(l.location, l.country) : (l.location ? esc(l.location) : '');
@@ -1535,7 +1535,7 @@ function renderJobListMobile(list) {
   }
 
   const FREE_PREVIEW = 3;
-  if (!_isSubscribed && list.length > FREE_PREVIEW) {
+  if (!_verifySub() && list.length > FREE_PREVIEW) {
     // Show 3 real jobs + paywall gate
     const free = list.slice(0, FREE_PREVIEW);
     const locked = list.length - FREE_PREVIEW;
@@ -1656,8 +1656,8 @@ function updateMobileNewest() {
   el.innerHTML = jobs.map(l => {
     const salary = extractSalary(l.notes);
     const title = esc(l.company).replace(/^.*?\u2014\s*/, '');
-    const locMasked = _isSubscribed ? (l.location ? esc(l.location) : '') : _maskRegion(l.location, l.country);
-    const companyMasked = _isSubscribed ? (esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '') : '';
+    const locMasked = _verifySub() ? (l.location ? esc(l.location) : '') : _maskRegion(l.location, l.country);
+    const companyMasked = _verifySub() ? (esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '') : '';
     return `<div class="m-newest-item" onclick="cardClick('${l.id}')">
       <div class="m-newest-dot"></div>
       <div style="flex:1;min-width:0">

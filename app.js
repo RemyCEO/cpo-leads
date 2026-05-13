@@ -83,12 +83,40 @@ async function authLogout() {
 
 let _isSubscribed = false;
 let _isAdmin = false;
+let _subToken = 0; // tamper detection token
 let currentJobPage = 1;
 const JOBS_PER_PAGE = 25;
 
+// Tamper-resistant subscription check
+function _verifySub() { return _isSubscribed && _subToken === _expectedToken(); }
+function _expectedToken() { return _isSubscribed ? 7919 : 0; }
+function _setSub(val, admin) {
+  _isSubscribed = !!val;
+  _isAdmin = !!admin;
+  _subToken = val ? 7919 : 0;
+}
+
+// Re-validate subscription periodically (every 5 min)
+setInterval(async () => {
+  if (!currentUser) return;
+  try {
+    const res = await fetch(`/api/check-subscription?email=${encodeURIComponent(currentUser.email)}`);
+    const sub = await res.json();
+    const wasSub = _isSubscribed;
+    _setSub(!!sub.active, sub.plan === 'admin');
+    // If subscription lapsed, reload jobs with masked data
+    if (wasSub && !_isSubscribed) {
+      leads = leads.filter(l => l.category !== 'job');
+      persist();
+      await loadScrapedJobs();
+      showPaywall();
+    }
+  } catch(e) { /* silent — keep current state */ }
+}, 5 * 60 * 1000);
+
 // Central gate — ALL job/apply interactions go through this
 function gateApply(e, leadId) {
-  if (!_isSubscribed) {
+  if (!_verifySub()) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     showPaywall();
     return false;
@@ -127,14 +155,16 @@ async function onAuthSuccess(user) {
 
   // Check subscription in background (admin bypass handled server-side)
   try {
-    const res = await fetch(`/api/check-subscription?email=${encodeURIComponent(user.email)}`);
+    // Pass Stripe customer ID from URL for email-mismatch recovery
+    const _cid = new URLSearchParams(window.location.search).get('cid') || '';
+    const res = await fetch(`/api/check-subscription?email=${encodeURIComponent(user.email)}${_cid ? '&cid=' + encodeURIComponent(_cid) : ''}`);
     const sub = await res.json();
-    _isSubscribed = !!sub.active;
-    _isAdmin = sub.plan === 'admin';
+    _setSub(!!sub.active, sub.plan === 'admin');
+    // Clean URL params after successful auth
+    if (_cid && sub.active) window.history.replaceState({}, '', '/app.html');
   } catch(e) {
     console.error('Subscription check failed:', e);
-    _isSubscribed = false;
-    _isAdmin = false;
+    _setSub(false, false);
   }
 
   // Let everyone in — Jobs tab is gated separately
@@ -146,7 +176,7 @@ async function onAuthSuccess(user) {
   await loadScrapedJobs();
 
   // Show Telegram channel invite for subscribers
-  if (_isSubscribed) {
+  if (_verifySub()) {
     showTelegramInvite(user.email);
   }
 
@@ -238,8 +268,12 @@ function showPaywall() {
 
 async function loadScrapedJobs() {
   try {
-    const {data, error} = await sb.from('job_listings').select('*').order('scraped_at', {ascending: false}).limit(500);
-    if (error || !data || !data.length) return;
+    // Server-side gated: free users get masked data, paid users get full data
+    const email = currentUser?.email || '';
+    const res = await fetch(`/api/jobs?email=${encodeURIComponent(email)}`);
+    const result = await res.json();
+    const data = result.jobs;
+    if (!data || !data.length) return;
     const now = new Date().toISOString();
 
     // Build set of valid DB IDs
@@ -250,7 +284,7 @@ async function loadScrapedJobs() {
     leads = leads.filter(l => l.category !== 'job' || dbIds.has(l.id));
     const removed = before - leads.length;
 
-    // Add new jobs from DB
+    // Add new jobs from DB (already masked server-side for free users)
     let added = 0;
     const localIds = new Set(leads.map(l => l.id));
     for (const j of data) {
@@ -260,6 +294,7 @@ async function loadScrapedJobs() {
         company: (j.company || '') + ' \u2014 ' + (j.title || ''),
         _dbTitle: j.title || '',
         _dbCompany: j.company || '',
+        _masked: j._masked || false,
         source: j.source || '',
         type: 'security',
         website: j.source_url || '',
@@ -300,6 +335,12 @@ async function loadScrapedJobs() {
       showSignup();
       if (params.includes('paid=true')) {
         showAuthSuccess('Payment confirmed! Create your account below to get started.');
+        // Auto-fill email from Stripe payment URL
+        const urlEmail = new URLSearchParams(params).get('email');
+        if (urlEmail) {
+          const signupEmail = document.getElementById('signup-email');
+          if (signupEmail) { signupEmail.value = urlEmail; signupEmail.readOnly = true; signupEmail.style.opacity = '0.7'; }
+        }
       }
     }
   }
@@ -425,7 +466,7 @@ document.addEventListener('keydown', e => {
 
 function switchTab(tab) {
   // Gate premium tabs behind subscription/trial (except jobs — soft paywall)
-  if (['guide','strategy','companies','settings'].includes(tab) && !_isSubscribed) {
+  if (['guide','strategy','companies','settings'].includes(tab) && !_verifySub()) {
     showPaywall();
     return;
   }
@@ -776,7 +817,7 @@ function renderList(list) {
 
     // Render grouped by date
     const FREE_PREVIEW = 3;
-    const showAll = _isSubscribed || list.length <= FREE_PREVIEW;
+    const showAll = _verifySub() || list.length <= FREE_PREVIEW;
     const fullList = showAll ? list : list.slice(0, FREE_PREVIEW);
     const lockedCount = list.length - fullList.length;
 
@@ -976,7 +1017,7 @@ function openAdd() {
 function openEdit(id) {
   const l = leads.find(x=>x.id===id);
   if(!l)return;
-  if (isJob(l) && !_isSubscribed) { showPaywall(); return; }
+  if (isJob(l) && !_verifySub()) { showPaywall(); return; }
   closeDetail();
   document.getElementById('modal-title').textContent = 'Edit';
   document.getElementById('edit-id').value = id;
@@ -1033,7 +1074,7 @@ function openDetail(id) {
   const l = leads.find(x=>x.id===id);
   if(!l)return;
   // Gate job details behind subscription
-  if (isJob(l) && !_isSubscribed) { showPaywall(); return; }
+  if (isJob(l) && !_verifySub()) { showPaywall(); return; }
   const salary = extractSalary(l.notes);
   const isInsider = l.source === 'INSIDER SOURCE';
   const panel = document.getElementById('detail');
