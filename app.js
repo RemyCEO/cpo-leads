@@ -364,6 +364,8 @@ async function loadScrapedJobs() {
   }
 
   sb.auth.onAuthStateChange((event, session) => {
+    // Skip INITIAL_SESSION — already handled by getSession() above
+    if(event === 'INITIAL_SESSION') return;
     if(session && session.user) onAuthSuccess(session.user);
   });
 })();
@@ -1683,4 +1685,5 @@ function showToast(msg) {
   }, 2500);
 }
 
-refresh();
+// Initial refresh handled by onAuthSuccess → loadScrapedJobs → refresh()
+// Do NOT call refresh() here — subscription state isn't ready yet
