@@ -323,6 +323,7 @@ async function loadScrapedJobs() {
 }
 
 // Initialize app — no login required
+let _authReady = false;
 (async () => {
   const appContainer = document.getElementById('app-container');
   const params = window.location.search;
@@ -335,7 +336,6 @@ async function loadScrapedJobs() {
       showSignup();
       if (params.includes('paid=true')) {
         showAuthSuccess('Payment confirmed! Create your account below to get started.');
-        // Auto-fill email from Stripe payment URL
         const urlEmail = new URLSearchParams(params).get('email');
         if (urlEmail) {
           const signupEmail = document.getElementById('signup-email');
@@ -345,28 +345,27 @@ async function loadScrapedJobs() {
     }
   }
 
-  // Check if user is logged in (for subscription check)
-  const {data:{session}} = await sb.auth.getSession();
-  if(session && session.user) {
-    await onAuthSuccess(session.user);
-  } else {
-    // No session — require login, do NOT show app
-    document.getElementById('auth-overlay').style.display = 'flex';
-    document.getElementById('app-container').style.display = 'none';
-  }
-
-  // Remove loading screen
-  appContainer.style.opacity = '1';
-  const loadingScreen = document.getElementById('loading-screen');
-  if (loadingScreen) {
-    loadingScreen.style.opacity = '0';
-    setTimeout(() => loadingScreen.remove(), 400);
-  }
-
-  sb.auth.onAuthStateChange((event, session) => {
-    // Skip INITIAL_SESSION — already handled by getSession() above
-    if(event === 'INITIAL_SESSION') return;
-    if(session && session.user) onAuthSuccess(session.user);
+  // Use onAuthStateChange as single source of truth (handles token refresh on reload)
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (_authReady) {
+      // After init: only react to sign-in/sign-out/token refresh
+      if(session && session.user) onAuthSuccess(session.user);
+      return;
+    }
+    _authReady = true;
+    if(session && session.user) {
+      await onAuthSuccess(session.user);
+    } else {
+      document.getElementById('auth-overlay').style.display = 'flex';
+      document.getElementById('app-container').style.display = 'none';
+    }
+    // Remove loading screen
+    appContainer.style.opacity = '1';
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+      loadingScreen.style.opacity = '0';
+      setTimeout(() => loadingScreen.remove(), 400);
+    }
   });
 })();
 
