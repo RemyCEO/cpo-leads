@@ -311,51 +311,15 @@ def deduplicate(jobs):
     return unique
 
 
-def insert_to_supabase(jobs):
-    if not jobs:
-        log("No jobs to insert")
-        return 0
-
-    url = f"{SUPABASE_URL}/rest/v1/job_listings"
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}",
-        "Content-Type": "application/json",
-        "Prefer": "resolution=ignore-duplicates,return=minimal"
-    }
-
-    # Strip type field until column exists in Supabase
-    for j in jobs:
-        j.pop("type", None)
-
-    inserted = 0
-    for i in range(0, len(jobs), 20):
-        batch = jobs[i:i+20]
-        try:
-            r = requests.post(url, headers=headers, json=batch, timeout=15)
-            if r.status_code in (200, 201):
-                inserted += len(batch)
-                log(f"  Batch {i//20+1}: {len(batch)} jobs inserted")
-            elif r.status_code == 409:
-                log(f"  Batch {i//20+1}: all duplicates")
-            else:
-                log(f"  Batch {i//20+1} HTTP {r.status_code}: {r.text[:150]}")
-        except Exception as e:
-            log(f"  Batch {i//20+1} error: {e}")
-    return inserted
-
-
 def get_existing_count():
+    """Count articles in local intel_news.json"""
     try:
-        url = f"{SUPABASE_URL}/rest/v1/job_listings?select=id&limit=1"
-        headers = {
-            "apikey": SUPABASE_KEY,
-            "Authorization": f"Bearer {SUPABASE_KEY}",
-            "Prefer": "count=exact"
-        }
-        r = requests.get(url, headers=headers, timeout=10)
-        count = r.headers.get("content-range", "").split("/")[-1]
-        return int(count) if count and count != "*" else -1
+        import json
+        intel_path = os.path.join(SCRIPT_DIR, "intel_news.json")
+        if os.path.exists(intel_path):
+            with open(intel_path, "r", encoding="utf-8") as f:
+                return len(json.load(f))
+        return 0
     except:
         return -1
 

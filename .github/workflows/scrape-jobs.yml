@@ -1,41 +1,85 @@
-name: CPO Leads Job Scraper
+name: CPO Leads Job Scrapers
 
 on:
   schedule:
-    - cron: '0 6,18 * * *'  # Runs at 06:00 and 18:00 UTC daily
-  workflow_dispatch: # Allow manual trigger
+    # 4x daily: 05:00, 11:00, 17:00, 23:00 UTC
+    - cron: '0 5 * * *'
+    - cron: '0 11 * * *'
+    - cron: '0 17 * * *'
+    - cron: '0 23 * * *'
+  workflow_dispatch: # Manual trigger
 
 jobs:
-  scrape:
+  scrape-jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
       - name: Install dependencies
-        run: |
-          pip install requests playwright
-          playwright install chromium
-
-      - name: Run scraper
+        run: pip install requests
+      - name: Run LinkedIn career page scraper
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          # Override the hardcoded keys with env vars
           sed -i "s|SUPABASE_URL = .*|SUPABASE_URL = \"$SUPABASE_URL\"|" scrape_jobs.py
           sed -i "s|SUPABASE_KEY = .*|SUPABASE_KEY = \"$SUPABASE_KEY\"|" scrape_jobs.py
           python scrape_jobs.py
-
       - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: scrape-log-${{ github.run_number }}
+          name: scrape-jobs-${{ github.run_number }}
           path: scrape_log.txt
+          retention-days: 7
+
+  scrape-premium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          pip install requests playwright
+          playwright install --with-deps chromium
+      - name: Run premium sources scraper
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          sed -i "s|SUPABASE_URL = .*|SUPABASE_URL = \"$SUPABASE_URL\"|" scrape_premium.py
+          sed -i "s|SUPABASE_KEY = .*|SUPABASE_KEY = \"$SUPABASE_KEY\"|" scrape_premium.py
+          python scrape_premium.py
+      - name: Upload log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrape-premium-${{ github.run_number }}
+          path: scrape_premium_log.txt
+          retention-days: 7
+
+  scrape-alerts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install requests
+      - name: Run news alerts scraper
+        run: python scrape_alerts.py
+      - name: Upload intel news
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intel-news-${{ github.run_number }}
+          path: intel_news.json
           retention-days: 7
