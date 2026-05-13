@@ -1416,6 +1416,7 @@ function openDetailModal(id) {
   const companyName = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : esc(l.company);
   const cred = getCredibility(l.company);
 
+  const isInsider = l.source === 'INSIDER SOURCE';
   const panel = document.getElementById('detail');
   panel.innerHTML = `
     <button class="m-detail-close" onclick="closeDetail()">&times;</button>
@@ -1431,7 +1432,8 @@ function openDetailModal(id) {
       </div>
       ${cred ? '<div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;margin-top:8px">'+cred+'</div>' : ''}
     </div>
-    ${l.notes ? '<div style="font-size:0.9rem;color:#c5c2bd;line-height:1.7;margin-bottom:24px">'+esc(l.notes)+'</div>' : ''}
+    ${_isAdmin && isInsider ? '<div style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:12px;margin-bottom:16px"><div style="font-size:0.75rem;font-weight:700;color:#C9A84C;margin-bottom:8px">INSIDER JOB \u2014 REVIEW</div><div style="display:flex;flex-direction:column;gap:8px"><input id="review-title" value="'+esc(l._dbTitle||'')+'" placeholder="Job title" style="background:var(--surface);border:1px solid var(--card-border);border-radius:6px;padding:10px;color:var(--text);font-size:1rem"><input id="review-company" value="'+esc(l._dbCompany||'')+'" placeholder="Company" style="background:var(--surface);border:1px solid var(--card-border);border-radius:6px;padding:10px;color:var(--text);font-size:1rem"><div style="display:flex;gap:8px"><input id="review-location" value="'+esc(l.location||'')+'" placeholder="Location" style="flex:1;background:var(--surface);border:1px solid var(--card-border);border-radius:6px;padding:10px;color:var(--text);font-size:1rem"><input id="review-country" value="'+esc(l.country||'')+'" placeholder="Country" style="width:120px;background:var(--surface);border:1px solid var(--card-border);border-radius:6px;padding:10px;color:var(--text);font-size:1rem"></div><textarea id="review-notes" rows="3" placeholder="Description" style="background:var(--surface);border:1px solid var(--card-border);border-radius:6px;padding:10px;color:var(--text);font-size:1rem;resize:vertical">'+esc(l.notes||'')+'</textarea><button onclick="saveInsiderReview(\''+l.id+'\')" style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:8px;padding:14px;font-weight:700;font-size:1rem;cursor:pointer;min-height:48px">Save to Database</button></div></div>' : ''}
+    ${l.notes && !(_isAdmin && isInsider) ? '<div style="font-size:0.9rem;color:#c5c2bd;line-height:1.7;margin-bottom:24px">'+esc(l.notes)+'</div>' : ''}
     <div style="display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid var(--card-border)">
       ${url ? '<a href="'+url+'" target="_blank" '+(job?'onclick="if(!gateApply(event))return"':'')+' style="text-align:center;padding:16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border-radius:8px;font-weight:700;font-size:1rem;text-decoration:none;min-height:52px;display:flex;align-items:center;justify-content:center">'+(job?'APPLY NOW':'VISIT WEBSITE')+'</a>' : ''}
       <div style="display:flex;gap:8px">
