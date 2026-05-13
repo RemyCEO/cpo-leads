@@ -8,6 +8,7 @@
             { "triggerAtHour": 6 },
             { "triggerAtHour": 12 },
             { "triggerAtHour": 18 },
+            { "triggerAtHour": 21 },
             { "triggerAtHour": 23 }
           ]
         }
@@ -20,7 +21,7 @@
     },
     {
       "parameters": {
-        "url": "https://cpoleads.com/api/health?secret=cpo-guardian-2026&autofix=true",
+        "url": "=https://cpoleads.com/api/health?secret=cpo-guardian-2026&autofix=true{{ $now.hour === 21 ? '&email=true' : '' }}",
         "options": {
           "timeout": 30000,
           "fullResponse": true

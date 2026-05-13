@@ -1,14 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
+import { Resend } from 'resend';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Auth: enkel secret for å beskytte endpointet
 const HEALTH_SECRET = process.env.HEALTH_SECRET || 'cpo-guardian-2026';
+const REPORT_EMAIL = 'remy@strategioai.com';
 
 // Kjente problemer i jobbtitler/beskrivelser
 const BAD_TITLE_PATTERNS = [
@@ -415,6 +418,96 @@ export default async function handler(req, res) {
   // Sett endelig status
   if (report.alerts.length === 0) {
     report.status = 'healthy';
+  }
+
+  // 8. DAILY EMAIL REPORT
+  if (req.query.email === 'true') {
+    try {
+      const s = report.checks;
+      const statusIcon = report.status === 'healthy' ? '&#9989;' : report.status === 'warning' ? '&#9888;&#65039;' : '&#128680;';
+      const statusColor = report.status === 'healthy' ? '#22c55e' : report.status === 'warning' ? '#f59e0b' : '#ef4444';
+      const fixesHtml = report.fixes_applied.length > 0
+        ? report.fixes_applied.map(f => `<li style="color:#22c55e">${f}</li>`).join('')
+        : '<li style="color:#888">Ingen fixes trengt</li>';
+      const alertsHtml = report.alerts.length > 0
+        ? report.alerts.map(a => `<li style="color:#f59e0b">${a}</li>`).join('')
+        : '<li style="color:#888">Ingen varsler</li>';
+
+      const jobAge = s.freshness?.latest_job_age_hours || '?';
+      const staleCount = s.stale_jobs?.older_than_30_days || 0;
+
+      const epChecks = s.endpoints ? Object.entries(s.endpoints).map(([name, ep]) =>
+        `<tr><td style="padding:6px 12px;border-bottom:1px solid #1a1a2e;color:#ccc">/api/${name}</td>
+         <td style="padding:6px 12px;border-bottom:1px solid #1a1a2e;color:${ep.ok ? '#22c55e' : '#ef4444'}">${ep.ok ? 'OK' : 'FEIL'}</td>
+         <td style="padding:6px 12px;border-bottom:1px solid #1a1a2e;color:#ccc">${ep.response_ms || '?'}ms</td></tr>`
+      ).join('') : '';
+
+      await resend.emails.send({
+        from: 'CPO Guardian <noreply@strategio.site>',
+        to: REPORT_EMAIL,
+        subject: `${report.status === 'healthy' ? '✅' : report.status === 'warning' ? '⚠️' : '🚨'} CPO Guardian — Kveldsrapport ${new Date().toLocaleDateString('nb-NO')}`,
+        html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#0a0a0f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+<div style="max-width:600px;margin:0 auto;padding:32px 20px">
+  <div style="text-align:center;margin-bottom:24px">
+    <h1 style="color:#C9A84C;font-size:24px;margin:0;letter-spacing:2px">CPO GUARDIAN</h1>
+    <p style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:3px;margin-top:4px">Daily Status Report</p>
+  </div>
+
+  <div style="background:#12121a;border:1px solid ${statusColor}40;border-radius:12px;padding:24px;margin-bottom:16px;text-align:center">
+    <p style="font-size:36px;margin:0">${statusIcon}</p>
+    <h2 style="color:${statusColor};font-size:22px;margin:8px 0 0;text-transform:uppercase">${report.status}</h2>
+    <p style="color:#888;font-size:12px;margin:4px 0 0">${report.timestamp}</p>
+  </div>
+
+  <div style="background:#12121a;border:1px solid rgba(201,168,76,0.15);border-radius:12px;padding:20px;margin-bottom:16px">
+    <h3 style="color:#C9A84C;font-size:14px;margin:0 0 12px;text-transform:uppercase;letter-spacing:1px">Platform Stats</h3>
+    <table style="width:100%;border-collapse:collapse">
+      <tr><td style="padding:6px 0;color:#888">Total Jobs</td><td style="padding:6px 0;color:#fff;text-align:right;font-weight:600">${s.supabase?.job_count || '?'}</td></tr>
+      <tr><td style="padding:6px 0;color:#888">Siste jobb</td><td style="padding:6px 0;color:${jobAge > 48 ? '#ef4444' : '#22c55e'};text-align:right">${jobAge}t siden</td></tr>
+      <tr><td style="padding:6px 0;color:#888">Kvalitetsproblemer</td><td style="padding:6px 0;color:${(s.job_quality?.issues_found || 0) > 10 ? '#f59e0b' : '#22c55e'};text-align:right">${s.job_quality?.issues_found || 0}</td></tr>
+      <tr><td style="padding:6px 0;color:#888">Duplikater fjernet</td><td style="padding:6px 0;color:#ccc;text-align:right">${s.job_quality?.duplicates_found || 0}</td></tr>
+      <tr><td style="padding:6px 0;color:#888">Jobber 30+ dager</td><td style="padding:6px 0;color:${staleCount > 50 ? '#f59e0b' : '#ccc'};text-align:right">${staleCount}</td></tr>
+    </table>
+  </div>
+
+  <div style="background:#12121a;border:1px solid rgba(201,168,76,0.15);border-radius:12px;padding:20px;margin-bottom:16px">
+    <h3 style="color:#C9A84C;font-size:14px;margin:0 0 12px;text-transform:uppercase;letter-spacing:1px">Subscribers</h3>
+    <table style="width:100%;border-collapse:collapse">
+      <tr><td style="padding:6px 0;color:#888">Active</td><td style="padding:6px 0;color:#22c55e;text-align:right;font-weight:600">${s.subscribers?.active || 0}</td></tr>
+      <tr><td style="padding:6px 0;color:#888">Trialing</td><td style="padding:6px 0;color:#3b82f6;text-align:right">${s.subscribers?.trialing || 0}</td></tr>
+      <tr><td style="padding:6px 0;color:#888">Past Due</td><td style="padding:6px 0;color:${(s.subscribers?.past_due || 0) > 0 ? '#ef4444' : '#ccc'};text-align:right">${s.subscribers?.past_due || 0}</td></tr>
+      <tr><td style="padding:6px 0;color:#888">Canceled</td><td style="padding:6px 0;color:#888;text-align:right">${s.subscribers?.canceled || 0}</td></tr>
+      <tr><td style="padding:6px 0;color:#888">Stripe sync OK</td><td style="padding:6px 0;color:${(s.stripe_sync?.in_stripe_not_db || 0) > 0 ? '#ef4444' : '#22c55e'};text-align:right">${(s.stripe_sync?.in_stripe_not_db || 0) === 0 ? 'Ja' : s.stripe_sync?.in_stripe_not_db + ' mangler'}</td></tr>
+    </table>
+  </div>
+
+  <div style="background:#12121a;border:1px solid rgba(201,168,76,0.15);border-radius:12px;padding:20px;margin-bottom:16px">
+    <h3 style="color:#C9A84C;font-size:14px;margin:0 0 12px;text-transform:uppercase;letter-spacing:1px">API Endpoints</h3>
+    <table style="width:100%;border-collapse:collapse">
+      <tr style="color:#888;font-size:12px"><th style="text-align:left;padding:6px 12px">Endpoint</th><th style="text-align:left;padding:6px 12px">Status</th><th style="text-align:left;padding:6px 12px">Tid</th></tr>
+      ${epChecks}
+    </table>
+  </div>
+
+  <div style="background:#12121a;border:1px solid rgba(201,168,76,0.15);border-radius:12px;padding:20px;margin-bottom:16px">
+    <h3 style="color:#22c55e;font-size:14px;margin:0 0 8px">Auto-fixes i dag</h3>
+    <ul style="margin:0;padding:0 0 0 20px;font-size:13px">${fixesHtml}</ul>
+  </div>
+
+  <div style="background:#12121a;border:1px solid rgba(201,168,76,0.15);border-radius:12px;padding:20px;margin-bottom:16px">
+    <h3 style="color:#f59e0b;font-size:14px;margin:0 0 8px">Varsler</h3>
+    <ul style="margin:0;padding:0 0 0 20px;font-size:13px">${alertsHtml}</ul>
+  </div>
+
+  <p style="color:#555;font-size:11px;text-align:center;margin:24px 0 0">CPO Guardian — Automated monitoring for cpoleads.com<br>Powered by StrategioAI</p>
+</div></body></html>`,
+      });
+      report.email_sent = true;
+    } catch (e) {
+      report.email_sent = false;
+      report.email_error = e.message;
+    }
   }
 
   return res.status(200).json(report);
