@@ -1,12 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
+import { Resend } from 'resend';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const SCOUT_SECRET = process.env.SCOUT_SECRET || 'cpo-scout-2026';
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const REPORT_EMAIL = 'strategioai@strategioai.com';
 const BATCH_SIZE = 10; // Jobs per run (avoid timeout)
 
 // Find jobs that need enrichment
@@ -241,6 +244,64 @@ export default async function handler(req, res) {
     } catch (e) {
       report.jobs_failed++;
       report.details.push({ id: job.id, title: job.title, status: 'error', error: e.message });
+    }
+  }
+
+  // Send daily email report if requested
+  if (req.query.email === 'true') {
+    try {
+      const enrichedList = report.details.filter(d => d.status === 'enriched');
+      const failedList = report.details.filter(d => d.status !== 'enriched' && d.status !== 'already_complete');
+      const completeList = report.details.filter(d => d.status === 'already_complete');
+
+      const enrichedRows = enrichedList.map(d =>
+        `<tr><td style="padding:8px 12px;border-bottom:1px solid #1a1a2e;color:#fff">${d.title || ''}</td>
+         <td style="padding:8px 12px;border-bottom:1px solid #1a1a2e;color:#22c55e">${(d.fields_updated || []).join(', ')}</td></tr>`
+      ).join('') || '<tr><td colspan="2" style="padding:8px 12px;color:#888">Ingen jobber enriched denne runden</td></tr>';
+
+      const statusIcon = report.jobs_failed > 0 ? '⚠️' : '✅';
+
+      await resend.emails.send({
+        from: 'CPO Scout <noreply@strategio.site>',
+        to: REPORT_EMAIL,
+        subject: `${statusIcon} CPO Scout — ${report.jobs_enriched} enriched, ${report.jobs_checked} sjekket — ${new Date().toLocaleDateString('nb-NO')}`,
+        html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#0a0a0f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+<div style="max-width:600px;margin:0 auto;padding:32px 20px">
+  <div style="text-align:center;margin-bottom:24px">
+    <h1 style="color:#3b82f6;font-size:24px;margin:0;letter-spacing:2px">🔍 CPO SCOUT</h1>
+    <p style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:3px;margin-top:4px">Job Enrichment Report</p>
+  </div>
+
+  <div style="background:#12121a;border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:24px;margin-bottom:16px;text-align:center">
+    <div style="display:flex;justify-content:center;gap:32px">
+      <div><div style="font-size:28px;font-weight:800;color:#22c55e">${report.jobs_enriched}</div><div style="color:#888;font-size:11px;text-transform:uppercase">Enriched</div></div>
+      <div><div style="font-size:28px;font-weight:800;color:#888">${completeList.length}</div><div style="color:#888;font-size:11px;text-transform:uppercase">Already OK</div></div>
+      <div><div style="font-size:28px;font-weight:800;color:${report.jobs_failed > 0 ? '#ef4444' : '#888'}">${report.jobs_failed}</div><div style="color:#888;font-size:11px;text-transform:uppercase">Failed</div></div>
+    </div>
+    <p style="color:#555;font-size:11px;margin:12px 0 0">${report.timestamp}</p>
+  </div>
+
+  <div style="background:#12121a;border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:20px;margin-bottom:16px">
+    <h3 style="color:#3b82f6;font-size:14px;margin:0 0 12px;text-transform:uppercase;letter-spacing:1px">Enriched Jobs</h3>
+    <table style="width:100%;border-collapse:collapse">
+      <tr style="color:#888;font-size:11px"><th style="text-align:left;padding:6px 12px">Job</th><th style="text-align:left;padding:6px 12px">Fields Updated</th></tr>
+      ${enrichedRows}
+    </table>
+  </div>
+
+  ${failedList.length > 0 ? `<div style="background:#12121a;border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:20px;margin-bottom:16px">
+    <h3 style="color:#ef4444;font-size:14px;margin:0 0 12px">Failed</h3>
+    <ul style="margin:0;padding:0 0 0 20px;font-size:13px;color:#ef4444">${failedList.map(d => `<li>${d.title || d.id} — ${d.status}${d.error ? ': ' + d.error : ''}</li>`).join('')}</ul>
+  </div>` : ''}
+
+  <p style="color:#555;font-size:11px;text-align:center;margin:24px 0 0">CPO Scout — Automated job enrichment for cpoleads.com<br>Powered by StrategioAI</p>
+</div></body></html>`,
+      });
+      report.email_sent = true;
+    } catch (e) {
+      report.email_sent = false;
+      report.email_error = e.message;
     }
   }
 
