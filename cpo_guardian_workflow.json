@@ -1,0 +1,306 @@
+{
+  "name": "CPO Guardian - Site Monitor & Auto-Fixer",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "triggerAtHour": 6 },
+            { "triggerAtHour": 12 },
+            { "triggerAtHour": 18 },
+            { "triggerAtHour": 23 }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Every 6 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://cpoleads.com/api/health?secret=cpo-guardian-2026&autofix=true",
+        "options": {
+          "timeout": 30000,
+          "fullResponse": true
+        }
+      },
+      "id": "health-check",
+      "name": "Health Check (autofix)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://cpoleads.com",
+        "options": {
+          "timeout": 15000,
+          "fullResponse": true
+        }
+      },
+      "id": "site-uptime",
+      "name": "Site Uptime Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-alerts",
+              "leftValue": "={{ $('Health Check (autofix)').item.json.body.alerts.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "if-alerts",
+      "name": "Has Alerts?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "site-down",
+              "leftValue": "={{ $('Site Uptime Check').item.json.statusCode }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "if-site-down",
+      "name": "Site Down?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [660, 500]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "8790783341",
+        "text": "=🚨 *CPO GUARDIAN ALERT*\n\n*Status:* {{ $('Health Check (autofix)').item.json.body.status }}\n*Time:* {{ $now.format('dd.MM.yyyy HH:mm') }}\n\n*Alerts:*\n{{ $('Health Check (autofix)').item.json.body.alerts.map(a => '⚠️ ' + a).join('\\n') }}\n\n{{ $('Health Check (autofix)').item.json.body.fixes_applied.length > 0 ? '✅ *Auto-fixes applied:*\\n' + $('Health Check (autofix)').item.json.body.fixes_applied.map(f => '🔧 ' + f).join('\\n') : '' }}\n\n*Jobs:* {{ $('Health Check (autofix)').item.json.body.checks.supabase?.job_count || '?' }}\n*Subscribers:* {{ $('Health Check (autofix)').item.json.body.checks.subscribers?.active || '?' }} active, {{ $('Health Check (autofix)').item.json.body.checks.subscribers?.trialing || '?' }} trial",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-alert",
+      "name": "Telegram Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [880, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-cpo",
+          "name": "CPO Guardian Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "8790783341",
+        "text": "=🔴 *CPO LEADS IS DOWN!*\n\ncpoleads.com returned status {{ $('Site Uptime Check').item.json.statusCode || 'UNREACHABLE' }}\n\nCheck Vercel dashboard immediately!",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-site-down",
+      "name": "Telegram: Site Down!",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [880, 500],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-cpo",
+          "name": "CPO Guardian Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "fixes-applied",
+              "leftValue": "={{ $('Health Check (autofix)').item.json.body.fixes_applied.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "if-fixes",
+      "name": "Fixes Applied?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [660, 100]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "8790783341",
+        "text": "=✅ *CPO Guardian — Auto-fix rapport*\n\n{{ $('Health Check (autofix)').item.json.body.fixes_applied.map(f => '🔧 ' + f).join('\\n') }}\n\n*Status etter fix:* {{ $('Health Check (autofix)').item.json.body.status }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-fixes",
+      "name": "Telegram: Fixes Done",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [880, 100],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-cpo",
+          "name": "CPO Guardian Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "8790783341",
+        "text": "=✅ *CPO Guardian — Alt OK*\n\n*Jobs:* {{ $('Health Check (autofix)').item.json.body.checks.supabase?.job_count || '?' }}\n*Subscribers:* {{ $('Health Check (autofix)').item.json.body.checks.subscribers?.active || '?' }} active\n*API:* OK\n*Time:* {{ $now.format('dd.MM.yyyy HH:mm') }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-ok",
+      "name": "Daily OK Report",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [880, 700],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-cpo",
+          "name": "CPO Guardian Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "noon-check",
+              "leftValue": "={{ $now.hour }}",
+              "rightValue": 12,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "if-daily-report",
+      "name": "Is Noon? (Daily Report)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [660, 700]
+    }
+  ],
+  "connections": {
+    "Every 6 Hours": {
+      "main": [
+        [
+          { "node": "Health Check (autofix)", "type": "main", "index": 0 },
+          { "node": "Site Uptime Check", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Health Check (autofix)": {
+      "main": [
+        [
+          { "node": "Has Alerts?", "type": "main", "index": 0 },
+          { "node": "Fixes Applied?", "type": "main", "index": 0 },
+          { "node": "Is Noon? (Daily Report)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Site Uptime Check": {
+      "main": [
+        [
+          { "node": "Site Down?", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Has Alerts?": {
+      "main": [
+        [{ "node": "Telegram Alert", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Site Down?": {
+      "main": [
+        [{ "node": "Telegram: Site Down!", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Fixes Applied?": {
+      "main": [
+        [{ "node": "Telegram: Fixes Done", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Is Noon? (Daily Report)": {
+      "main": [
+        [{ "node": "Daily OK Report", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "tags": [
+    { "name": "monitoring" },
+    { "name": "cpo-leads" }
+  ]
+}
