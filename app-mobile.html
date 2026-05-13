@@ -17,6 +17,8 @@
 <link rel="apple-touch-icon" href="cpo_leads_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <style>
 /* ===== RESET ===== */
@@ -776,6 +778,10 @@ html, body { overflow-x: hidden; max-width: 100vw; }
       <div class="m-menu-email" id="user-email"></div>
     </div>
   </div>
+  <button class="m-menu-item" onclick="closeMobileMenu();mSwitchPage('monitor')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    Global Monitor
+  </button>
   <button class="m-menu-item" onclick="closeMobileMenu();mSwitchPage('profile')">
     <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     Profile
@@ -974,6 +980,29 @@ html, body { overflow-x: hidden; max-width: 100vw; }
 
   </div>
 
+  <!-- === GLOBAL MONITOR === -->
+  <div id="page-monitor" class="m-page">
+    <div style="padding:12px 16px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:7px;height:7px;border-radius:50%;background:#3ecf8e;animation:pulse 2s infinite"></div>
+          <span style="font-size:0.7rem;font-weight:700;letter-spacing:2px;color:#C9A84C">GLOBAL MONITOR</span>
+        </div>
+        <span id="m-monitor-event-count" style="font-size:0.6rem;color:var(--text-muted);letter-spacing:1px"></span>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <button id="m-monitor-filter-conflict" class="m-monitor-filter active" onclick="toggleMonitorFilter('conflict',this);document.getElementById('monitor-filter-conflict')?.classList.toggle('active')">
+          <span style="width:6px;height:6px;border-radius:50%;background:#e74c3c;display:inline-block"></span> Conflicts
+        </button>
+        <button id="m-monitor-filter-disaster" class="m-monitor-filter active" onclick="toggleMonitorFilter('disaster',this);document.getElementById('monitor-filter-disaster')?.classList.toggle('active')">
+          <span style="width:6px;height:6px;border-radius:50%;background:#f39c12;display:inline-block"></span> Disasters
+        </button>
+      </div>
+    </div>
+    <div id="m-monitor-map" style="height:55vh;border-top:1px solid rgba(201,168,76,.1);border-bottom:1px solid rgba(201,168,76,.1)"></div>
+    <div id="m-monitor-events" style="padding:10px 16px 100px;display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+
   <!-- === JOBS === -->
   <div id="page-jobs" class="m-page">
     <div style="padding:16px 16px 0;display:flex;justify-content:space-between;align-items:center">
@@ -1157,6 +1186,10 @@ html, body { overflow-x: hidden; max-width: 100vw; }
     <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
     Home
   </button>
+  <button class="m-nav-item" data-page="monitor" onclick="mSwitchNav('monitor',this)">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    Monitor
+  </button>
   <button class="m-nav-item" data-page="jobs" onclick="mSwitchNav('jobs',this)">
     <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
     Jobs
@@ -1253,6 +1286,7 @@ function mSwitchPage(pageId) {
     }
   }
   else if (pageId === 'dashboard') { updateDashStats(); updateMobileNewest(); }
+  else if (pageId === 'monitor') { initMobileMonitorMap(); }
 
   // Scroll to top
   window.scrollTo(0, 0);
@@ -1772,8 +1806,194 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch(e) {}
 })();
 
+// ===== MOBILE GLOBAL MONITOR =====
+let _mMonitorMap = null;
+let _mMonitorMarkers = [];
+let _mMonitorEvents = [];
+let _mMonitorFilters = { conflict: true, disaster: true };
+
+function toggleMonitorFilter(type, btn) {
+  _mMonitorFilters[type] = !_mMonitorFilters[type];
+  btn.classList.toggle('active');
+  renderMobileMonitorMarkers();
+}
+
+async function initMobileMonitorMap() {
+  if (_mMonitorMap) { _mMonitorMap.invalidateSize(); return; }
+
+  const mapEl = document.getElementById('m-monitor-map');
+  if (!mapEl) return;
+
+  _mMonitorMap = L.map(mapEl, {
+    center: [20, 20],
+    zoom: 2,
+    minZoom: 2,
+    maxZoom: 10,
+    zoomControl: false,
+    attributionControl: false,
+    worldCopyJump: true,
+    tap: true,
+    touchZoom: true,
+    dragging: true
+  });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd', maxZoom: 19
+  }).addTo(_mMonitorMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd', maxZoom: 19, pane: 'overlayPane'
+  }).addTo(_mMonitorMap);
+
+  await Promise.all([fetchMobileConflicts(), fetchMobileDisasters()]);
+  renderMobileMonitorMarkers();
+}
+
+const CONFLICT_ZONES = [
+  { title: 'Ukraine — Russo-Ukrainian War', country: 'Ukraine', lat: 48.38, lng: 35.04, category: 'War', alertLevel: 'Red' },
+  { title: 'Gaza — Israel-Hamas Conflict', country: 'Palestine', lat: 31.35, lng: 34.31, category: 'War', alertLevel: 'Red' },
+  { title: 'Sudan — Civil War', country: 'Sudan', lat: 15.59, lng: 32.53, category: 'War', alertLevel: 'Red' },
+  { title: 'Myanmar — Civil Conflict', country: 'Myanmar', lat: 19.76, lng: 96.07, category: 'Conflict', alertLevel: 'Red' },
+  { title: 'Syria — Ongoing Instability', country: 'Syria', lat: 35.0, lng: 38.0, category: 'Conflict', alertLevel: 'Orange' },
+  { title: 'Somalia — Al-Shabaab Insurgency', country: 'Somalia', lat: 5.15, lng: 46.20, category: 'Conflict', alertLevel: 'Orange' },
+  { title: 'Yemen — Houthi Conflict', country: 'Yemen', lat: 15.55, lng: 48.52, category: 'Conflict', alertLevel: 'Orange' },
+  { title: 'DR Congo — Armed Groups', country: 'DR Congo', lat: -1.67, lng: 29.22, category: 'Conflict', alertLevel: 'Orange' },
+  { title: 'Sahel Region — Jihadist Insurgency', country: 'Mali / Burkina Faso', lat: 14.0, lng: -1.5, category: 'Conflict', alertLevel: 'Orange' },
+  { title: 'Ethiopia — Ethnic Tensions', country: 'Ethiopia', lat: 9.03, lng: 38.70, category: 'Conflict', alertLevel: 'Yellow' },
+  { title: 'Haiti — Gang Violence Crisis', country: 'Haiti', lat: 18.54, lng: -72.34, category: 'Conflict', alertLevel: 'Orange' },
+  { title: 'Nigeria — Boko Haram / Banditry', country: 'Nigeria', lat: 11.85, lng: 13.16, category: 'Conflict', alertLevel: 'Orange' },
+  { title: 'Lebanon — Post-Conflict Instability', country: 'Lebanon', lat: 33.89, lng: 35.50, category: 'Conflict', alertLevel: 'Yellow' },
+  { title: 'Pakistan — Border Tensions', country: 'Pakistan', lat: 33.0, lng: 70.0, category: 'Conflict', alertLevel: 'Yellow' },
+  { title: 'Iraq — Residual ISIS Threat', country: 'Iraq', lat: 33.31, lng: 44.37, category: 'Conflict', alertLevel: 'Yellow' },
+  { title: 'Libya — Political Instability', country: 'Libya', lat: 32.90, lng: 13.18, category: 'Conflict', alertLevel: 'Yellow' },
+  { title: 'Mozambique — Cabo Delgado Insurgency', country: 'Mozambique', lat: -12.35, lng: 40.35, category: 'Conflict', alertLevel: 'Yellow' },
+  { title: 'Red Sea — Houthi Shipping Attacks', country: 'Red Sea', lat: 14.5, lng: 42.0, category: 'Conflict', alertLevel: 'Orange' },
+];
+
+async function fetchMobileConflicts() {
+  CONFLICT_ZONES.forEach(c => {
+    _mMonitorEvents.push({ type: 'conflict', ...c, date: new Date().toISOString() });
+  });
+}
+
+async function fetchMobileDisasters() {
+  try {
+    const r = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson');
+    const data = await r.json();
+    data.features.forEach(f => {
+      _mMonitorEvents.push({
+        type: 'disaster', title: 'M'+f.properties.mag.toFixed(1)+' '+(f.properties.place||''),
+        country: '', lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0],
+        date: new Date(f.properties.time).toISOString(), category: 'Earthquake',
+        alertLevel: f.properties.mag >= 6.5 ? 'Red' : f.properties.mag >= 5.5 ? 'Orange' : 'Yellow'
+      });
+    });
+  } catch(e) {}
+  try {
+    const r = await fetch('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=30');
+    const data = await r.json();
+    if (data && data.events) {
+      data.events.forEach(ev => {
+        const geo = ev.geometry && ev.geometry.length ? ev.geometry[ev.geometry.length-1] : null;
+        if (!geo || !geo.coordinates) return;
+        const cat = ev.categories && ev.categories.length ? ev.categories[0].title : '';
+        const catMap = { Wildfires:'Wildfire', 'Severe Storms':'Storm', Volcanoes:'Volcano', Floods:'Flood' };
+        _mMonitorEvents.push({
+          type: 'disaster', title: ev.title || cat, country: '',
+          lat: geo.coordinates[1], lng: geo.coordinates[0],
+          date: geo.date || '', category: catMap[cat] || cat,
+          alertLevel: ['Wildfires','Volcanoes'].includes(cat) ? 'Orange' : 'Yellow'
+        });
+      });
+    }
+  } catch(e) {}
+}
+
+function getMEvColor(ev) {
+  if (ev.type === 'conflict') return '#e74c3c';
+  const l = (ev.alertLevel||'').toLowerCase();
+  return l === 'red' ? '#e74c3c' : l === 'orange' ? '#f39c12' : '#f1c40f';
+}
+
+function renderMobileMonitorMarkers() {
+  _mMonitorMarkers.forEach(m => _mMonitorMap.removeLayer(m));
+  _mMonitorMarkers = [];
+
+  const filtered = _mMonitorEvents.filter(ev => _mMonitorFilters[ev.type]);
+  const deduped = [];
+  filtered.forEach(ev => {
+    if (!deduped.find(d => Math.abs(d.lat-ev.lat)<2 && Math.abs(d.lng-ev.lng)<2 && d.type===ev.type))
+      deduped.push(ev);
+  });
+
+  deduped.forEach(ev => {
+    const color = getMEvColor(ev);
+    const size = ev.type === 'conflict' ? 18 : ((ev.alertLevel||'').toLowerCase() === 'red' ? 20 : 16);
+    const icon = L.divIcon({
+      className: 'mm-marker',
+      html: '<div style="width:'+size+'px;height:'+size+'px;background:'+color+';border-radius:50%;border:2px solid '+color+'88;box-shadow:0 0 '+size+'px '+color+'66,0 0 '+(size*2)+'px '+color+'22;animation:mPulse 2.5s infinite"></div>',
+      iconSize: [size, size], iconAnchor: [size/2, size/2]
+    });
+    const marker = L.marker([ev.lat, ev.lng], { icon: icon }).addTo(_mMonitorMap);
+    marker.on('click', () => {
+      _mMonitorMap.flyTo([ev.lat, ev.lng], 5, { duration: 0.8 });
+      showMobileEventDetail(ev);
+    });
+    _mMonitorMarkers.push(marker);
+  });
+
+  const countEl = document.getElementById('m-monitor-event-count');
+  if (countEl) countEl.textContent = deduped.length + ' EVENTS';
+
+  // Render event list
+  const el = document.getElementById('m-monitor-events');
+  if (!el) return;
+  el.innerHTML = deduped.slice(0,15).map(ev => {
+    const color = getMEvColor(ev);
+    const timeStr = ev.date ? formatIntelDate(ev.date) : '';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--card-bg);border:1px solid var(--card-border)" onclick="_mMonitorMap.flyTo(['+ev.lat+','+ev.lng+'],5,{duration:0.8})">' +
+      '<div style="width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0"></div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:0.8rem;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+ev.title.substring(0,55)+'</div>' +
+        '<div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px">'+(ev.country||'')+(ev.category?' · '+ev.category:'')+(timeStr?' · '+timeStr:'')+'</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function showMobileEventDetail(ev) {
+  const color = getMEvColor(ev);
+  const el = document.getElementById('m-monitor-events');
+  const detailCard = '<div style="padding:14px;border-radius:10px;background:rgba(15,20,30,.95);border:1px solid '+color+'44;margin-bottom:8px" id="m-ev-detail">' +
+    '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">' +
+      '<div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);flex:1">'+ev.title+'</div>' +
+      '<button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:0 0 0 8px">&times;</button>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+      (ev.country ? '<span style="font-size:0.65rem;padding:3px 8px;border-radius:10px;background:rgba(201,168,76,.1);color:var(--gold)">'+ev.country+'</span>' : '') +
+      '<span style="font-size:0.65rem;padding:3px 8px;border-radius:10px;border:1px solid '+color+'44;color:'+color+'">'+(ev.type==='conflict'?'CONFLICT':(ev.category||'DISASTER'))+'</span>' +
+    '</div>' +
+  '</div>';
+  const existing = document.getElementById('m-ev-detail');
+  if (existing) existing.remove();
+  el.insertAdjacentHTML('afterbegin', detailCard);
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 // PWA
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 </script>
+<style>
+.m-monitor-filter {
+  display:inline-flex;align-items:center;gap:5px;
+  padding:6px 12px;border-radius:16px;
+  border:1px solid rgba(201,168,76,.15);background:transparent;
+  color:var(--text-muted);font-size:0.7rem;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all .2s;
+}
+.m-monitor-filter.active { border-color:rgba(201,168,76,.4);color:var(--text-primary);background:rgba(201,168,76,.08); }
+.mm-marker { background:transparent !important; border:none !important; }
+#m-monitor-map .leaflet-control-attribution { display:none; }
+@keyframes mPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.4)} }
+</style>
 </body>
 </html>
