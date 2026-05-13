@@ -20,7 +20,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://cpoleads.com/api/enrich-jobs?secret=cpo-scout-2026&limit=10&email=true",
+        "url": "https://cpoleads.com/api/enrich-jobs?secret=cpo-scout-2026&limit=20&email=true",
         "options": {
           "timeout": 60000
         }
