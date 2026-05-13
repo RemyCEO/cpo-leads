@@ -207,9 +207,10 @@ function showPaywall() {
 
   const pw = document.createElement('div');
   pw.id = 'paywall-overlay';
-  pw.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(6,8,13,0.97);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(12px);overflow-y:auto';
+  pw.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(6,8,13,0.97);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(12px);overflow-y:auto;cursor:pointer';
+  pw.onclick = function(e) { if (e.target === pw) pw.remove(); };
   pw.innerHTML = `
-    <div style="max-width:480px;width:100%;font-family:Inter,system-ui,sans-serif;background:rgba(13,17,23,0.95);border:1px solid rgba(201,168,76,.2);border-radius:16px;padding:32px 24px;box-shadow:0 24px 80px rgba(0,0,0,.6)">
+    <div onclick="event.stopPropagation()" style="max-width:480px;width:100%;cursor:default;font-family:Inter,system-ui,sans-serif;background:rgba(13,17,23,0.95);border:1px solid rgba(201,168,76,.2);border-radius:16px;padding:32px 24px;box-shadow:0 24px 80px rgba(0,0,0,.6)">
       <div style="text-align:center;margin-bottom:20px">
         <div style="display:inline-block;padding:6px 14px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;margin-bottom:14px">OPERATIONAL ACCESS</div>
         <h2 style="color:#C9A84C;font-size:32px;font-weight:800;margin-bottom:4px">3 Days Free</h2>
