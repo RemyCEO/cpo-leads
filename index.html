@@ -76,7 +76,7 @@
       "name": "What security measures protect my data?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "CPO LEADS employs military-grade encryption across all data transmission and storage. Your personal information, deployment history, and communications are protected with end-to-end encryption."
+        "text": "CPO LEADS uses SSL encryption for all data in transit. Payments are processed securely through Stripe (PCI DSS Level 1 certified). We never store your payment details."
       }
     },
     {
@@ -1880,8 +1880,8 @@ section {
       </div>
       <div class="hero-divider"></div>
       <div class="hero-stat">
-        <div class="hero-stat-value">2x Daily</div>
-        <div class="hero-stat-label">Auto-Updated</div>
+        <div class="hero-stat-value">24/7</div>
+        <div class="hero-stat-label">Live Updates</div>
       </div>
     </div>
   </div>
@@ -1905,72 +1905,31 @@ section {
     </div>
     <div class="opp-row opp-row-header">
       <span>Position</span>
-      <span>Employer</span>
       <span>Region</span>
-      <span>Day Rate</span>
-      <span>Risk</span>
+      <span>Salary</span>
       <span></span>
     </div>
-    <div class="opps-list reveal">
-      <div class="opp-row">
-        <div>
-          <div class="opp-title">Senior Close Protection Operative</div>
-          <div class="opp-company" style="display:none;">Verified Employer</div>
-        </div>
-        <div class="opp-company"><span style="opacity:.5">&#128274;</span> Verified Employer</div>
-        <div class="opp-location">Middle East</div>
-        <div class="opp-rate">$800–900/day</div>
-        <div><span class="opp-risk risk-medium">Medium</span></div>
-        <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
-      </div>
-      <div class="opp-row">
-        <div>
-          <div class="opp-title">PSD Team Leader</div>
-          <div class="opp-company" style="display:none;">Verified Employer</div>
-        </div>
-        <div class="opp-company"><span style="opacity:.5">&#128274;</span> Verified Employer</div>
-        <div class="opp-location">Middle East</div>
-        <div class="opp-rate">$1,100–1,300/day</div>
-        <div><span class="opp-risk risk-high">High</span></div>
-        <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
-      </div>
-      <div class="opp-row">
-        <div>
-          <div class="opp-title">Maritime Security Officer</div>
-          <div class="opp-company" style="display:none;">Verified Employer</div>
-        </div>
-        <div class="opp-company"><span style="opacity:.5">&#128274;</span> Verified Employer</div>
-        <div class="opp-location">Maritime — Indian Ocean</div>
-        <div class="opp-rate">$600–700/day</div>
-        <div><span class="opp-risk risk-high">High</span></div>
-        <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
-      </div>
-      <div class="opp-row">
-        <div>
-          <div class="opp-title">Executive Protection — UHNW Family</div>
-          <div class="opp-company" style="display:none;">Verified Employer</div>
-        </div>
-        <div class="opp-company"><span style="opacity:.5">&#128274;</span> Verified Employer</div>
-        <div class="opp-location">Europe</div>
-        <div class="opp-rate">$650–750/day</div>
-        <div><span class="opp-risk risk-low">Low</span></div>
-        <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
-      </div>
-      <div class="opp-row">
-        <div>
-          <div class="opp-title">Security Advisor — Extractive Sector</div>
-          <div class="opp-company" style="display:none;">Verified Employer</div>
-        </div>
-        <div class="opp-company"><span style="opacity:.5">&#128274;</span> Verified Employer</div>
-        <div class="opp-location">Africa</div>
-        <div class="opp-rate">$900–1,000/day</div>
-        <div><span class="opp-risk risk-medium">Medium</span></div>
-        <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
-      </div>
+    <div class="opps-list reveal" id="live-jobs">
+      <div class="opp-row" style="justify-content:center;padding:32px;color:var(--text-muted)">Loading live contracts...</div>
     </div>
     <div class="opps-footer reveal">
-      <a href="#pricing">View all 42 opportunities &rarr;</a>
+      <a href="#pricing" id="view-all-link">View all opportunities &rarr;</a>
     </div>
+    <script>
+    fetch('/api/featured-jobs').then(r=>r.json()).then(d=>{
+      const el=document.getElementById('live-jobs');
+      const link=document.getElementById('view-all-link');
+      if(d.jobs&&d.jobs.length){
+        el.innerHTML=d.jobs.map(j=>`<div class="opp-row">
+          <div><div class="opp-title">${j.title}</div></div>
+          <div class="opp-location">${j.location||j.country||'International'}</div>
+          <div class="opp-rate">${j.salary}</div>
+          <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
+        </div>`).join('');
+        if(link&&d.total) link.textContent='View all '+d.total+' opportunities →';
+      }
+    }).catch(()=>{});
+    </script>
   </div>
 </section>
 
@@ -1988,19 +1947,19 @@ section {
       <p style="color:var(--text-muted);font-size:14px;margin-bottom:32px">Or <strong style="color:var(--gold)">$199/year</strong> after trial — save $40 annually</p>
 
       <div style="text-align:left;display:flex;flex-direction:column;gap:12px;margin-bottom:32px">
-        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Full access to all contract listings worldwide</span></div>
-        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Curated job matching and recommendations</span></div>
-        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Verified operator profile with credential badges</span></div>
-        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">End-to-end encrypted messaging with employers</span></div>
-        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Daily intelligence briefings and threat data</span></div>
-        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Global threat map and travel risk assessments</span></div>
-        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Priority intel alerts for your regions and skillset</span></div>
-        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Elite contractor network and referral access</span></div>
-        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Direct application to verified employers</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Full access to 350+ contract listings worldwide</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">New verified contracts added daily across all regions</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">89 verified CP/EP companies profiled</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Industry intel feed with security news</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Job tracker — track applications from applied to offer</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Save and organize your top opportunities</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Exclusive Telegram community for operators</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Direct application links to employer listings</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Desktop and mobile-optimized dashboard</span></div>
       </div>
 
-      <a href="https://buy.stripe.com/bJe14n3lk4pJg0Q5dB7AI02" class="btn-gold" style="width:100%;justify-content:center;padding:16px;font-size:14px;margin-bottom:12px">Start Free Trial — 3 Days Free</a>
-      <p style="color:var(--text-muted);font-size:12px;margin-bottom:16px">Sign up, add a card, explore everything. Charged $19.90/mo after 3 days.</p>
+      <a href="https://buy.stripe.com/5kQ6oHf42g8rbKAgWj7AI04" class="btn-gold" style="width:100%;justify-content:center;padding:16px;font-size:14px;margin-bottom:12px">Start Free Trial — 3 Days Free</a>
+      <p style="color:var(--text-muted);font-size:12px;margin-bottom:16px">Add a card, explore everything free for 3 days. Then $19.90/mo. Cancel anytime.</p>
       <p style="color:var(--text-dim);font-size:11px">Secure payment via Stripe. Cancel anytime.</p>
     </div>
   </div>
@@ -2172,7 +2131,7 @@ section {
         <div class="credibility-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
-        <span class="credibility-text">Military-Grade Encryption</span>
+        <span class="credibility-text">SSL Encrypted</span>
       </div>
       <div class="credibility-item">
         <div class="credibility-icon">
@@ -2196,74 +2155,6 @@ section {
   </div>
 </section>
 
-<!-- ===== PRICING ===== -->
-<section class="pricing-section" id="pricing">
-  <div class="container">
-    <div class="section-divider"></div>
-    <div class="reveal">
-      <div class="section-label">Operational Access</div>
-      <h2 class="section-title">One Plan. <span class="gold-text">Full Access.</span></h2>
-      <p class="section-sub" style="margin: 16px auto 0;">No tiers, no restrictions. Every operator gets complete platform access from day one.</p>
-    </div>
-    <div class="pricing-card glass-card reveal">
-      <div class="pricing-card-glow"></div>
-      <div class="pricing-card-header">
-        <div class="pricing-badge">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          Operational Access
-        </div>
-        <div class="pricing-amount"><span class="gold-text">3 Days Free</span></div>
-        <p class="pricing-period">Then $19.90/month. Cancel anytime — you won't be charged during trial.</p>
-        <p class="pricing-annual">Or <strong>$199/year</strong> after trial — save $40 annually</p>
-      </div>
-      <div class="pricing-card-body">
-        <ul class="pricing-features">
-          <li>
-            <span class="pricing-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-            Full access to all contract listings worldwide
-          </li>
-          <li>
-            <span class="pricing-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-            Curated job matching and recommendations
-          </li>
-          <li>
-            <span class="pricing-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-            Verified operator profile with credential badges
-          </li>
-          <li>
-            <span class="pricing-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-            End-to-end encrypted messaging with employers
-          </li>
-          <li>
-            <span class="pricing-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-            Daily intelligence briefings and threat data
-          </li>
-          <li>
-            <span class="pricing-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-            Global threat map and travel risk assessments
-          </li>
-          <li>
-            <span class="pricing-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-            Priority intel alerts for your regions and skillset
-          </li>
-          <li>
-            <span class="pricing-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-            Elite contractor network and referral access
-          </li>
-          <li>
-            <span class="pricing-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-            Direct application to verified employers
-          </li>
-        </ul>
-        <a href="app.html?login" class="btn-gold pricing-cta">Start Free Trial — 3 Days Free</a>
-        <p style="font-size:11px;color:#7a7770;margin-top:8px">Sign up, add a card, explore everything. Charged $19.90/mo after 3 days.</p>
-      </div>
-      <div class="pricing-card-footer">
-        Secure payment via Stripe. Cancel anytime.
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ===== FAQ ===== -->
 <section class="faq-section" id="faq">
@@ -2298,7 +2189,7 @@ section {
           <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
         <div class="faq-answer">
-          <div class="faq-answer-inner">CPO LEADS employs military-grade encryption across all data transmission and storage. Your personal information, deployment history, and communications are protected with end-to-end encryption. We follow zero-knowledge architecture for messaging, meaning not even our team can read your messages. All infrastructure is hosted in SOC 2 compliant data centers.</div>
+          <div class="faq-answer-inner">CPO LEADS uses SSL encryption for all data in transit and your account is protected with secure authentication via Supabase. Payments are processed through Stripe, which is PCI DSS Level 1 certified. We never store your payment details — Stripe handles all card data securely.</div>
         </div>
       </div>
       <div class="faq-item">
