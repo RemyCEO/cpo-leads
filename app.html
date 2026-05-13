@@ -2982,15 +2982,27 @@ function renderMonitorMarkers() {
       iconSize: [size, size],
       iconAnchor: [size/2, size/2]
     });
+    const badge = ev.type === 'conflict' ? 'CONFLICT' : (ev.category || 'DISASTER').toUpperCase();
+    const timeStr = ev.date ? formatIntelDate(ev.date) : '';
+    const popupHtml = '<div class="monitor-popup">' +
+      '<div class="mp-header"><span class="mp-badge" style="background:'+color+'22;color:'+color+';border:1px solid '+color+'44">'+badge+'</span></div>' +
+      '<div class="mp-title">'+ev.title+'</div>' +
+      '<div class="mp-meta">'+(ev.country?'<span class="mp-tag">'+ev.country+'</span>':'')+'<span class="mp-tag">'+ev.category+'</span>'+(timeStr?'<span class="mp-tag">'+timeStr+'</span>':'')+'</div>' +
+      '<div class="mp-coords">'+ev.lat.toFixed(2)+'°, '+ev.lng.toFixed(2)+'°</div>' +
+    '</div>';
     const marker = L.marker([ev.lat, ev.lng], { icon: icon })
-      .bindTooltip('<div style="font-weight:700;font-size:12px;margin-bottom:2px">'+ev.title.substring(0,60)+'</div><div style="font-size:11px;color:#aaa">'+(ev.country||'')+(ev.category?' &middot; '+ev.category:'')+'</div>', {
-        className: 'monitor-tooltip',
-        direction: 'top',
-        offset: [0, -8]
+      .bindPopup(popupHtml, {
+        className: 'monitor-popup-container',
+        maxWidth: 300,
+        minWidth: 220,
+        closeButton: true,
+        offset: [0, -6]
       })
       .addTo(_monitorMap);
 
-    marker.on('click', () => flyToEvent(ev));
+    marker.on('click', () => {
+      _monitorMap.flyTo([ev.lat, ev.lng], 5, { duration: 0.8 });
+    });
     _monitorMarkers.push(marker);
   });
 
@@ -3025,9 +3037,29 @@ function flyToEvent(ev) {
 </script>
 <style>
 .monitor-marker { background:transparent !important; border:none !important; }
-.monitor-tooltip { background:rgba(10,14,26,.95) !important; border:1px solid rgba(201,168,76,.2) !important; color:#e8e6e3 !important; border-radius:6px !important; padding:8px 12px !important; box-shadow:0 4px 20px rgba(0,0,0,.5) !important; font-family:'Inter',sans-serif !important; }
-.monitor-tooltip::before { border-top-color:rgba(10,14,26,.95) !important; }
 @keyframes pulse-marker { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.4)} }
+
+/* Popup styling */
+.monitor-popup-container .leaflet-popup-content-wrapper {
+  background: rgba(10,14,26,.97) !important;
+  border: 1px solid rgba(201,168,76,.25) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6) !important;
+  color: #e8e6e3 !important;
+  font-family: 'Inter', sans-serif !important;
+  padding: 0 !important;
+}
+.monitor-popup-container .leaflet-popup-content { margin: 0 !important; width: auto !important; }
+.monitor-popup-container .leaflet-popup-tip { background: rgba(10,14,26,.97) !important; border: 1px solid rgba(201,168,76,.25) !important; border-top: none !important; border-left: none !important; }
+.monitor-popup-container .leaflet-popup-close-button { color: #7a7770 !important; font-size: 20px !important; top: 8px !important; right: 10px !important; }
+.monitor-popup-container .leaflet-popup-close-button:hover { color: #C9A84C !important; }
+.monitor-popup { padding: 16px 18px; }
+.mp-header { margin-bottom: 10px; }
+.mp-badge { display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 1.5px; padding: 3px 10px; border-radius: 4px; }
+.mp-title { font-size: 0.9rem; font-weight: 700; color: #e8e6e3; line-height: 1.4; margin-bottom: 10px; }
+.mp-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.mp-tag { font-size: 0.65rem; padding: 3px 8px; border-radius: 12px; background: rgba(201,168,76,.08); color: #C9A84C; border: 1px solid rgba(201,168,76,.15); }
+.mp-coords { font-size: 0.6rem; color: #4a4740; font-family: monospace; letter-spacing: 0.5px; }
 </style>
 
 <!-- Mobile Bottom Nav -->

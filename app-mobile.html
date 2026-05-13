@@ -1933,10 +1933,29 @@ function renderMobileMonitorMarkers() {
       html: '<div style="width:'+size+'px;height:'+size+'px;background:'+color+';border-radius:50%;border:2px solid '+color+'88;box-shadow:0 0 '+size+'px '+color+'66,0 0 '+(size*2)+'px '+color+'22;animation:mPulse 2.5s infinite"></div>',
       iconSize: [size, size], iconAnchor: [size/2, size/2]
     });
-    const marker = L.marker([ev.lat, ev.lng], { icon: icon }).addTo(_mMonitorMap);
+    const badge = ev.type === 'conflict' ? 'CONFLICT' : (ev.category || 'DISASTER').toUpperCase();
+    const timeStr = ev.date ? formatIntelDate(ev.date) : '';
+    const popupHtml = '<div class="mm-popup">' +
+      '<div style="margin-bottom:8px"><span style="display:inline-block;font-size:0.6rem;font-weight:700;letter-spacing:1.5px;padding:3px 10px;border-radius:4px;background:'+color+'22;color:'+color+';border:1px solid '+color+'44">'+badge+'</span></div>' +
+      '<div style="font-size:0.9rem;font-weight:700;color:#e8e6e3;line-height:1.4;margin-bottom:8px">'+ev.title+'</div>' +
+      '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">' +
+        (ev.country?'<span class="mm-tag">'+ev.country+'</span>':'') +
+        '<span class="mm-tag">'+ev.category+'</span>' +
+        (timeStr?'<span class="mm-tag">'+timeStr+'</span>':'') +
+      '</div>' +
+      '<div style="font-size:0.6rem;color:#4a4740;font-family:monospace">'+ev.lat.toFixed(2)+'°, '+ev.lng.toFixed(2)+'°</div>' +
+    '</div>';
+    const marker = L.marker([ev.lat, ev.lng], { icon: icon })
+      .bindPopup(popupHtml, {
+        className: 'mm-popup-container',
+        maxWidth: 280,
+        minWidth: 200,
+        closeButton: true,
+        offset: [0, -6]
+      })
+      .addTo(_mMonitorMap);
     marker.on('click', () => {
       _mMonitorMap.flyTo([ev.lat, ev.lng], 5, { duration: 0.8 });
-      showMobileEventDetail(ev);
     });
     _mMonitorMarkers.push(marker);
   });
@@ -1994,6 +2013,22 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catc
 .mm-marker { background:transparent !important; border:none !important; }
 #m-monitor-map .leaflet-control-attribution { display:none; }
 @keyframes mPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.4)} }
+
+.mm-popup-container .leaflet-popup-content-wrapper {
+  background: rgba(10,14,26,.97) !important;
+  border: 1px solid rgba(201,168,76,.25) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6) !important;
+  color: #e8e6e3 !important;
+  font-family: 'Inter', sans-serif !important;
+  padding: 0 !important;
+}
+.mm-popup-container .leaflet-popup-content { margin: 0 !important; width: auto !important; }
+.mm-popup-container .leaflet-popup-tip { background: rgba(10,14,26,.97) !important; border: 1px solid rgba(201,168,76,.25) !important; border-top: none !important; border-left: none !important; }
+.mm-popup-container .leaflet-popup-close-button { color: #7a7770 !important; font-size: 22px !important; top: 8px !important; right: 10px !important; width: 28px !important; height: 28px !important; }
+.mm-popup-container .leaflet-popup-close-button:hover { color: #C9A84C !important; }
+.mm-popup { padding: 14px 16px; }
+.mm-tag { font-size: 0.65rem; padding: 3px 8px; border-radius: 12px; background: rgba(201,168,76,.08); color: #C9A84C; border: 1px solid rgba(201,168,76,.15); }
 </style>
 </body>
 </html>
