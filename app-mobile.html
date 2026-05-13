@@ -1249,7 +1249,7 @@ function mSwitchNav(pageId, el) {
 // Page switching (works with app.js functions)
 function mSwitchPage(pageId) {
   // Gate premium pages behind subscription
-  if (['intel','profile','strategy'].includes(pageId) && !_isSubscribed) {
+  if (['intel','profile','strategy','companies'].includes(pageId) && !_isSubscribed) {
     showPaywall();
     return;
   }

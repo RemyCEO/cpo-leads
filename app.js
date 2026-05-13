@@ -51,10 +51,16 @@ async function authSignup() {
   if(pass.length<6) return showAuthError('Password must be at least 6 characters');
   const {data,error} = await sb.auth.signUp({email,password:pass});
   if(error) return showAuthError(error.message);
-  if(data.user && !data.user.confirmed_at) {
-    showAuthSuccess('Check your email for confirmation link!');
-  } else {
-    onAuthSuccess(data.user);
+  if(data.user) {
+    // Auto-login after signup (email confirmation disabled in Supabase)
+    const {data:loginData, error:loginErr} = await sb.auth.signInWithPassword({email,password:pass});
+    if(loginErr) {
+      // If auto-login fails, still show success
+      showAuthSuccess('Account created! You can now log in.');
+      showLogin();
+      return;
+    }
+    onAuthSuccess(loginData.user);
   }
 }
 
@@ -409,7 +415,7 @@ document.addEventListener('keydown', e => {
 
 function switchTab(tab) {
   // Gate premium tabs behind subscription/trial (except jobs — soft paywall)
-  if (['guide','strategy'].includes(tab) && !_isSubscribed) {
+  if (['guide','strategy','companies'].includes(tab) && !_isSubscribed) {
     showPaywall();
     return;
   }
@@ -759,7 +765,7 @@ function renderList(list) {
     }
 
     // Render grouped by date
-    const FREE_PREVIEW = 5;
+    const FREE_PREVIEW = 3;
     const showAll = _isSubscribed || list.length <= FREE_PREVIEW;
     const fullList = showAll ? list : list.slice(0, FREE_PREVIEW);
     const lockedCount = list.length - fullList.length;

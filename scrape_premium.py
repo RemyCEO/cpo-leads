@@ -1120,7 +1120,7 @@ def scrape_usajobs():
                     "source_url": pos.get("PositionURI", ""),
                     "country": "USA",
                     "salary": salary,
-                    "notes": f"Federal job via USAJobs. {pos.get('QualificationSummary', '')[:200]}",
+                    "notes": f"Federal job via USAJobs. {pos.get('QualificationSummary', '')[:500]}",
                 })
             log(f"  USAJobs '{q}': {len(results)} results, {sum(1 for r in results if is_cp_job(r.get('MatchedObjectDescriptor',{}).get('PositionTitle','')))} CP matches")
         except Exception as e:
@@ -1203,7 +1203,7 @@ def scrape_jooble():
                     "source_url": item.get("link", ""),
                     "country": guess_country(item.get("location", "")) or "",
                     "salary": clean(item.get("salary", "")),
-                    "notes": f"Aggregated via Jooble. {clean(item.get('snippet', ''))[:150]}",
+                    "notes": f"Aggregated via Jooble. {clean(item.get('snippet', ''))[:500]}",
                 })
                 count += 1
             log(f"  Jooble '{q['keywords']}': {count} CP jobs from {len(results)} results")

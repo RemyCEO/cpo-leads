@@ -395,14 +395,14 @@ def scrape_linkedin_company_posts():
                 apply_url = u.rstrip('.')
                 break
             jobs.append({
-                "title": title[:100],
+                "title": title[:300],
                 "company": company_name,
                 "location": location,
                 "source": "LinkedIn Company Page",
                 "source_url": apply_url or url,
                 "country": guess_country(location),
                 "salary": "",
-                "notes": text[:250],
+                "notes": text[:500],
             })
         time.sleep(3)
     # Deduplicate
@@ -541,14 +541,14 @@ def scrape_linkedin_posts():
             source_url = url_part if 'linkedin.com' in url_part else ""
 
             jobs.append({
-                "title": title[:100],
+                "title": title[:300],
                 "company": company[:100],
                 "location": location,
                 "source": "LinkedIn Posts",
                 "source_url": source_url,
                 "country": guess_country(location),
                 "salary": "",
-                "notes": snippet[:250],
+                "notes": snippet[:500],
             })
 
     # Deduplicate within this source
