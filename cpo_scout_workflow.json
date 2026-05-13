@@ -1,0 +1,136 @@
+{
+  "name": "CPO Scout — Job Enrichment Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "triggerAtHour": 7 },
+            { "triggerAtHour": 13 },
+            { "triggerAtHour": 19 }
+          ]
+        }
+      },
+      "id": "schedule",
+      "name": "Schedule (3x daily)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://cpoleads.com/api/enrich-jobs?secret=cpo-scout-2026&limit=10",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "enrich",
+      "name": "Run Scout Enrichment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond1",
+              "leftValue": "={{ $json.jobs_enriched }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "check",
+      "name": "Any enriched?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8647809461:AAGTsrtOCXyauEo5j74X_Cn6Jq3OeLw0Q8I/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "8790783341"
+            },
+            {
+              "name": "text",
+              "value": "=🔍 CPO Scout Report\n\n✅ Enriched: {{ $json.jobs_enriched }} jobs\n❌ Failed: {{ $json.jobs_failed }}\n📋 Checked: {{ $json.jobs_checked }}\n\nDetails:\n{{ $json.details.filter(d => d.status === 'enriched').map(d => '• ' + d.title + ' → ' + d.fields_updated.join(', ')).join('\\n') }}\n\n⏰ {{ new Date().toLocaleString('nb-NO') }}"
+            },
+            {
+              "name": "parse_mode",
+              "value": "HTML"
+            }
+          ]
+        }
+      },
+      "id": "telegram_report",
+      "name": "Telegram Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8647809461:AAGTsrtOCXyauEo5j74X_Cn6Jq3OeLw0Q8I/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "8790783341"
+            },
+            {
+              "name": "text",
+              "value": "=🔍 CPO Scout: Ingen jobber trengte enrichment ({{ $json.jobs_checked }} sjekket)"
+            }
+          ]
+        }
+      },
+      "id": "telegram_skip",
+      "name": "Telegram (no updates)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 400]
+    }
+  ],
+  "connections": {
+    "Schedule (3x daily)": {
+      "main": [
+        [{ "node": "Run Scout Enrichment", "type": "main", "index": 0 }]
+      ]
+    },
+    "Run Scout Enrichment": {
+      "main": [
+        [{ "node": "Any enriched?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Any enriched?": {
+      "main": [
+        [{ "node": "Telegram Report", "type": "main", "index": 0 }],
+        [{ "node": "Telegram (no updates)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
