@@ -415,7 +415,7 @@ document.addEventListener('keydown', e => {
 
 function switchTab(tab) {
   // Gate premium tabs behind subscription/trial (except jobs — soft paywall)
-  if (['guide','strategy','companies'].includes(tab) && !_isSubscribed) {
+  if (['guide','strategy','companies','settings'].includes(tab) && !_isSubscribed) {
     showPaywall();
     return;
   }
