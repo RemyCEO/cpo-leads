@@ -23,6 +23,13 @@ const BAD_TITLE_PATTERNS = [
   /\[object Object\]/i,               // Serialiseringsfeil
   /\\u[\da-f]{4}/i,                   // Unicode escape i tittel
   /^#\d+$/,                           // Bare ID-nummer
+  /^follow us/i,                       // Scraper-søppel
+  /^sign up to/i,                      // Scraper-søppel
+  /^need to advertise/i,               // Scraper-søppel
+  /^WARNING/i,                         // Ikke en jobb
+  /^subscribe/i,                       // Scraper-søppel
+  /^click here/i,                      // Scraper-søppel
+  /^share this/i,                      // Scraper-søppel
 ];
 
 const BAD_NOTES_PATTERNS = [
@@ -139,6 +146,7 @@ export default async function handler(req, res) {
     if (!error && jobs) {
       const allIssues = [];
       const fixableJobs = [];
+      const junkIds = [];
 
       for (const job of jobs) {
         const issues = checkJobQuality(job);
@@ -147,10 +155,17 @@ export default async function handler(req, res) {
 
           // Samle fikserbare problemer
           if (autofix) {
+            // Sjekk om tittelen er søppel som bør slettes helt
+            const JUNK_PATTERNS = [/^follow us/i, /^sign up to/i, /^need to advertise/i, /^WARNING/i, /^subscribe/i, /^click here/i, /^share this/i];
+            const isJunk = job.title && JUNK_PATTERNS.some(p => p.test(job.title));
+            if (isJunk) {
+              junkIds.push(job.id);
+              continue;
+            }
+
             const fixes = {};
             for (const issue of issues) {
               if (issue.field === 'title' && issue.issue === 'missing') {
-                // Prøv å utlede tittel fra notes
                 if (job.notes && job.notes.length > 10) {
                   fixes.title = job.notes.substring(0, 100).split(/[.\n]/)[0].trim() || 'Close Protection Operator';
                 } else {
@@ -158,7 +173,6 @@ export default async function handler(req, res) {
                 }
               }
               if (issue.field === 'title' && issue.issue.includes('bad_pattern')) {
-                // Fjern URL-titler, erstatt med generisk
                 if (/^https?:\/\//i.test(job.title)) {
                   fixes.title = job.notes
                     ? job.notes.substring(0, 100).split(/[.\n]/)[0].trim() || 'Security Professional'
@@ -166,7 +180,6 @@ export default async function handler(req, res) {
                 }
               }
               if (issue.field === 'notes' && issue.issue.includes('bad_pattern')) {
-                // Sanitize notes
                 fixes.notes = job.notes
                   .replace(/<script[^>]*>.*?<\/script>/gi, '')
                   .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
@@ -178,6 +191,17 @@ export default async function handler(req, res) {
               fixableJobs.push({ id: job.id, fixes });
             }
           }
+        }
+      }
+
+      // Autofix: slett søppel-jobber (ikke ekte stillinger)
+      if (autofix && junkIds.length > 0) {
+        const { error: junkErr } = await supabase
+          .from('job_listings')
+          .delete()
+          .in('id', junkIds);
+        if (!junkErr) {
+          report.fixes_applied.push(`Deleted ${junkIds.length} junk/non-job listings`);
         }
       }
 
