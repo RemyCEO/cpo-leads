@@ -931,41 +931,53 @@ def notify_telegram_jobs(jobs, total_new, total_db):
         send_telegram(f"... og {len(jobs) - 15} flere. cpoleads.com 🔥")
 
 def scrape_usajobs():
-    """Scrape USAJobs.gov API for federal EP/security positions"""
+    """Scrape USAJobs.gov via HTML search pages (no API key needed)"""
     jobs = []
-    queries = ["executive protection", "protective security", "security specialist protection"]
+    queries = ["executive+protection", "protective+security+specialist", "security+specialist+protection"]
+    skip_words = ["data protection", "child protection", "it specialist", "information security", "cybersecurity"]
     for q in queries:
-        time.sleep(2)
+        time.sleep(3)
         try:
-            url = f"https://data.usajobs.gov/api/Search?Keyword={q.replace(' ', '+')}&ResultsPerPage=25"
-            headers = {"Host": "data.usajobs.gov", "User-Agent": "cpoleads@strategioai.com", "Authorization-Key": "cpoLeads2026"}
-            r = requests.get(url, headers=headers, timeout=15)
-            if r.status_code != 200:
+            url = f"https://www.usajobs.gov/search/results?k={q}&p=1"
+            html = fetch_with_browser(url, wait_time=4)
+            if not html:
                 continue
-            data = r.json()
-            for item in data.get("SearchResult", {}).get("SearchResultItems", []):
-                mp = item.get("MatchedObjectDescriptor", {})
-                title = mp.get("PositionTitle", "")
-                if not title or any(skip in title.lower() for skip in ["data protection", "child protection", "it specialist"]):
-                    continue
-                org = mp.get("OrganizationName", "")
-                locs = mp.get("PositionLocation", [])
-                loc = locs[0].get("LocationName", "") if locs else ""
-                salary_min = mp.get("PositionRemuneration", [{}])[0].get("MinimumRange", "") if mp.get("PositionRemuneration") else ""
-                salary_max = mp.get("PositionRemuneration", [{}])[0].get("MaximumRange", "") if mp.get("PositionRemuneration") else ""
-                salary = f"${salary_min}-${salary_max}/yr" if salary_min and salary_max else ""
-                apply_url = mp.get("PositionURI", "")
-                desc = mp.get("UserArea", {}).get("Details", {}).get("MajorDuties", [""])[0][:500] if mp.get("UserArea") else ""
-                jobs.append({
-                    "title": title,
-                    "company": org or "US Federal Government",
-                    "location": loc,
-                    "source": "USAJobs",
-                    "source_url": apply_url,
-                    "country": "US",
-                    "salary": salary,
-                    "notes": desc,
-                })
+            # Extract job cards from search results
+            cards = re.findall(r'<a[^>]*href="(/job/[^"]+)"[^>]*class="[^"]*usajobs-search-result--core[^"]*"[^>]*>.*?<h3[^>]*>([^<]+)</h3>.*?<span[^>]*class="[^"]*department[^"]*"[^>]*>([^<]*)</span>.*?<span[^>]*class="[^"]*location[^"]*"[^>]*>([^<]*)</span>', html, re.DOTALL)
+            if not cards:
+                # Fallback: simpler pattern
+                titles = re.findall(r'<h3[^>]*class="[^"]*usajobs[^"]*"[^>]*>([^<]+)</h3>', html)
+                links = re.findall(r'href="(/job/[^"]+)"', html)
+                for i, title in enumerate(titles[:15]):
+                    title = clean(title)
+                    if not title or any(skip in title.lower() for skip in skip_words):
+                        continue
+                    link = f"https://www.usajobs.gov{links[i]}" if i < len(links) else "https://www.usajobs.gov"
+                    jobs.append({
+                        "title": title,
+                        "company": "US Federal Government",
+                        "location": "",
+                        "source": "USAJobs",
+                        "source_url": link,
+                        "country": "US",
+                        "salary": "",
+                        "notes": "",
+                    })
+            else:
+                for link, title, dept, loc in cards[:15]:
+                    title = clean(title)
+                    if not title or any(skip in title.lower() for skip in skip_words):
+                        continue
+                    jobs.append({
+                        "title": title,
+                        "company": clean(dept) or "US Federal Government",
+                        "location": clean(loc),
+                        "source": "USAJobs",
+                        "source_url": f"https://www.usajobs.gov{link}",
+                        "country": "US",
+                        "salary": "",
+                        "notes": "",
+                    })
         except Exception as e:
             log(f"  USAJobs error for '{q}': {e}")
     return jobs
@@ -1044,24 +1056,23 @@ def scrape_career_sites():
     except Exception as e:
         log(f"  Pinkerton Greenhouse error: {e}")
 
-    # Crisis24/GardaWorld - Dayforce
+    # Crisis24/GardaWorld - Dayforce (Playwright — JS-rendered)
     try:
-        r = requests.get("https://jobs.dayforcehcm.com/en-US/crisis24/CANDIDATEPORTAL/jobs?search=protection&count=25", timeout=15)
-        if r.status_code == 200:
-            data = r.json() if r.headers.get('content-type','').startswith('application/json') else {}
-            for j in data.get("jobs", data.get("items", [])):
-                title = j.get("title", j.get("name", ""))
-                if not title:
+        html = fetch_with_browser("https://jobs.dayforcehcm.com/en-US/crisis24/CANDIDATEPORTAL/jobs?search=protection", wait_time=5)
+        if html:
+            # Extract job cards: title + link
+            cards = re.findall(r'<a[^>]*href="(/en-US/crisis24/CANDIDATEPORTAL/jobs/\d+)"[^>]*>([^<]+)</a>', html)
+            for link, title in cards:
+                title = clean(title)
+                if not title or any(skip in title.lower() for skip in skip_words):
                     continue
-                loc = j.get("location", j.get("city", ""))
-                jid = j.get("id", j.get("jobId", ""))
                 jobs.append({
                     "title": title,
                     "company": "Crisis24 (GardaWorld)",
-                    "location": loc if isinstance(loc, str) else "",
+                    "location": "",
                     "source": "Crisis24 Careers",
-                    "source_url": f"https://jobs.dayforcehcm.com/en-US/crisis24/CANDIDATEPORTAL/jobs/{jid}" if jid else "",
-                    "country": guess_country(loc if isinstance(loc, str) else ""),
+                    "source_url": f"https://jobs.dayforcehcm.com{link}",
+                    "country": "",
                     "salary": "",
                     "notes": "",
                 })
@@ -1072,23 +1083,29 @@ def scrape_career_sites():
 
 
 def scrape_jooble():
-    """Scrape Jooble for EP/CP jobs — public search pages"""
+    """Scrape Jooble for EP/CP jobs — Playwright (blocks simple requests)"""
     jobs = []
+    skip_words = ["data protection", "child protection", "fire protection", "loss prevention"]
     searches = [
-        ("close+protection+officer", "https://jooble.org/SearchResult?ukw=close+protection+officer"),
-        ("executive+protection+agent", "https://jooble.org/SearchResult?ukw=executive+protection+agent"),
+        "https://jooble.org/SearchResult?ukw=close+protection+officer",
+        "https://jooble.org/SearchResult?ukw=executive+protection+agent",
+        "https://jooble.org/SearchResult?ukw=bodyguard+security",
     ]
-    for kw, url in searches:
+    for url in searches:
         time.sleep(3)
         try:
-            html = fetch(url)
+            html = fetch_with_browser(url, wait_time=4)
             if not html:
                 continue
-            # Jooble uses structured job cards
-            titles = re.findall(r'<h2[^>]*>.*?<a[^>]*href="([^"]+)"[^>]*>([^<]+)</a>', html, re.DOTALL)
-            for link, title in titles[:15]:
+            # Multiple patterns for Jooble's job cards
+            cards = re.findall(r'<a[^>]*class="[^"]*jooble[^"]*"[^>]*href="([^"]+)"[^>]*>([^<]+)</a>', html, re.DOTALL)
+            if not cards:
+                cards = re.findall(r'<h2[^>]*>.*?<a[^>]*href="([^"]+)"[^>]*>([^<]+)</a>', html, re.DOTALL)
+            if not cards:
+                cards = re.findall(r'<a[^>]*href="(https://jooble\.org/desc/[^"]+)"[^>]*>([^<]+)</a>', html, re.DOTALL)
+            for link, title in cards[:20]:
                 title = clean(title)
-                if not title or any(skip in title.lower() for skip in ["data protection", "child protection"]):
+                if not title or any(skip in title.lower() for skip in skip_words):
                     continue
                 if not link.startswith("http"):
                     link = "https://jooble.org" + link
@@ -1103,12 +1120,12 @@ def scrape_jooble():
                     "notes": "",
                 })
         except Exception as e:
-            log(f"  Jooble error for '{kw}': {e}")
+            log(f"  Jooble error: {e}")
     return jobs
 
 
 def scrape_ssr_personnel():
-    """Scrape SSR Personnel for security/protection jobs"""
+    """Scrape SSR Personnel for security/protection jobs — Playwright"""
     jobs = []
     ep_keywords = ["protection", "executive", "close protection", "bodyguard", "ep ", "cpo",
                    "security director", "security manager", "intelligence", "risk", "investigat",
@@ -1116,9 +1133,7 @@ def scrape_ssr_personnel():
     skip_words = ["data protection", "child protection", "fire alarm", "fire engineer",
                   "windchill", "software", "developer", "marketing", "sales engineer"]
     try:
-        html = fetch("https://www.ssr-personnel.com/jobs?countrycode=&keywords=&page=1&pagesize=50")
-        if not html:
-            html = fetch_with_browser("https://www.ssr-personnel.com/jobs?countrycode=&keywords=&page=1&pagesize=50", wait_time=3) or ""
+        html = fetch_with_browser("https://www.ssr-personnel.com/jobs?countrycode=&keywords=security&page=1&pagesize=50", wait_time=5) or ""
         # Extract job cards: title, URL, location, salary
         cards = re.findall(r'<a[^>]*href="(/job/[^"]+)"[^>]*>([^<]+)</a>', html)
         locations = re.findall(r'<span[^>]*class="[^"]*location[^"]*"[^>]*>([^<]+)</span>', html)
