@@ -23,6 +23,9 @@ export default async function handler(req, res) {
     .order('created_at', { ascending: false })
     .limit(100);
 
+  if (error) {
+    return res.status(500).send(`<!-- Supabase error: ${error.message} --> DB: ${process.env.SUPABASE_URL ? 'set' : 'missing'} KEY: ${process.env.SUPABASE_SERVICE_ROLE_KEY ? 'set' : 'missing'}`);
+  }
   const jobList = jobs || [];
   const count = jobList.length;
 
