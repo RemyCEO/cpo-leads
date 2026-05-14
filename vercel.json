@@ -10,6 +10,12 @@
     }
   ],
   "rewrites": [
-    { "source": "/app", "destination": "/app.html" }
+    { "source": "/app", "destination": "/app.html" },
+    { "source": "/bodyguard-jobs", "destination": "/bodyguard-jobs.html" },
+    { "source": "/close-protection-jobs", "destination": "/close-protection-jobs.html" },
+    { "source": "/executive-protection-jobs", "destination": "/executive-protection-jobs.html" },
+    { "source": "/maritime-security-jobs", "destination": "/maritime-security-jobs.html" },
+    { "source": "/security-jobs-london", "destination": "/security-jobs-london.html" },
+    { "source": "/security-jobs-dubai", "destination": "/security-jobs-dubai.html" }
   ]
 }
