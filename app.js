@@ -94,6 +94,19 @@ function _setSub(val, admin) {
   _isSubscribed = !!val;
   _isAdmin = !!admin;
   _subToken = val ? 7919 : 0;
+  // Cache subscription status so a network hiccup doesn't lock out paying users
+  if (val) {
+    localStorage.setItem('_sub_cache', JSON.stringify({ active: true, admin: !!admin, ts: Date.now() }));
+  }
+}
+function _getCachedSub() {
+  try {
+    const c = JSON.parse(localStorage.getItem('_sub_cache') || 'null');
+    if (!c || !c.active) return null;
+    // Cache valid for 24 hours
+    if (Date.now() - c.ts > 24 * 60 * 60 * 1000) return null;
+    return c;
+  } catch(e) { return null; }
 }
 
 // Re-validate subscription periodically (every 5 min)
@@ -103,8 +116,10 @@ setInterval(async () => {
     const res = await fetch(`/api/check-subscription?email=${encodeURIComponent(currentUser.email)}`);
     const sub = await res.json();
     const wasSub = _isSubscribed;
+    // Only revoke if API explicitly says inactive AND subscription expired (not just a DB glitch)
+    if (!sub.active && wasSub && !sub.expired) return; // Likely a transient error — keep current state
     _setSub(!!sub.active, sub.plan === 'admin');
-    // If subscription lapsed, reload jobs with masked data
+    if (!sub.active) localStorage.removeItem('_sub_cache');
     if (wasSub && !_isSubscribed) {
       leads = leads.filter(l => l.category !== 'job');
       persist();
@@ -153,18 +168,31 @@ async function onAuthSuccess(user) {
   currentUser = user;
   document.getElementById('user-email').textContent = user.email;
 
-  // Check subscription in background (admin bypass handled server-side)
-  try {
-    // Pass Stripe customer ID from URL for email-mismatch recovery
-    const _cid = new URLSearchParams(window.location.search).get('cid') || '';
-    const res = await fetch(`/api/check-subscription?email=${encodeURIComponent(user.email)}${_cid ? '&cid=' + encodeURIComponent(_cid) : ''}`);
-    const sub = await res.json();
-    _setSub(!!sub.active, sub.plan === 'admin');
-    // Clean URL params after successful auth
-    if (_cid && sub.active) window.history.replaceState({}, '', '/app.html');
-  } catch(e) {
-    console.error('Subscription check failed:', e);
-    _setSub(false, false);
+  // Check subscription with retry + cache fallback
+  const _cid = new URLSearchParams(window.location.search).get('cid') || '';
+  let subChecked = false;
+  for (let attempt = 0; attempt < 3 && !subChecked; attempt++) {
+    try {
+      if (attempt > 0) await new Promise(r => setTimeout(r, 1000 * attempt));
+      const res = await fetch(`/api/check-subscription?email=${encodeURIComponent(user.email)}${_cid ? '&cid=' + encodeURIComponent(_cid) : ''}`);
+      const sub = await res.json();
+      _setSub(!!sub.active, sub.plan === 'admin');
+      if (_cid && sub.active) window.history.replaceState({}, '', '/app.html');
+      if (!sub.active) localStorage.removeItem('_sub_cache');
+      subChecked = true;
+    } catch(e) {
+      console.warn(`Subscription check attempt ${attempt+1} failed:`, e);
+    }
+  }
+  // All retries failed — fall back to cached subscription status
+  if (!subChecked) {
+    const cached = _getCachedSub();
+    if (cached) {
+      console.log('Using cached subscription status');
+      _setSub(true, cached.admin);
+    } else {
+      _setSub(false, false);
+    }
   }
 
   // Let everyone in — Jobs tab is gated separately
