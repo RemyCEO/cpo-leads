@@ -26,6 +26,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           sed -i "s|SUPABASE_URL = .*|SUPABASE_URL = \"$SUPABASE_URL\"|" scrape_jobs.py
           sed -i "s|SUPABASE_KEY = .*|SUPABASE_KEY = \"$SUPABASE_KEY\"|" scrape_jobs.py
