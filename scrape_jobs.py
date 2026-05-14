@@ -1165,6 +1165,200 @@ def scrape_ssr_personnel():
     return jobs
 
 
+def scrape_unjobs():
+    """Scrape UNjobs.org for UN security positions"""
+    jobs = []
+    skip_words = ["data protection", "child protection", "information security", "cybersecurity", "it security"]
+    queries = ["security+officer", "protection+officer", "field+security"]
+    for q in queries:
+        time.sleep(3)
+        try:
+            html = fetch(f"https://unjobs.org/search/{q}")
+            if not html:
+                html = fetch_with_browser(f"https://unjobs.org/search/{q}", wait_time=4) or ""
+            cards = re.findall(r'<a[^>]*href="(https://unjobs\.org/vacancies/[^"]+)"[^>]*>([^<]+)</a>', html)
+            for link, title in cards[:20]:
+                title = clean(title)
+                if not title or any(skip in title.lower() for skip in skip_words):
+                    continue
+                # Extract org from page structure
+                jobs.append({
+                    "title": title,
+                    "company": "United Nations",
+                    "location": "",
+                    "source": "UNjobs",
+                    "source_url": link,
+                    "country": "International",
+                    "salary": "",
+                    "notes": "",
+                })
+        except Exception as e:
+            log(f"  UNjobs error: {e}")
+    return jobs
+
+
+def scrape_control_risks():
+    """Scrape Control Risks careers page"""
+    jobs = []
+    skip_words = ["data protection", "intern", "trainee", "marketing"]
+    ep_keywords = ["protection", "security", "intelligence", "risk", "investigat", "travel security",
+                   "crisis", "resilience", "executive", "consultant"]
+    try:
+        html = fetch_with_browser("https://www.controlrisks.com/careers/current-vacancies", wait_time=5)
+        if not html:
+            return jobs
+        cards = re.findall(r'<a[^>]*href="(/careers/current-vacancies/[^"]+)"[^>]*>([^<]+)</a>', html)
+        for link, title in cards:
+            title = clean(title)
+            if not title or any(skip in title.lower() for skip in skip_words):
+                continue
+            if not any(kw in title.lower() for kw in ep_keywords):
+                continue
+            jobs.append({
+                "title": title,
+                "company": "Control Risks",
+                "location": "",
+                "source": "Control Risks Careers",
+                "source_url": f"https://www.controlrisks.com{link}",
+                "country": "International",
+                "salary": "",
+                "notes": "",
+            })
+    except Exception as e:
+        log(f"  Control Risks error: {e}")
+    return jobs
+
+
+def scrape_nato():
+    """Scrape NATO careers for security positions"""
+    jobs = []
+    try:
+        html = fetch_with_browser("https://nato.taleo.net/careersection/2/jobsearch.ftl?lang=en", wait_time=5)
+        if not html:
+            return jobs
+        # Extract job titles and links
+        cards = re.findall(r'<a[^>]*href="(jobdetail\.ftl\?job=[^"]+)"[^>]*>([^<]+)</a>', html)
+        for link, title in cards:
+            title = clean(title)
+            if not title:
+                continue
+            if not any(kw in title.lower() for kw in ["security", "protection", "intelligence", "crisis", "defence"]):
+                continue
+            jobs.append({
+                "title": title,
+                "company": "NATO",
+                "location": "Brussels / International",
+                "source": "NATO Careers",
+                "source_url": f"https://nato.taleo.net/careersection/2/{link}",
+                "country": "International",
+                "salary": "",
+                "notes": "",
+            })
+    except Exception as e:
+        log(f"  NATO error: {e}")
+    return jobs
+
+
+def scrape_careers24_za():
+    """Scrape Careers24 South Africa for security/protection jobs"""
+    jobs = []
+    skip_words = ["data protection", "child protection", "it security", "cybersecurity"]
+    try:
+        html = fetch_with_browser("https://www.careers24.com/jobs/keywords-close-protection/", wait_time=4)
+        if not html:
+            html = fetch_with_browser("https://www.careers24.com/jobs/keywords-security-protection/", wait_time=4) or ""
+        cards = re.findall(r'<a[^>]*href="(/jobs/adverts/[^"]+)"[^>]*>([^<]+)</a>', html)
+        for link, title in cards[:20]:
+            title = clean(title)
+            if not title or any(skip in title.lower() for skip in skip_words):
+                continue
+            jobs.append({
+                "title": title,
+                "company": "",
+                "location": "South Africa",
+                "source": "Careers24",
+                "source_url": f"https://www.careers24.com{link}" if not link.startswith("http") else link,
+                "country": "South Africa",
+                "salary": "",
+                "notes": "",
+            })
+    except Exception as e:
+        log(f"  Careers24 error: {e}")
+    return jobs
+
+
+def scrape_bayt():
+    """Scrape Bayt.com for Middle East security/EP jobs"""
+    jobs = []
+    skip_words = ["data protection", "cybersecurity", "it security", "information security"]
+    try:
+        html = fetch_with_browser("https://www.bayt.com/en/international/jobs/close-protection-jobs/", wait_time=4)
+        if not html:
+            html = fetch_with_browser("https://www.bayt.com/en/international/jobs/executive-protection-jobs/", wait_time=4) or ""
+        cards = re.findall(r'<a[^>]*href="(/en/[^"]*job[^"]*\d+/)"[^>]*>([^<]+)</a>', html)
+        for link, title in cards[:20]:
+            title = clean(title)
+            if not title or any(skip in title.lower() for skip in skip_words):
+                continue
+            if not any(kw in title.lower() for kw in ["security", "protection", "guard", "officer", "investigat"]):
+                continue
+            jobs.append({
+                "title": title,
+                "company": "",
+                "location": "Middle East",
+                "source": "Bayt",
+                "source_url": f"https://www.bayt.com{link}" if not link.startswith("http") else link,
+                "country": "UAE",
+                "salary": "",
+                "notes": "",
+            })
+    except Exception as e:
+        log(f"  Bayt error: {e}")
+    return jobs
+
+
+def scrape_allied_securitas_g4s():
+    """Scrape Allied Universal, Securitas, G4S via their career search pages"""
+    jobs = []
+    skip_words = ["data protection", "intern", "trainee", "janitorial", "custodian"]
+    ep_keywords = ["executive protection", "close protection", "protective", "ep agent",
+                   "security director", "security manager", "intelligence", "investigations"]
+    sites = [
+        ("Allied Universal", "https://jobs.aus.com/search/?q=executive+protection&sortColumn=referencedate&sortDirection=desc"),
+        ("Allied Universal", "https://jobs.aus.com/search/?q=close+protection&sortColumn=referencedate&sortDirection=desc"),
+        ("Securitas", "https://www.securitas.com/careers/job-openings/?search=executive+protection"),
+        ("G4S", "https://careers.g4s.com/search/?q=close+protection&sortColumn=referencedate&sortDirection=desc"),
+    ]
+    for company, url in sites:
+        time.sleep(3)
+        try:
+            html = fetch_with_browser(url, wait_time=4)
+            if not html:
+                continue
+            cards = re.findall(r'<a[^>]*href="([^"]*(?:job|position|opening)[^"]*)"[^>]*>([^<]+)</a>', html, re.IGNORECASE)
+            for link, title in cards[:15]:
+                title = clean(title)
+                if not title or any(skip in title.lower() for skip in skip_words):
+                    continue
+                if not any(kw in title.lower() for kw in ep_keywords + ["security"]):
+                    continue
+                if not link.startswith("http"):
+                    link = url.split("/search")[0] + link if "/search" in url else link
+                jobs.append({
+                    "title": title,
+                    "company": company,
+                    "location": "",
+                    "source": f"{company} Careers",
+                    "source_url": link,
+                    "country": "",
+                    "salary": "",
+                    "notes": "",
+                })
+        except Exception as e:
+            log(f"  {company} error: {e}")
+    return jobs
+
+
 # --- MAIN ---
 
 def main():
@@ -1327,6 +1521,66 @@ def main():
     except Exception as e:
         log(f"  JOOBLE FAILED: {e}")
         errors.append(f"Jooble: {e}")
+
+    # UNjobs
+    try:
+        log("Scraping UNjobs.org...")
+        unjobs = scrape_unjobs()
+        log(f"  Found {len(unjobs)} jobs")
+        all_jobs.extend(unjobs)
+    except Exception as e:
+        log(f"  UNJOBS FAILED: {e}")
+        errors.append(f"UNjobs: {e}")
+
+    # Control Risks
+    try:
+        log("Scraping Control Risks...")
+        cr = scrape_control_risks()
+        log(f"  Found {len(cr)} jobs")
+        all_jobs.extend(cr)
+    except Exception as e:
+        log(f"  CONTROL RISKS FAILED: {e}")
+        errors.append(f"Control Risks: {e}")
+
+    # NATO
+    try:
+        log("Scraping NATO Careers...")
+        nato = scrape_nato()
+        log(f"  Found {len(nato)} jobs")
+        all_jobs.extend(nato)
+    except Exception as e:
+        log(f"  NATO FAILED: {e}")
+        errors.append(f"NATO: {e}")
+
+    # Careers24 South Africa
+    try:
+        log("Scraping Careers24 ZA...")
+        c24 = scrape_careers24_za()
+        log(f"  Found {len(c24)} jobs")
+        all_jobs.extend(c24)
+    except Exception as e:
+        log(f"  CAREERS24 FAILED: {e}")
+        errors.append(f"Careers24: {e}")
+
+    # Bayt (Middle East)
+    try:
+        log("Scraping Bayt.com...")
+        bayt = scrape_bayt()
+        log(f"  Found {len(bayt)} jobs")
+        all_jobs.extend(bayt)
+    except Exception as e:
+        log(f"  BAYT FAILED: {e}")
+        errors.append(f"Bayt: {e}")
+
+    # Allied Universal, Securitas, G4S
+    try:
+        log("Scraping Allied/Securitas/G4S...")
+        big3 = scrape_allied_securitas_g4s()
+        log(f"  Found {len(big3)} jobs")
+        all_jobs.extend(big3)
+    except Exception as e:
+        log(f"  ALLIED/SECURITAS/G4S FAILED: {e}")
+        errors.append(f"Allied/Securitas/G4S: {e}")
 
     # Deduplicate
     unique = deduplicate(all_jobs)
