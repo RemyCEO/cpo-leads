@@ -64,6 +64,29 @@ jobs:
           path: scrape_premium_log.txt
           retention-days: 7
 
+  enrich-jobs:
+    runs-on: ubuntu-latest
+    needs: [scrape-jobs, scrape-premium]
+    timeout-minutes: 5
+    steps:
+      - name: Wait for Vercel cache to clear
+        run: sleep 30
+      - name: Run Scout enrichment (3 batches of 20)
+        run: |
+          for i in 1 2 3; do
+            echo "=== Scout batch $i ==="
+            RESPONSE=$(curl -sf "https://cpoleads.com/api/enrich-jobs?secret=cpo-scout-2026&batch_size=20" || echo '{"error":"failed"}')
+            echo "$RESPONSE" | python3 -c "
+          import json,sys
+          try:
+            d=json.load(sys.stdin)
+            print(f'Checked: {d.get(\"jobs_checked\",0)}, Enriched: {d.get(\"jobs_enriched\",0)}, Failed: {d.get(\"jobs_failed\",0)}')
+          except:
+            print('Failed to parse response')
+          "
+            sleep 5
+          done
+
   scrape-alerts:
     runs-on: ubuntu-latest
     timeout-minutes: 10
