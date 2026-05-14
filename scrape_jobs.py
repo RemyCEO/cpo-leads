@@ -823,6 +823,78 @@ def deduplicate(jobs):
 
 # --- SUPABASE ---
 
+def ai_filter_jobs(jobs):
+    """Use Claude Haiku to filter and clean jobs before insert"""
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key or not jobs:
+        return jobs
+
+    # Process in batches of 30 (fit in one prompt)
+    filtered = []
+    for i in range(0, len(jobs), 30):
+        batch = jobs[i:i+30]
+        job_list = "\n".join(
+            f"{idx+1}. Title: {j['title']} | Company: {j.get('company','')} | Location: {j.get('location','')}"
+            for idx, j in enumerate(batch)
+        )
+        try:
+            r = requests.post("https://api.anthropic.com/v1/messages", headers={
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json"
+            }, json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 2000,
+                "messages": [{"role": "user", "content": f"""You are a job quality filter for a Close Protection / Executive Protection job board.
+
+Review these jobs and return ONLY the line numbers that are RELEVANT (close protection, executive protection, bodyguard, PSD, maritime security, security director/manager, protective intelligence, security consulting, travel security, risk management, investigations).
+
+REJECT: generic security guard, retail security, CCTV, fire alarm, data protection, IT security, cybersecurity, software, HR, marketing, admin, cleaning, catering, generic "security officer" at malls/hospitals/offices.
+
+Also flag any with bad titles (numbers only, URLs, warnings, job seeker posts).
+
+Return JSON: {{"keep": [1, 3, 5], "reject": [2, 4], "fixes": {{"1": "Better Title Here"}}}}
+
+Jobs:
+{job_list}"""}]
+            }, timeout=30)
+
+            if r.status_code == 200:
+                content = r.json()["content"][0]["text"]
+                # Extract JSON from response
+                import json as _json
+                # Find JSON in response
+                start = content.find("{")
+                end = content.rfind("}") + 1
+                if start >= 0 and end > start:
+                    result = _json.loads(content[start:end])
+                    keep_ids = set(result.get("keep", []))
+                    fixes = result.get("fixes", {})
+
+                    for idx, j in enumerate(batch):
+                        num = idx + 1
+                        if num in keep_ids:
+                            # Apply title fixes if suggested
+                            if str(num) in fixes:
+                                j["title"] = fixes[str(num)]
+                            filtered.append(j)
+
+                    rejected = len(batch) - len([x for x in range(len(batch)) if x+1 in keep_ids])
+                    log(f"  AI filter batch {i//30+1}: kept {len(keep_ids)}, rejected {rejected}")
+                else:
+                    filtered.extend(batch)
+            else:
+                log(f"  AI filter failed (HTTP {r.status_code}), keeping all")
+                filtered.extend(batch)
+        except Exception as e:
+            log(f"  AI filter error: {e}, keeping all")
+            filtered.extend(batch)
+        time.sleep(1)
+
+    log(f"  AI filter total: {len(jobs)} → {len(filtered)} jobs")
+    return filtered
+
+
 def insert_to_supabase(jobs):
     """Insert jobs to Supabase with retry, ignoring duplicates"""
     if not jobs:
@@ -1586,10 +1658,14 @@ def main():
     unique = deduplicate(all_jobs)
     log(f"Total scraped: {len(all_jobs)} | Unique: {len(unique)}")
 
+    # AI quality filter
+    log("Running AI quality filter...")
+    filtered = ai_filter_jobs(unique)
+
     # Insert
-    if unique:
+    if filtered:
         log("Inserting to Supabase...")
-        inserted = insert_to_supabase(unique)
+        inserted = insert_to_supabase(filtered)
     else:
         inserted = 0
         log("Nothing to insert")

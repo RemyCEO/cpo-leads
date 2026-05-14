@@ -420,7 +420,42 @@ export default async function handler(req, res) {
     report.status = 'healthy';
   }
 
-  // 8. DAILY EMAIL REPORT
+  // 8. AI ANALYSIS
+  if (req.query.email === 'true' && process.env.ANTHROPIC_API_KEY) {
+    try {
+      const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 500,
+          messages: [{ role: 'user', content: `You are CPO Guardian, an AI security operations monitor for CPO Leads (a close protection job board). Analyze this health report and write a brief, direct status summary (3-5 sentences) with any recommended actions. Be concise and operational — like a security briefing.
+
+Data:
+- Jobs: ${report.checks.supabase?.job_count || '?'}, quality issues: ${report.checks.job_quality?.issues_found || 0}, duplicates: ${report.checks.job_quality?.duplicates_found || 0}
+- Freshness: last job ${report.checks.freshness?.latest_job_age_hours?.toFixed(1) || '?'}h ago
+- Subscribers: ${report.checks.subscribers?.active || 0} active, ${report.checks.subscribers?.past_due || 0} past due, ${report.checks.subscribers?.trialing || 0} trialing
+- Stripe sync: ${report.checks.stripe_sync?.in_stripe_not_db || 0} in Stripe but not DB
+- API: jobs ${report.checks.endpoints?.jobs?.response_ms || '?'}ms, check-subscription ${report.checks.endpoints?.['check-subscription']?.response_ms || '?'}ms
+- Alerts: ${report.alerts.join('; ') || 'none'}
+- Fixes applied: ${report.fixes_applied.join('; ') || 'none'}
+- Status: ${report.status}` }]
+        })
+      });
+      if (aiRes.ok) {
+        const aiData = await aiRes.json();
+        report.ai_summary = aiData.content[0].text;
+      }
+    } catch (e) {
+      report.ai_summary = null;
+    }
+  }
+
+  // 9. DAILY EMAIL REPORT
   if (req.query.email === 'true') {
     try {
       const s = report.checks;
@@ -500,7 +535,12 @@ export default async function handler(req, res) {
     <ul style="margin:0;padding:0 0 0 20px;font-size:13px">${alertsHtml}</ul>
   </div>
 
-  <p style="color:#555;font-size:11px;text-align:center;margin:24px 0 0">CPO Guardian — Automated monitoring for cpoleads.com<br>Powered by StrategioAI</p>
+  ${report.ai_summary ? `<div style="background:#12121a;border:1px solid rgba(59,130,246,0.3);border-radius:12px;padding:20px;margin-bottom:16px">
+    <h3 style="color:#3b82f6;font-size:14px;margin:0 0 8px">AI Analysis</h3>
+    <p style="color:#ccc;font-size:13px;line-height:1.6;margin:0">${report.ai_summary}</p>
+  </div>` : ''}
+
+  <p style="color:#555;font-size:11px;text-align:center;margin:24px 0 0">CPO Guardian (AI-Enhanced) — Automated monitoring for cpoleads.com<br>Powered by StrategioAI</p>
 </div></body></html>`,
       });
       report.email_sent = true;
