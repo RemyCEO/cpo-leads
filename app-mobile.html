@@ -1422,7 +1422,7 @@ function openDetailModal(id) {
     <button class="m-detail-close" onclick="closeDetail()">&times;</button>
     <div style="padding-right:52px;margin-bottom:16px">
       <h2 style="font-size:1.25rem;font-weight:800;line-height:1.3;margin-bottom:8px">${cleanTitle || companyName}</h2>
-      <div style="font-size:1rem;color:var(--text-primary);margin-bottom:10px;font-weight:600">
+      <div style="font-size:1rem;color:#fff;margin-bottom:10px;font-weight:700;letter-spacing:0.3px">
         ${job && esc(l.company).includes('\u2014') ? companyName + ' &middot; ' : ''}${l.location ? esc(l.location) + (l.country && l.country!=='UK' && l.country!=='USA' ? ' &middot; ' + esc(l.country) : '') : ''}
       </div>
       ${salary ? '<div style="font-size:1.4rem;font-weight:900;color:var(--gold-bright);margin-bottom:12px">'+esc(salary)+'</div>' : ''}
@@ -1497,7 +1497,7 @@ function renderJobCard(l) {
     </div>
     ${badges?'<div class="m-job-badges">'+badges+'</div>':''}
     <div class="m-job-meta">
-      ${showLocation?'<span style="font-size:0.9rem;font-weight:600;color:var(--text-primary)">'+showLocation+'</span>':''}
+      ${showLocation?'<span style="font-size:0.9rem;font-weight:700;color:#fff;letter-spacing:0.3px">'+showLocation+'</span>':''}
       ${ta?'<span>'+ta+'</span>':''}
       <span style="color:${sColors[l.status]||'#52504d'}">${sLabels[l.status]||'New'}</span>
       ${getProgressDots(l.status)}
