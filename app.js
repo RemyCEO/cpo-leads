@@ -203,6 +203,11 @@ async function onAuthSuccess(user) {
   ac.style.opacity = '1';
   await loadScrapedJobs();
 
+  // Force re-render jobs with correct subscription state
+  if (_verifySub() && typeof applyFilters === 'function') {
+    applyFilters(true);
+  }
+
   // Show Telegram channel invite for subscribers
   if (_verifySub()) {
     showTelegramInvite(user.email);
@@ -395,7 +400,7 @@ let _authReady = false;
   sb.auth.onAuthStateChange(async (event, session) => {
     if (_authReady) {
       // After init: only react to sign-in/sign-out/token refresh
-      if(session && session.user) onAuthSuccess(session.user);
+      if(session && session.user) await onAuthSuccess(session.user);
       return;
     }
     _authReady = true;
