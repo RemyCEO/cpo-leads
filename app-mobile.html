@@ -935,7 +935,7 @@ html, body { overflow-x: hidden; max-width: 100vw; }
       </div>
       <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Solo EP Agent';applyFilters(true)},200)">
         <div class="m-alert-dot red"></div>
-        <div><div class="m-alert-text">Solo EP Agent — Americas, $800/day</div><div class="m-alert-time">12 min ago</div></div>
+        <div><div class="m-alert-text">Solo EP Agent — North America, $800/day</div><div class="m-alert-time">12 min ago</div></div>
       </div>
       <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='PSD';applyFilters(true)},200)">
         <div class="m-alert-dot amber"></div>
@@ -947,7 +947,7 @@ html, body { overflow-x: hidden; max-width: 100vw; }
       </div>
       <div class="m-alert-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Counter Surveillance';applyFilters(true)},200)">
         <div class="m-alert-dot green"></div>
-        <div><div class="m-alert-text">Armed Counter Surveillance — Americas, $1,000/day</div><div class="m-alert-time">6 hours ago</div></div>
+        <div><div class="m-alert-text">Armed Counter Surveillance — North America, $1,000/day</div><div class="m-alert-time">6 hours ago</div></div>
       </div>
     </div>
 
@@ -965,7 +965,7 @@ html, body { overflow-x: hidden; max-width: 100vw; }
         <span class="m-contract-salary">$1,100/day</span>
       </div>
       <div class="m-contract-item" onclick="mSwitchPage('jobs');setTimeout(()=>{document.getElementById('search').value='Counter Surveillance';applyFilters(true)},200)">
-        <div><div class="m-contract-title">Armed Counter Surveillance</div><div class="m-contract-meta">Americas &middot; Verified Employer</div></div>
+        <div><div class="m-contract-title">Armed Counter Surveillance</div><div class="m-contract-meta">North America &middot; Verified Employer</div></div>
         <span class="m-contract-salary">$1,000/day</span>
       </div>
     </div>
@@ -1454,7 +1454,7 @@ closeDetail = function() { document.getElementById('detail-bg').classList.remove
 const _REGION_MAP = {
   'Saudi Arabia':'Middle East','KSA':'Middle East','UAE':'Middle East','Qatar':'Middle East','Bahrain':'Middle East','Kuwait':'Middle East','Oman':'Middle East','Iraq':'Middle East','Jordan':'Middle East','Lebanon':'Middle East','Israel':'Middle East',
   'UK':'Europe','Germany':'Europe','France':'Europe','Italy':'Europe','Spain':'Europe','Netherlands':'Europe','Switzerland':'Europe','Norway':'Europe','Sweden':'Europe','Denmark':'Europe',
-  'USA':'Americas','Canada':'Americas','Mexico':'Americas','Brazil':'Americas','Colombia':'Americas',
+  'USA':'North America','Canada':'North America','Mexico':'North America','Brazil':'South America','Colombia':'South America',
   'Nigeria':'Africa','Kenya':'Africa','South Africa':'Africa','Mozambique':'Africa','Ghana':'Africa','Ethiopia':'Africa',
   'Australia':'Asia-Pacific','Japan':'Asia-Pacific','Singapore':'Asia-Pacific','Philippines':'Asia-Pacific','India':'Asia-Pacific'
 };
@@ -1465,7 +1465,7 @@ function _maskRegion(loc, country) {
   if (/gulf|aden|indian ocean|maritime|sea|ocean/.test(lc)) return 'Maritime';
   if (/middle east|riyadh|dubai|doha|baghdad|jeddah|abu dhabi/i.test(lc)) return 'Middle East';
   if (/london|paris|berlin|rome|madrid|zurich|oslo/i.test(lc)) return 'Europe';
-  if (/new york|washington|houston|los angeles|miami|toronto/i.test(lc)) return 'Americas';
+  if (/new york|washington|houston|los angeles|miami|toronto/i.test(lc)) return 'North America';
   if (/lagos|nairobi|johannesburg|maputo|accra|cairo/i.test(lc)) return 'Africa';
   if (/sydney|tokyo|singapore|manila|bangkok|mumbai/i.test(lc)) return 'Asia-Pacific';
   return country || 'Undisclosed';

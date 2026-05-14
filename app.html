@@ -1757,7 +1757,7 @@ body {
         regions[r] = (regions[r]||0) + 1;
       });
       const sorted = Object.entries(regions).sort((a,b) => b[1]-a[1]).slice(0,6);
-      const riskMap = {'Middle East':'HIGH RISK','Africa':'ELEVATED','Maritime':'HIGH RISK','Americas':'STABLE','Europe':'STABLE','Asia-Pacific':'MODERATE','Undisclosed':'UNKNOWN'};
+      const riskMap = {'Middle East':'HIGH RISK','Africa':'ELEVATED','Maritime':'HIGH RISK','North America':'STABLE','South America':'MODERATE','Europe':'STABLE','Asia-Pacific':'MODERATE','Undisclosed':'UNKNOWN'};
       const riskColor = {'HIGH RISK':'var(--red)','ELEVATED':'var(--amber)','STABLE':'var(--green)','MODERATE':'var(--blue)','UNKNOWN':'var(--text-muted)'};
       const dotColor = {'HIGH RISK':'var(--red)','ELEVATED':'var(--amber)','STABLE':'var(--gold)','MODERATE':'var(--blue)','UNKNOWN':'var(--text-muted)'};
       el.innerHTML = sorted.map(([r,c],i) => {
@@ -2598,7 +2598,7 @@ function timeAgo(dateStr) {
 const _REGION_MAP = {
   'Saudi Arabia':'Middle East','KSA':'Middle East','UAE':'Middle East','Qatar':'Middle East','Bahrain':'Middle East','Kuwait':'Middle East','Oman':'Middle East','Iraq':'Middle East','Jordan':'Middle East','Lebanon':'Middle East','Israel':'Middle East',
   'UK':'Europe','Germany':'Europe','France':'Europe','Italy':'Europe','Spain':'Europe','Netherlands':'Europe','Switzerland':'Europe','Norway':'Europe','Sweden':'Europe','Denmark':'Europe','Poland':'Europe','Belgium':'Europe','Austria':'Europe','Greece':'Europe','Portugal':'Europe','Ireland':'Europe',
-  'USA':'Americas','Canada':'Americas','Mexico':'Americas','Brazil':'Americas','Colombia':'Americas','Argentina':'Americas','Chile':'Americas',
+  'USA':'North America','Canada':'North America','Mexico':'North America','Brazil':'South America','Colombia':'South America','Argentina':'South America','Chile':'South America',
   'Nigeria':'Africa','Kenya':'Africa','South Africa':'Africa','Mozambique':'Africa','Ghana':'Africa','Ethiopia':'Africa','Tanzania':'Africa','Uganda':'Africa','DRC':'Africa','Somalia':'Africa','Libya':'Africa','Egypt':'Africa','Morocco':'Africa','Angola':'Africa',
   'Australia':'Asia-Pacific','Japan':'Asia-Pacific','Singapore':'Asia-Pacific','Philippines':'Asia-Pacific','Indonesia':'Asia-Pacific','Thailand':'Asia-Pacific','Malaysia':'Asia-Pacific','India':'Asia-Pacific','China':'Asia-Pacific'
 };
@@ -2609,7 +2609,7 @@ function _maskRegion(loc, country) {
   if (/gulf|aden|indian ocean|maritime|sea|ocean|strait/.test(lc)) return 'Maritime';
   if (/middle east|riyadh|dubai|doha|baghdad|jeddah|abu dhabi/i.test(lc)) return 'Middle East';
   if (/london|paris|berlin|rome|madrid|zurich|oslo|munich/i.test(lc)) return 'Europe';
-  if (/new york|washington|houston|los angeles|miami|toronto/i.test(lc)) return 'Americas';
+  if (/new york|washington|houston|los angeles|miami|toronto/i.test(lc)) return 'North America';
   if (/lagos|nairobi|johannesburg|maputo|accra|cairo/i.test(lc)) return 'Africa';
   if (/sydney|tokyo|singapore|manila|bangkok|mumbai/i.test(lc)) return 'Asia-Pacific';
   return country || 'Undisclosed';
