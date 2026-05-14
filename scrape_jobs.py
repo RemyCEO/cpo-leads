@@ -914,6 +914,226 @@ def notify_telegram_jobs(jobs, total_new, total_db):
     if len(jobs) > 15:
         send_telegram(f"... og {len(jobs) - 15} flere. cpoleads.com 🔥")
 
+def scrape_usajobs():
+    """Scrape USAJobs.gov API for federal EP/security positions"""
+    jobs = []
+    queries = ["executive protection", "protective security", "security specialist protection"]
+    for q in queries:
+        time.sleep(2)
+        try:
+            url = f"https://data.usajobs.gov/api/Search?Keyword={q.replace(' ', '+')}&ResultsPerPage=25"
+            headers = {"Host": "data.usajobs.gov", "User-Agent": "cpoleads@strategioai.com", "Authorization-Key": "cpoLeads2026"}
+            r = requests.get(url, headers=headers, timeout=15)
+            if r.status_code != 200:
+                continue
+            data = r.json()
+            for item in data.get("SearchResult", {}).get("SearchResultItems", []):
+                mp = item.get("MatchedObjectDescriptor", {})
+                title = mp.get("PositionTitle", "")
+                if not title or any(skip in title.lower() for skip in ["data protection", "child protection", "it specialist"]):
+                    continue
+                org = mp.get("OrganizationName", "")
+                locs = mp.get("PositionLocation", [])
+                loc = locs[0].get("LocationName", "") if locs else ""
+                salary_min = mp.get("PositionRemuneration", [{}])[0].get("MinimumRange", "") if mp.get("PositionRemuneration") else ""
+                salary_max = mp.get("PositionRemuneration", [{}])[0].get("MaximumRange", "") if mp.get("PositionRemuneration") else ""
+                salary = f"${salary_min}-${salary_max}/yr" if salary_min and salary_max else ""
+                apply_url = mp.get("PositionURI", "")
+                desc = mp.get("UserArea", {}).get("Details", {}).get("MajorDuties", [""])[0][:500] if mp.get("UserArea") else ""
+                jobs.append({
+                    "title": title,
+                    "company": org or "US Federal Government",
+                    "location": loc,
+                    "source": "USAJobs",
+                    "source_url": apply_url,
+                    "country": "US",
+                    "salary": salary,
+                    "notes": desc,
+                })
+        except Exception as e:
+            log(f"  USAJobs error for '{q}': {e}")
+    return jobs
+
+
+def scrape_career_sites():
+    """Scrape major EP company career pages via Greenhouse/Workday/ADP APIs"""
+    jobs = []
+    skip_words = ["data protection", "child protection", "intern", "trainee", "marketing analyst"]
+
+    # GDBA - Greenhouse
+    try:
+        r = requests.get("https://boards-api.greenhouse.io/v1/boards/gavindebeckerassociates/jobs", timeout=15)
+        if r.status_code == 200:
+            for j in r.json().get("jobs", []):
+                title = j.get("title", "")
+                if any(skip in title.lower() for skip in skip_words):
+                    continue
+                loc = j.get("location", {}).get("name", "")
+                jobs.append({
+                    "title": title,
+                    "company": "Gavin de Becker & Associates",
+                    "location": loc,
+                    "source": "GDBA Careers",
+                    "source_url": j.get("absolute_url", ""),
+                    "country": "US" if any(s in loc for s in ["CA", "TX", "NY", "DC", "VA"]) else "",
+                    "salary": "",
+                    "notes": "",
+                })
+    except Exception as e:
+        log(f"  GDBA Greenhouse error: {e}")
+
+    # Global Guardian - Greenhouse
+    try:
+        r = requests.get("https://boards-api.greenhouse.io/v1/boards/globalguardian/jobs", timeout=15)
+        if r.status_code == 200:
+            for j in r.json().get("jobs", []):
+                title = j.get("title", "")
+                if any(skip in title.lower() for skip in skip_words):
+                    continue
+                loc = j.get("location", {}).get("name", "")
+                jobs.append({
+                    "title": title,
+                    "company": "Global Guardian",
+                    "location": loc,
+                    "source": "Global Guardian Careers",
+                    "source_url": j.get("absolute_url", ""),
+                    "country": "US" if any(s in loc for s in ["CA", "TX", "NY", "DC", "VA", "NV"]) else "",
+                    "salary": "",
+                    "notes": "",
+                })
+    except Exception as e:
+        log(f"  Global Guardian Greenhouse error: {e}")
+
+    # Pinkerton - Greenhouse
+    try:
+        r = requests.get("https://boards-api.greenhouse.io/v1/boards/pinkerton/jobs", timeout=15)
+        if r.status_code == 200:
+            for j in r.json().get("jobs", []):
+                title = j.get("title", "")
+                if not any(kw in title.lower() for kw in ["protection", "security", "investigat", "intelligence"]):
+                    continue
+                if any(skip in title.lower() for skip in skip_words):
+                    continue
+                loc = j.get("location", {}).get("name", "")
+                jobs.append({
+                    "title": title,
+                    "company": "Pinkerton",
+                    "location": loc,
+                    "source": "Pinkerton Careers",
+                    "source_url": j.get("absolute_url", ""),
+                    "country": guess_country(loc),
+                    "salary": "",
+                    "notes": "",
+                })
+    except Exception as e:
+        log(f"  Pinkerton Greenhouse error: {e}")
+
+    # Crisis24/GardaWorld - Dayforce
+    try:
+        r = requests.get("https://jobs.dayforcehcm.com/en-US/crisis24/CANDIDATEPORTAL/jobs?search=protection&count=25", timeout=15)
+        if r.status_code == 200:
+            data = r.json() if r.headers.get('content-type','').startswith('application/json') else {}
+            for j in data.get("jobs", data.get("items", [])):
+                title = j.get("title", j.get("name", ""))
+                if not title:
+                    continue
+                loc = j.get("location", j.get("city", ""))
+                jid = j.get("id", j.get("jobId", ""))
+                jobs.append({
+                    "title": title,
+                    "company": "Crisis24 (GardaWorld)",
+                    "location": loc if isinstance(loc, str) else "",
+                    "source": "Crisis24 Careers",
+                    "source_url": f"https://jobs.dayforcehcm.com/en-US/crisis24/CANDIDATEPORTAL/jobs/{jid}" if jid else "",
+                    "country": guess_country(loc if isinstance(loc, str) else ""),
+                    "salary": "",
+                    "notes": "",
+                })
+    except Exception as e:
+        log(f"  Crisis24 Dayforce error: {e}")
+
+    return jobs
+
+
+def scrape_jooble():
+    """Scrape Jooble for EP/CP jobs — public search pages"""
+    jobs = []
+    searches = [
+        ("close+protection+officer", "https://jooble.org/SearchResult?ukw=close+protection+officer"),
+        ("executive+protection+agent", "https://jooble.org/SearchResult?ukw=executive+protection+agent"),
+    ]
+    for kw, url in searches:
+        time.sleep(3)
+        try:
+            html = fetch(url)
+            if not html:
+                continue
+            # Jooble uses structured job cards
+            titles = re.findall(r'<h2[^>]*>.*?<a[^>]*href="([^"]+)"[^>]*>([^<]+)</a>', html, re.DOTALL)
+            for link, title in titles[:15]:
+                title = clean(title)
+                if not title or any(skip in title.lower() for skip in ["data protection", "child protection"]):
+                    continue
+                if not link.startswith("http"):
+                    link = "https://jooble.org" + link
+                jobs.append({
+                    "title": title,
+                    "company": "",
+                    "location": "",
+                    "source": "Jooble",
+                    "source_url": link,
+                    "country": "",
+                    "salary": "",
+                    "notes": "",
+                })
+        except Exception as e:
+            log(f"  Jooble error for '{kw}': {e}")
+    return jobs
+
+
+def scrape_ssr_personnel():
+    """Scrape SSR Personnel for security/protection jobs"""
+    jobs = []
+    ep_keywords = ["protection", "executive", "close protection", "bodyguard", "ep ", "cpo",
+                   "security director", "security manager", "intelligence", "risk", "investigat",
+                   "security operative", "security officer", "corporate security"]
+    skip_words = ["data protection", "child protection", "fire alarm", "fire engineer",
+                  "windchill", "software", "developer", "marketing", "sales engineer"]
+    try:
+        html = fetch("https://www.ssr-personnel.com/jobs?countrycode=&keywords=&page=1&pagesize=50")
+        if not html:
+            html = fetch_with_browser("https://www.ssr-personnel.com/jobs?countrycode=&keywords=&page=1&pagesize=50", wait_time=3) or ""
+        # Extract job cards: title, URL, location, salary
+        cards = re.findall(r'<a[^>]*href="(/job/[^"]+)"[^>]*>([^<]+)</a>', html)
+        locations = re.findall(r'<span[^>]*class="[^"]*location[^"]*"[^>]*>([^<]+)</span>', html)
+        salaries = re.findall(r'<span[^>]*class="[^"]*salary[^"]*"[^>]*>([^<]+)</span>', html)
+        for i, (url, title) in enumerate(cards):
+            title = clean(title)
+            if not title:
+                continue
+            title_lower = title.lower()
+            if any(skip in title_lower for skip in skip_words):
+                continue
+            if not any(kw in title_lower for kw in ep_keywords):
+                continue
+            loc = clean(locations[i]) if i < len(locations) else ""
+            sal = clean(salaries[i]) if i < len(salaries) else ""
+            full_url = f"https://www.ssr-personnel.com{url}" if not url.startswith("http") else url
+            jobs.append({
+                "title": title,
+                "company": "SSR Personnel",
+                "location": loc,
+                "source": "SSR Personnel",
+                "source_url": full_url,
+                "country": guess_country(loc),
+                "salary": sal,
+                "notes": "",
+            })
+    except Exception as e:
+        log(f"  SSR Personnel error: {e}")
+    return jobs
+
+
 # --- MAIN ---
 
 def main():
@@ -1036,6 +1256,46 @@ def main():
     except Exception as e:
         log(f"  RECRUIT.NET ZA FAILED: {e}")
         errors.append(f"Recruit.net ZA: {e}")
+
+    # SSR Personnel
+    try:
+        log("Scraping SSR Personnel...")
+        ssr = scrape_ssr_personnel()
+        log(f"  Found {len(ssr)} jobs")
+        all_jobs.extend(ssr)
+    except Exception as e:
+        log(f"  SSR PERSONNEL FAILED: {e}")
+        errors.append(f"SSR Personnel: {e}")
+
+    # USAJobs (Federal EP)
+    try:
+        log("Scraping USAJobs.gov...")
+        usajobs = scrape_usajobs()
+        log(f"  Found {len(usajobs)} jobs")
+        all_jobs.extend(usajobs)
+    except Exception as e:
+        log(f"  USAJOBS FAILED: {e}")
+        errors.append(f"USAJobs: {e}")
+
+    # Company Career Sites (GDBA, Global Guardian, Pinkerton, Crisis24)
+    try:
+        log("Scraping Company Career Sites...")
+        careers = scrape_career_sites()
+        log(f"  Found {len(careers)} jobs")
+        all_jobs.extend(careers)
+    except Exception as e:
+        log(f"  CAREER SITES FAILED: {e}")
+        errors.append(f"Career Sites: {e}")
+
+    # Jooble
+    try:
+        log("Scraping Jooble...")
+        jooble = scrape_jooble()
+        log(f"  Found {len(jooble)} jobs")
+        all_jobs.extend(jooble)
+    except Exception as e:
+        log(f"  JOOBLE FAILED: {e}")
+        errors.append(f"Jooble: {e}")
 
     # Deduplicate
     unique = deduplicate(all_jobs)
