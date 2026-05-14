@@ -1917,19 +1917,29 @@ section {
       <a href="#pricing" id="view-all-link">View all opportunities &rarr;</a>
     </div>
     <script>
-    fetch('/api/featured-jobs').then(r=>r.json()).then(d=>{
+    (async()=>{
+      const SB_URL='https://afrcpiheobzauwyftksr.supabase.co';
+      const SB_KEY='sb_publishable_fJWFqpHxoux8-FfxuEZH0Q_UxlBylC6';
       const el=document.getElementById('live-jobs');
       const link=document.getElementById('view-all-link');
-      if(d.jobs&&d.jobs.length){
-        el.innerHTML=d.jobs.map(j=>`<div class="opp-row">
-          <div><div class="opp-title">${j.title}</div></div>
-          <div class="opp-location">${j.location||j.country||'International'}</div>
-          <div class="opp-rate">${j.salary}</div>
-          <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
-        </div>`).join('');
-        if(link&&d.total) link.textContent='View all '+d.total+' opportunities →';
-      }
-    }).catch(()=>{});
+      try{
+        const [jobsRes,countRes]=await Promise.all([
+          fetch(`${SB_URL}/rest/v1/job_listings?select=title,location,country,salary&order=scraped_at.desc&limit=10`,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}),
+          fetch(`${SB_URL}/rest/v1/job_listings?select=id&limit=1`,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'count=exact','Range':'0-0'}})
+        ]);
+        const jobs=await jobsRes.json();
+        const total=countRes.headers.get('content-range')?.split('/')?.[1]||'350+';
+        if(jobs&&jobs.length){
+          el.innerHTML=jobs.map(j=>`<div class="opp-row">
+            <div><div class="opp-title">${j.title}</div></div>
+            <div class="opp-location">${j.location||j.country||'International'}</div>
+            <div class="opp-rate">${j.salary||'Competitive'}</div>
+            <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
+          </div>`).join('');
+          if(link) link.textContent='View all '+total+' opportunities →';
+        }
+      }catch(e){el.innerHTML='<div class="opp-row" style="justify-content:center;padding:32px;color:var(--text-muted)">Unable to load contracts. Please refresh.</div>';}
+    })();
     </script>
   </div>
 </section>

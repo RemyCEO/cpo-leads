@@ -887,27 +887,71 @@ def scrape_closecareer():
     return jobs
 
 def scrape_unjobs():
-    """Scrape UNjobs.org for close protection roles"""
+    """Scrape UNjobs.org for close protection / security roles only"""
     log("Scraping UNjobs.org...")
     jobs = []
-    keywords = ["close-protection", "executive-protection", "security-officer", "protective-services"]
+    keywords = [
+        "close-protection", "executive-protection", "security-officer",
+        "protective-services", "security-management", "field-security",
+        "security-coordinator", "security-adviser", "protection-officer",
+        "security-associate", "safety-security", "risk-management",
+    ]
+
+    # Filter: only keep jobs with CP/security-relevant titles
+    CP_TITLE_RE = re.compile(
+        r'protect|secur|guard|close.protection|risk|mine.action|'
+        r'safety.officer|crisis|investig|field.officer|liaison.officer|'
+        r'intelligence|threat|surveillance|executive.prot',
+        re.IGNORECASE
+    )
+
+    page = None
+    try:
+        page = get_browser_page()
+    except:
+        pass
 
     for kw in keywords:
-        html = fetch(f"https://unjobs.org/skills/{kw}")
-        if not html:
-            continue
+        url = f"https://unjobs.org/themes/{kw.replace('-', '-')}"
+        links_found = []
 
-        # Parse listings
-        links = re.findall(r'<a[^>]*href="(https://unjobs\.org/vacancies/\d+)"[^>]*>([^<]+)</a>', html)
-        for link, title in links:
+        if page:
+            try:
+                page.goto(url, timeout=20000)
+                page.wait_for_timeout(3000)
+                # Extract vacancy links from rendered page
+                items = page.query_selector_all('a[href*="/vacancies/"]')
+                for item in items:
+                    href = item.get_attribute('href') or ''
+                    title = (item.inner_text() or '').strip()
+                    if '/vacancies/' in href and title:
+                        if not href.startswith('http'):
+                            href = f"https://unjobs.org{href}"
+                        links_found.append((href, title))
+            except Exception as e:
+                log(f"  UNjobs Playwright failed for {kw}: {e}")
+
+        # Fallback to requests if Playwright didn't work
+        if not links_found:
+            html = fetch(f"https://unjobs.org/themes/{kw.replace('-', '-')}")
+            if html:
+                links_found = re.findall(r'<a[^>]*href="(https://unjobs\.org/vacancies/\d+)"[^>]*>([^<]+)</a>', html)
+
+        for link, title in links_found:
             title = clean(title)
-            # Try to find organization
-            org_m = re.search(re.escape(f'</a>') + r'\s*</generic>\s*<text>([^<]+)', html)
+            if not CP_TITLE_RE.search(title):
+                continue  # Skip irrelevant jobs
+
+            # Extract location from title if present (format: "Title, Location")
+            location = "International"
+            if ', ' in title:
+                parts = title.rsplit(', ', 1)
+                location = parts[-1].strip()
 
             jobs.append({
                 "title": title,
-                "company": "International Organization",
-                "location": "International",
+                "company": "United Nations",
+                "location": location,
                 "source": "UNjobs",
                 "source_url": link,
                 "country": "International",
@@ -916,8 +960,22 @@ def scrape_unjobs():
             })
         time.sleep(1)
 
-    log(f"  UNjobs: {len(jobs)} jobs")
-    return jobs
+    if page:
+        try:
+            page.context.close()
+        except:
+            pass
+
+    # Deduplicate by source_url
+    seen = set()
+    unique = []
+    for j in jobs:
+        if j["source_url"] not in seen:
+            seen.add(j["source_url"])
+            unique.append(j)
+
+    log(f"  UNjobs: {len(unique)} CP-relevant jobs (filtered from {len(jobs)})")
+    return unique
 
 
 # ============================================================
