@@ -19,7 +19,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install dependencies
-        run: pip install requests
+        run: |
+          pip install requests playwright
+          playwright install --with-deps chromium
       - name: Run LinkedIn career page scraper
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
