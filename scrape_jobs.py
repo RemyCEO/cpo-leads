@@ -862,6 +862,22 @@ def insert_to_supabase(jobs):
                 log(f"  Batch {i//20+1} error: {e}")
                 if attempt < MAX_RETRIES:
                     time.sleep(RETRY_DELAY * attempt)
+    # Trigger Scout immediately to enrich new jobs
+    if inserted > 0:
+        try:
+            log(f"Triggering Scout to enrich {inserted} new jobs...")
+            batches = max(1, min(5, inserted // 10))  # 1-5 batches based on new job count
+            for b in range(batches):
+                sr = requests.get("https://cpoleads.com/api/enrich-jobs?secret=cpo-scout-2026&batch_size=20", timeout=60)
+                if sr.status_code == 200:
+                    sd = sr.json()
+                    log(f"  Scout batch {b+1}: checked={sd.get('jobs_checked',0)}, enriched={sd.get('jobs_enriched',0)}")
+                else:
+                    log(f"  Scout batch {b+1} failed: HTTP {sr.status_code}")
+                time.sleep(3)
+        except Exception as e:
+            log(f"  Scout trigger failed: {e}")
+
     return inserted
 
 def get_existing_count():
