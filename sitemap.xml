@@ -49,13 +49,13 @@
     <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://cpoleads.com/privacy.html</loc>
+    <loc>https://cpoleads.com/privacy</loc>
     <lastmod>2026-05-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://cpoleads.com/terms.html</loc>
+    <loc>https://cpoleads.com/terms</loc>
     <lastmod>2026-05-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
