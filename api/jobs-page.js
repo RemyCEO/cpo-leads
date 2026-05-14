@@ -19,19 +19,19 @@ export default async function handler(req, res) {
 
   const { data: jobs, error } = await supabase
     .from('job_listings')
-    .select('id, title, company, location, country, salary, notes, source_url, created_at')
-    .order('created_at', { ascending: false })
+    .select('id, title, company, location, country, salary, notes, source_url, scraped_at')
+    .order('scraped_at', { ascending: false })
     .limit(100);
 
   if (error) {
-    return res.status(500).send(`<!-- Supabase error: ${error.message} --> DB: ${process.env.SUPABASE_URL ? 'set' : 'missing'} KEY: ${process.env.SUPABASE_SERVICE_ROLE_KEY ? 'set' : 'missing'}`);
+    return res.status(500).send('<!-- Error loading jobs -->');
   }
   const jobList = jobs || [];
   const count = jobList.length;
 
   // Build JobPosting JSON-LD for each job
   const jsonLdItems = jobList.map(j => {
-    const posted = j.created_at ? j.created_at.split('T')[0] : '2026-05-14';
+    const posted = j.scraped_at ? j.scraped_at.split('T')[0] : '2026-05-14';
     const desc = (j.notes || j.title || '').slice(0, 500);
     const loc = j.location || j.country || 'Worldwide';
     const countryCode = { 'UK': 'GB', 'US': 'US', 'UAE': 'AE', 'Iraq': 'IQ', 'France': 'FR', 'Germany': 'DE', 'Norway': 'NO', 'Nigeria': 'NG', 'Kenya': 'KE', 'Somalia': 'SO', 'Australia': 'AU', 'Singapore': 'SG', 'Canada': 'CA' }[j.country] || '';
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
 
   // Build job list HTML (basic info only — no contact details, no full notes)
   const jobCards = jobList.map(j => {
-    const posted = j.created_at ? new Date(j.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    const posted = j.scraped_at ? new Date(j.scraped_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
     const loc = j.location || j.country || '';
     return `<article class="job" id="${esc(j.id)}">
   <h3>${esc(j.title)}</h3>
