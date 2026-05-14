@@ -2300,7 +2300,7 @@ function openDetailModal(id) {
     <!-- Header -->
     <div style="margin-bottom:24px">
       <h2 style="font-size:1.25rem;font-weight:800;line-height:1.25;margin-bottom:6px;padding-right:30px">${cleanTitle || companyName}</h2>
-      <div style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:6px;font-size:0.95rem;color:var(--text-primary);margin-bottom:12px;font-weight:600">
         <span>${job && esc(l.company).includes('\u2014') ? companyName : ''}</span>
         ${l.location ? (job && companyName ? '<span style="color:var(--text-muted)">&middot;</span>' : '') + '<span>' + esc(l.location) + (l.country && l.country!=='UK' && l.country!=='USA' ? ' \u00b7 ' + esc(l.country) : '') + '</span>' : ''}
       </div>
@@ -2656,7 +2656,7 @@ function renderJobCard(l, featured) {
     ${showDesc?'<div style="font-size:0.78rem;color:#c5c2bd;line-height:1.5;margin:4px 0 6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+esc(showDesc)+'</div>':''}
     ${badges?'<div class="jcard-badges">'+badges+'</div>':''}
     <div class="jcard-stats">
-      ${showLocation?'<span>'+showLocation+'</span>':''}
+      ${showLocation?'<span style="font-size:0.85rem;font-weight:600;color:var(--text-primary)">'+showLocation+'</span>':''}
       ${salary?'<span style="color:var(--gold)">'+esc(salary)+'</span>':''}
       ${ta?'<span>'+ta+'</span>':''}
       <span style="color:${sColors[l.status]||'#52504d'}">${sLabels[l.status]||'New'}</span>
