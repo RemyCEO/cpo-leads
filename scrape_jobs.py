@@ -208,20 +208,25 @@ def _parse_indeed_html(html, source="Indeed"):
     jobs = []
     if not html:
         return jobs
-    titles = [clean(m) for m in re.findall(r'<span[^>]*id="jobTitle-[^"]*"[^>]*>([^<]+)</span>', html)]
+    title_matches = re.findall(r'<span[^>]*id="jobTitle-([^"]*)"[^>]*>([^<]+)</span>', html)
+    job_ids = [m[0] for m in title_matches]
+    titles = [clean(m[1]) for m in title_matches]
     companies = [clean(m) for m in re.findall(r'<span[^>]*data-testid="company-name"[^>]*>([^<]+)</span>', html)]
     locations = [clean(m) for m in re.findall(r'<div[^>]*data-testid="text-location"[^>]*>([^<]+)</div>', html)]
     salaries = [clean(m) for m in re.findall(r'<div[^>]*class="[^"]*salary-snippet[^"]*"[^>]*>([^<]+)</div>', html)]
+    base = "https://www.indeed.com" if source == "Indeed" else "https://uk.indeed.com"
     for i in range(len(titles)):
         title = titles[i]
         if any(skip in title.lower() for skip in ["data protection", "child protection", "fire protection", "loss prevention", "brand protection"]):
             continue
+        jid = job_ids[i] if i < len(job_ids) else ""
+        job_url = f"{base}/viewjob?jk={jid}" if jid else base
         jobs.append({
             "title": title,
             "company": companies[i] if i < len(companies) else "",
             "location": locations[i] if i < len(locations) else "",
             "source": source,
-            "source_url": "https://www.indeed.com",
+            "source_url": job_url,
             "country": guess_country(locations[i] if i < len(locations) else ""),
             "salary": salaries[i] if i < len(salaries) else "",
             "notes": "",
