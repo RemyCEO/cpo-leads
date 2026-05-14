@@ -1489,7 +1489,7 @@ body {
   <section id="page-dashboard" class="page-section active">
 
     <!-- GLOBAL THREAT MONITOR -->
-    <div id="threat-monitor" style="margin-bottom:20px;border:1px solid rgba(201,168,76,.2);border-radius:10px;overflow:hidden;background:linear-gradient(135deg,rgba(10,14,26,.95),rgba(15,20,35,.95))">
+    <div id="threat-monitor" onclick="switchPage('monitor',document.querySelector('[data-page=monitor]'))" style="cursor:pointer;margin-bottom:20px;border:1px solid rgba(201,168,76,.2);border-radius:10px;overflow:hidden;background:linear-gradient(135deg,rgba(10,14,26,.95),rgba(15,20,35,.95))">
       <div style="padding:14px 18px;border-bottom:1px solid rgba(201,168,76,.1);display:flex;justify-content:space-between;align-items:center">
         <div style="display:flex;align-items:center;gap:10px">
           <div style="width:8px;height:8px;border-radius:50%;background:#3ecf8e;animation:pulse 2s infinite"></div>
