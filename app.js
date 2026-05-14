@@ -334,7 +334,7 @@ async function loadScrapedJobs() {
           local.website = j.source_url || '';
           local.location = j.location || '';
           local.country = j.country || '';
-          local.notes = (j.description || '') + (j.salary ? ' ' + j.salary + '.' : '') + (j.requirements ? ' Requirements: ' + j.requirements : '');
+          local.notes = (j.description || '') + (j.salary && !(j.description||'').includes(j.salary) ? ' ' + j.salary : '') + (j.requirements ? ' Requirements: ' + j.requirements : '');
           local.updated_at = j.scraped_at || now;
           updated++;
         }
@@ -352,7 +352,7 @@ async function loadScrapedJobs() {
         location: j.location || '',
         country: j.country || '',
         priority: 'medium',
-        notes: (j.description || '') + (j.salary ? ' ' + j.salary + '.' : '') + (j.requirements ? ' Requirements: ' + j.requirements : ''),
+        notes: (j.description || '') + (j.salary && !(j.description||'').includes(j.salary) ? ' ' + j.salary : '') + (j.requirements ? ' Requirements: ' + j.requirements : ''),
         category: 'job',
         status: 'ny',
         contact_person: null,
@@ -724,7 +724,7 @@ function applyFilters(resetPage) {
   const filtered = getFiltered();
   const sortBy = document.getElementById('sort-by').value;
   if(sortBy==='salary') filtered.sort((a,b) => parseSalaryNum(b.notes) - parseSalaryNum(a.notes));
-  else if(sortBy==='date') filtered.sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+  else if(sortBy==='date') filtered.sort((a,b) => (b.updated_at||b.created_at||'').localeCompare(a.updated_at||a.created_at||''));
   else if(sortBy==='name') filtered.sort((a,b) => (a.company||'').localeCompare(b.company||''));
   else if(sortBy==='status') {
     const so={ny:0,kontaktet:1,applied:2,interview:3,offer:4,rejected:5};
