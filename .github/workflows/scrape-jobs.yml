@@ -78,7 +78,7 @@ jobs:
         run: |
           for i in 1 2 3; do
             echo "=== Scout batch $i ==="
-            RESPONSE=$(curl -sf "https://cpoleads.com/api/enrich-jobs?secret=cpo-scout-2026&batch_size=20" || echo '{"error":"failed"}')
+            RESPONSE=$(curl -sf "https://cpoleads.com/api/scout?secret=cpo-scout-2026&batch_size=20" || echo '{"error":"failed"}')
             echo "$RESPONSE" | python3 -c "
           import json,sys
           try:

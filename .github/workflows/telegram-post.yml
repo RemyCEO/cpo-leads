@@ -1,0 +1,26 @@
+name: CPO Telegram - Post New Jobs
+
+on:
+  schedule:
+    # Every 30 min
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  post-jobs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install requests
+      - name: Post new jobs to Telegram
+        env:
+          SUPABASE_URL: https://afrcpiheobzauwyftksr.supabase.co
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+        run: python telegram_post_once.py
