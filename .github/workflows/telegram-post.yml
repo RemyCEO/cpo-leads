@@ -22,5 +22,5 @@ jobs:
           SUPABASE_URL: https://afrcpiheobzauwyftksr.supabase.co
           SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          TELEGRAM_CHANNEL_ID: "-1003542781934"
         run: python telegram_post_once.py
