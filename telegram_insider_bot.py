@@ -22,6 +22,7 @@ import sys
 import os
 import json
 from datetime import datetime
+from bs4 import BeautifulSoup
 
 # --- CONFIG ---
 BOT_TOKEN = "8710333843:AAEQhCUtdYF7nmWIzb7fTJ3I_kJUCsB3aTs"
@@ -34,6 +35,9 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(SCRIPT_DIR, "insider_bot_log.txt")
 OFFSET_FILE = os.path.join(SCRIPT_DIR, "insider_bot_offset.txt")
+
+# Pending URLs waiting for details from user
+pending_jobs = {}  # chat_id -> {"url": ..., "step": "title"|"company"|"location"|"confirm"}
 
 # CP/EP keywords
 CP_KEYWORDS = [
@@ -60,7 +64,10 @@ EXCLUDE_KEYWORDS = [
 def log(msg):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     line = f"[{timestamp}] {msg}"
-    print(line)
+    try:
+        print(line, flush=True)
+    except UnicodeEncodeError:
+        print(line.encode("ascii", "replace").decode(), flush=True)
     try:
         with open(LOG_FILE, "a", encoding="utf-8") as f:
             f.write(line + "\n")
@@ -84,6 +91,107 @@ def is_job_post(text):
     if any(ex in lower for ex in EXCLUDE_KEYWORDS):
         return False
     return any(kw in lower for kw in CP_KEYWORDS)
+
+def fetch_linkedin_page(url):
+    """Fetch LinkedIn page content and extract job details using Claude Haiku"""
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml",
+            "Accept-Language": "en-US,en;q=0.9",
+        }
+        r = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
+        if r.status_code != 200:
+            log(f"  LinkedIn fetch failed: {r.status_code}")
+            return None
+
+        soup = BeautifulSoup(r.text, "html.parser")
+        # Get meta description and title
+        meta_desc = ""
+        meta_title = ""
+        og_desc = soup.find("meta", {"property": "og:description"})
+        if og_desc:
+            meta_desc = og_desc.get("content", "")
+        og_title = soup.find("meta", {"property": "og:title"})
+        if og_title:
+            meta_title = og_title.get("content", "")
+        title_tag = soup.find("title")
+        if title_tag:
+            meta_title = meta_title or title_tag.get_text()
+
+        # Get visible text from main content
+        for tag in soup(["script", "style", "nav", "footer", "header"]):
+            tag.decompose()
+        body_text = soup.get_text(separator="\n", strip=True)[:3000]
+
+        page_content = f"Title: {meta_title}\nDescription: {meta_desc}\n\n{body_text}"
+
+        if len(page_content.strip()) < 50:
+            return None
+
+        return parse_with_ai(page_content, url)
+    except Exception as e:
+        log(f"  LinkedIn fetch error: {e}")
+        return None
+
+
+def parse_with_ai(page_content, url):
+    """Use Claude Haiku to extract structured job info from page content"""
+    try:
+        api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+        if not api_key:
+            # Try reading from file
+            key_file = os.path.join(SCRIPT_DIR, ".anthropic_key")
+            if os.path.exists(key_file):
+                with open(key_file) as f:
+                    api_key = f.read().strip()
+
+        if not api_key:
+            log("  No ANTHROPIC_API_KEY — falling back to regex parsing")
+            return None
+
+        r = requests.post("https://api.anthropic.com/v1/messages", headers={
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }, json={
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 500,
+            "messages": [{"role": "user", "content": f"""Extract job posting info from this page. Return ONLY valid JSON with these fields:
+- title: job title (clear, professional)
+- company: hiring company name
+- location: city/country
+- country: country name
+- salary: salary/rate if mentioned
+- notes: brief job description (max 300 chars)
+
+If this is NOT a job posting, return {{"not_job": true}}
+
+Page content:
+{page_content[:2000]}"""}]
+        }, timeout=20)
+
+        if r.status_code != 200:
+            log(f"  Claude API error: {r.status_code}")
+            return None
+
+        response_text = r.json()["content"][0]["text"]
+        # Extract JSON from response
+        json_match = re.search(r'\{[^{}]*\}', response_text, re.DOTALL)
+        if not json_match:
+            return None
+
+        data = json.loads(json_match.group())
+        if data.get("not_job"):
+            return None
+
+        data["source_url"] = url
+        data["source"] = "LinkedIn"
+        return data
+    except Exception as e:
+        log(f"  AI parse error: {e}")
+        return None
+
 
 def clean_title(title):
     """Strip LinkedIn share junk from titles"""
@@ -157,17 +265,22 @@ def extract_job_info(text):
                 title = line[:120]
                 break
 
-    # Extract company
-    company_patterns = [
-        r'(?:company|client|employer|firm|provider)[:\s]+([^\n]{3,60})',
-        r'(?:for|with|at)\s+([A-Z][A-Za-z\s&\-]+(?:Ltd|Group|Security|International|Global|Services))',
-        r'^([A-Z][A-Za-z\s&\-]+(?:Security|Group|International|Global|Services|Protection))\s*$',
-    ]
-    for pat in company_patterns:
-        m = re.search(pat, text, re.IGNORECASE | re.MULTILINE)
+    # Extract company — check explicit "Company:" lines first
+    for line in lines:
+        m = re.match(r'^(?:Company|Client|Employer|Firm|Provider)\s*:\s*(.+)', line.strip(), re.IGNORECASE)
         if m:
             company = m.group(1).strip()[:80]
             break
+    if not company:
+        company_patterns = [
+            r'^([A-Z][A-Za-z\s&\-]+(?:Security|Group|International|Global|Services|Protection))\s*$',
+            r'(?:for|with|at)\s+([A-Z][A-Za-z\s&\-]+(?:Ltd|Group|Security|International|Global|Services))',
+        ]
+        for pat in company_patterns:
+            m = re.search(pat, text, re.IGNORECASE | re.MULTILINE)
+            if m:
+                company = m.group(1).strip()[:80]
+                break
 
     # Extract location
     location_patterns = [
@@ -193,27 +306,34 @@ def extract_job_info(text):
             salary = m.group(1).strip()
             break
 
-    # Extract URLs
+    # Extract URLs (passed in from entities or regex fallback)
     urls = re.findall(r'https?://[^\s<>"\')\]]+', text)
+    urls = [u.rstrip('.') for u in urls]
     if urls:
-        source_url = urls[0].rstrip('.')
+        source_url = urls[0]
 
-    # LinkedIn URL detection — extract info from URL path
+    # LinkedIn URL detection — fetch actual page content
     source = "INSIDER SOURCE"
     for url in urls:
         if 'linkedin.com' in url:
             source = "LinkedIn"
-            # Try to extract readable name from URL path
-            path_match = re.search(r'linkedin\.com/(?:posts|jobs/view)/([^/?]+)', url)
-            if path_match:
-                slug = path_match.group(1).replace('-', ' ').replace('_', ' ')
-                # Clean up encoded chars
-                slug = re.sub(r'%[0-9A-Fa-f]{2}', ' ', slug)
-                slug = re.sub(r'\s+', ' ', slug).strip()
-                if slug and len(slug) > 5:
-                    title = slug[:120]
+            # Try to fetch and parse the actual LinkedIn page
+            ai_result = fetch_linkedin_page(url)
+            if ai_result:
+                log(f"  AI parsed LinkedIn: {ai_result.get('title', '')[:60]}")
+                return {
+                    "title": ai_result.get("title", "") or title,
+                    "company": ai_result.get("company", "") or company or "LinkedIn Post",
+                    "location": ai_result.get("location", "") or location,
+                    "source": "LinkedIn",
+                    "source_url": url,
+                    "country": ai_result.get("country", "") or guess_country(ai_result.get("location", "")),
+                    "salary": ai_result.get("salary", "") or salary,
+                    "notes": ai_result.get("notes", "") or text.strip()[:300],
+                }
+            # Fallback: don't use URL slug as title
             if not title:
-                title = f"LinkedIn — {url.split('/')[-1][:60]}"
+                title = f"Security Job — LinkedIn Post"
             break
         if 'indeed.com' in url:
             source = "Indeed"
@@ -310,18 +430,101 @@ def get_updates(offset=0):
         log(f"Telegram error: {e}")
     return []
 
+def is_url_only(text):
+    """Check if message is just a URL with minimal text"""
+    stripped = text.strip()
+    lines = [l.strip() for l in stripped.split('\n') if l.strip()]
+    if len(lines) <= 2:
+        urls = re.findall(r'https?://[^\s]+', stripped)
+        non_url_text = re.sub(r'https?://[^\s]+', '', stripped).strip()
+        if urls and len(non_url_text) < 20:
+            return urls[0]
+    return None
+
+
+def handle_pending(chat_id, text):
+    """Handle multi-step job input for URL-only messages"""
+    if chat_id not in pending_jobs:
+        return None
+
+    p = pending_jobs[chat_id]
+    step = p["step"]
+
+    if text.strip().lower() == "/cancel":
+        del pending_jobs[chat_id]
+        send_telegram(chat_id, "Cancelled.")
+        return "handled"
+
+    if step == "title":
+        p["title"] = text.strip()[:120]
+        p["step"] = "company"
+        send_telegram(chat_id, "Company name? (or 'skip')")
+        return "handled"
+
+    if step == "company":
+        p["company"] = "" if text.strip().lower() == "skip" else text.strip()[:80]
+        p["step"] = "location"
+        send_telegram(chat_id, "Location? (e.g. 'Dubai, UAE' or 'skip')")
+        return "handled"
+
+    if step == "location":
+        loc = "" if text.strip().lower() == "skip" else text.strip()[:60]
+        p["location"] = loc
+        p["country"] = guess_country(loc) if loc else ""
+
+        job = {
+            "title": p["title"],
+            "company": p.get("company") or "LinkedIn Post",
+            "location": p.get("location", ""),
+            "country": p.get("country", ""),
+            "salary": "",
+            "source": "LinkedIn",
+            "source_url": p["url"],
+            "notes": p.get("title", ""),
+        }
+        del pending_jobs[chat_id]
+        return job, chat_id
+
+    return None
+
+
+def extract_urls_from_entities(msg):
+    """Extract ALL URLs from Telegram message entities (hyperlinks, text_links, etc.)"""
+    urls = []
+    text = msg.get("text", "") or msg.get("caption", "")
+    entities = msg.get("entities", []) or msg.get("caption_entities", [])
+    for e in entities:
+        if e.get("type") == "url":
+            url = text[e["offset"]:e["offset"] + e["length"]]
+            if url and url not in urls:
+                urls.append(url)
+        elif e.get("type") == "text_link":
+            url = e.get("url", "")
+            if url and url not in urls:
+                urls.append(url)
+    # Also regex-match any URLs in text not caught by entities
+    for url in re.findall(r'https?://[^\s<>"\')\]]+', text):
+        url = url.rstrip('.')
+        if url not in urls:
+            urls.append(url)
+    return urls
+
 def process_message(msg):
     """Process a single Telegram message"""
     text = msg.get("text", "") or msg.get("caption", "")
-    if not text or len(text) < 10:
+    if not text or len(text) < 5:
         return None
 
     chat_id = msg.get("chat", {}).get("id", 0)
 
+    # Handle pending multi-step input
+    if chat_id in pending_jobs:
+        return handle_pending(chat_id, text)
+
     # Check if it's a command
     if text.startswith("/"):
         if text.strip() == "/start":
-            send_telegram(chat_id, "CPO Insider Bot active.\n\nForward FB group job posts here.\nI'll parse and add them to the CPO Leads database.\n\nCommands:\n/status — Check bot status\n/count — Jobs in database")
+            send_telegram(chat_id, "CPO Insider Bot active.\n\nForward job posts or LinkedIn URLs here.\nI'll parse and add them to CPO Leads.\n\nCommands:\n/status — Check bot status\n/count — Jobs in database\n/cancel — Cancel pending input")
             return None
         if text.strip() == "/status":
             send_telegram(chat_id, "Bot is running. Forward job posts to add them.")
@@ -332,16 +535,50 @@ def process_message(msg):
             return None
         return None
 
-    # Accept all messages from Remy — he only sends job posts here
+    # Accept all messages from Remy
     from_id = msg.get("from", {}).get("id", 0)
     if from_id != REMY_CHAT_ID:
-        # For others: require CP keywords or forwarded content
         is_forwarded = msg.get("forward_date") is not None or msg.get("forward_origin") is not None
         if not is_job_post(text) and not is_forwarded:
             return None
 
-    # Parse job info
-    job = extract_job_info(text)
+    # Check if it's just a URL — start interactive flow
+    url_only = is_url_only(text)
+    if url_only:
+        # First try AI/fetch
+        if 'linkedin.com' in url_only:
+            ai_result = fetch_linkedin_page(url_only)
+            if ai_result and ai_result.get("title"):
+                job = {
+                    "title": ai_result["title"],
+                    "company": ai_result.get("company", "") or "LinkedIn Post",
+                    "location": ai_result.get("location", ""),
+                    "country": ai_result.get("country", "") or guess_country(ai_result.get("location", "")),
+                    "salary": ai_result.get("salary", ""),
+                    "source": "LinkedIn",
+                    "source_url": url_only,
+                    "notes": ai_result.get("notes", ""),
+                }
+                return job, chat_id
+
+        # Fallback: ask user for details
+        pending_jobs[chat_id] = {"url": url_only, "step": "title"}
+        send_telegram(chat_id, f"Got URL: {url_only[:60]}...\n\nWhat's the job title?\n(or /cancel)")
+        return "handled"
+
+    # Extract URLs from entities (hyperlinks) and append to text so extract_job_info finds them
+    entity_urls = extract_urls_from_entities(msg)
+    text_with_urls = text
+    for u in entity_urls:
+        if u not in text:
+            text_with_urls += f"\n{u}"
+
+    # Parse job info from full text (with entity URLs injected)
+    job = extract_job_info(text_with_urls)
+
+    # If extract_job_info missed the URL but entities had one, force it
+    if not job.get("source_url") and entity_urls:
+        job["source_url"] = entity_urls[0]
 
     # Add forwarded-from info if available
     forward_from = msg.get("forward_from_chat", {}).get("title", "")
@@ -449,6 +686,9 @@ def main():
                     result = process_message(msg)
                     if not result:
                         log(f"  Skipped: not a job post")
+                        continue
+                    if result == "handled":
+                        log(f"  Pending input — waiting for user reply")
                         continue
 
                     job, chat_id = result
