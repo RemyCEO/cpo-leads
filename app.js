@@ -195,12 +195,18 @@ async function onAuthSuccess(user) {
     }
   }
 
-  // Let everyone in — Jobs tab is gated separately
   document.getElementById('auth-overlay').style.display = 'none';
-  document.getElementById('paywall-overlay')?.remove();
   const ac = document.getElementById('app-container');
   ac.style.display = '';
   ac.style.opacity = '1';
+
+  // If no active subscription, show unclosable paywall
+  if (!_verifySub()) {
+    showPaywall(true);
+    return;
+  }
+
+  document.getElementById('paywall-overlay')?.remove();
   await loadScrapedJobs();
 
   // Force re-render jobs with correct subscription state
@@ -256,7 +262,7 @@ async function startTrial(email, plan) {
   }
 }
 
-function showPaywall() {
+function showPaywall(locked) {
   document.getElementById('paywall-overlay')?.remove();
 
   const features = [
@@ -275,8 +281,11 @@ function showPaywall() {
 
   const pw = document.createElement('div');
   pw.id = 'paywall-overlay';
-  pw.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(6,8,13,0.97);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(12px);overflow-y:auto;cursor:pointer';
-  pw.onclick = function(e) { if (e.target === pw) pw.remove(); };
+  pw.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(6,8,13,0.97);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(12px);overflow-y:auto';
+  if (!locked) pw.onclick = function(e) { if (e.target === pw) pw.remove(); };
+  const closeBtn = locked
+    ? '<button onclick="authLogout()" style="background:none;border:1px solid #333;color:#999;cursor:pointer;font-size:12px;font-family:inherit;padding:6px 16px;border-radius:4px">Log Out</button>'
+    : '<button onclick="document.getElementById(\'paywall-overlay\')?.remove()" style="background:none;border:none;color:#666;cursor:pointer;font-size:12px;font-family:inherit">Back to Dashboard</button>';
   pw.innerHTML = `
     <div onclick="event.stopPropagation()" style="max-width:480px;width:100%;cursor:default;font-family:Inter,system-ui,sans-serif;background:rgba(13,17,23,0.95);border:1px solid rgba(201,168,76,.2);border-radius:16px;padding:32px 24px;box-shadow:0 24px 80px rgba(0,0,0,.6)">
       <div style="text-align:center;margin-bottom:20px">
@@ -292,7 +301,7 @@ function showPaywall() {
       <p style="text-align:center;font-size:11px;color:#7a7770;margin-bottom:16px">Sign up, add a card, explore everything. Charged $19.90/mo after 3 days.</p>
       <div style="text-align:center;padding-top:12px;border-top:1px solid rgba(201,168,76,.08)">
         <p style="font-size:11px;color:#52504b;margin-bottom:12px">Secure payment via Stripe. Cancel anytime.</p>
-        <button onclick="document.getElementById('paywall-overlay')?.remove()" style="background:none;border:none;color:#666;cursor:pointer;font-size:12px;font-family:inherit">Back to Dashboard</button>
+        ${closeBtn}
       </div>
     </div>
   `;
