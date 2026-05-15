@@ -755,7 +755,7 @@ function applyFilters(resetPage) {
   const pinned = filtered.filter(l => pinSources.includes((l.source||'').toLowerCase()));
   const rest = filtered.filter(l => !pinSources.includes((l.source||'').toLowerCase()));
   const final = [...pinned, ...rest];
-  renderList(final);
+  renderList(final, resetPage);
 }
 
 function extractSalary(notes) {

@@ -2594,11 +2594,11 @@ function renderJobList(list) {
 }
 
 const _origRenderList = renderList;
-renderList = function(list) {
+renderList = function(list, resetPage) {
   const el = document.getElementById('leads');
   if (!el) return;
   if (activeTab === 'jobs') {
-    jobsShown = jobsPerPage;
+    if (resetPage) jobsShown = jobsPerPage;
     renderJobList(list);
   } else {
     _origRenderList(list);
