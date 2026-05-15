@@ -37,7 +37,7 @@ async function getJobsToEnrich(limit) {
     .limit(100);
 
   const shortOnes = (shortNotes || []).filter(j =>
-    j.notes && j.notes.replace(/Enriched by Scout[^\n]*/g, '').trim().length < 50
+    j.notes && j.notes.replace(/Enriched by Scout.*/g, '').trim().length < 50
   ).slice(0, limit);
 
   // Merge and dedupe
@@ -49,7 +49,7 @@ async function getJobsToEnrich(limit) {
 
   // Filter out already enriched (but re-enrich if notes is ONLY the tag with no real content)
   return merged.filter(j => {
-    const notes = (j.notes || '').replace(/Enriched by Scout[^\n]*/g, '').trim();
+    const notes = (j.notes || '').replace(/Enriched by Scout.*/g, '').trim();
     return notes.length < 50;
   }).slice(0, limit);
 }
@@ -239,7 +239,7 @@ export default async function handler(req, res) {
         }
       } else {
         // Only mark as checked if job already has real notes (>50 chars)
-        const realNotes = (job.notes || '').replace(/Enriched by Scout[^\n]*/g, '').trim();
+        const realNotes = (job.notes || '').replace(/Enriched by Scout.*/g, '').trim();
         if (realNotes.length >= 50) {
           await supabase.from('job_listings').update({
             notes: (realNotes + '. Enriched by Scout ' + new Date().toISOString().slice(0, 10)).slice(0, 500),
