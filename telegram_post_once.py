@@ -64,9 +64,18 @@ def main():
         print(f"Supabase error: {r.status_code}")
         return
 
+    import re
     raw_jobs = r.json()
-    jobs = [j for j in raw_jobs if j.get("source_url") and j["source_url"].strip()
-            and j.get("notes") and j["notes"].replace("Enriched by Scout", "").strip()]
+    def has_apply_method(j):
+        url = (j.get("source_url") or "").strip()
+        notes = (j.get("notes") or "")
+        has_url = url.startswith("http")
+        has_mailto = url.startswith("mailto:")
+        has_email = bool(re.search(r"[\w.-]+@[\w.-]+\.\w+", notes))
+        has_phone = bool(re.search(r"[\+]?\d[\d\s\-]{7,}", notes))
+        has_desc = len(notes.replace("Enriched by Scout", "").strip()) > 10
+        return (has_url or has_mailto or has_email or has_phone) and has_desc
+    jobs = [j for j in raw_jobs if has_apply_method(j)]
 
     print(f"Found {len(raw_jobs)} new, {len(jobs)} postable")
 
