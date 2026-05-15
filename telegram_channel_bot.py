@@ -26,7 +26,7 @@ BOT_TOKEN = "8647809461:AAGTsrtOCXyauEo5j74X_Cn6Jq3OeLw0Q8I"
 CHANNEL_ID = -1003542781934
 
 SUPABASE_URL = "https://afrcpiheobzauwyftksr.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmcmNwaWhlb2J6YXV3eWZ0a3NyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODE1MzMwNSwiZXhwIjoyMDkzNzI5MzA1fQ.s4pyLPAiFswQ424enQpmWqYYoohrHBTnSUmwrquE3XA"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmcmNwaWhlb2J6YXV3eWZ0a3NyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODE1MzMwNSwiZXhwIjoyMDkzNzI5MzA1fQ.s4pyLPAiFswQ426enQpmWqYYoohrHBTnSUmwrquE3XA"
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(SCRIPT_DIR, "channel_bot_log.txt")
@@ -189,12 +189,21 @@ def run():
                 time.sleep(CHECK_INTERVAL)
                 continue
 
-            jobs = fetch_new_jobs(last_check)
+            raw_jobs = fetch_new_jobs(last_check)
 
-            if jobs:
-                log(f"Found {len(jobs)} new job(s)")
-                posted = 0
+            if raw_jobs:
+                # Track latest timestamp from ALL jobs (including filtered) to avoid re-fetching
                 latest_ts = last_check
+                for j in raw_jobs:
+                    jts = j.get("scraped_at", "")
+                    if jts > latest_ts:
+                        latest_ts = jts
+
+                # Filter: skip jobs without URL or without real description
+                jobs = [j for j in raw_jobs if j.get("source_url") and j["source_url"].strip()
+                        and j.get("notes") and j["notes"].replace("Enriched by Scout", "").strip()]
+                log(f"Found {len(raw_jobs)} new, {len(jobs)} postable (after quality filter)")
+                posted = 0
 
                 for job in jobs:
                     msg = format_job(job)

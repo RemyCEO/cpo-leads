@@ -37,7 +37,7 @@ async function getJobsToEnrich(limit) {
     .limit(100);
 
   const shortOnes = (shortNotes || []).filter(j =>
-    j.notes && j.notes.length < 50 && !j.notes.includes('Enriched by Scout')
+    j.notes && j.notes.replace(/Enriched by Scout[^\n]*/g, '').trim().length < 50
   ).slice(0, limit);
 
   // Merge and dedupe
@@ -47,8 +47,11 @@ async function getJobsToEnrich(limit) {
     if (!ids.has(j.id)) { merged.push(j); ids.add(j.id); }
   }
 
-  // Filter out already enriched
-  return merged.filter(j => !(j.notes || '').includes('Enriched by Scout')).slice(0, limit);
+  // Filter out already enriched (but re-enrich if notes is ONLY the tag with no real content)
+  return merged.filter(j => {
+    const notes = (j.notes || '').replace(/Enriched by Scout[^\n]*/g, '').trim();
+    return notes.length < 50;
+  }).slice(0, limit);
 }
 
 // Fetch page content from a URL
