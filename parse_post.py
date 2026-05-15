@@ -33,6 +33,15 @@ def parse_post(text):
     lines = text.strip().split('\n')
     result = {"title": "", "company": "", "location": "", "country": "", "salary": "", "source_url": "", "notes": ""}
 
+    # Job title keywords (broad — covers CP, intel, security, logistics)
+    TITLE_KEYWORDS = [
+        "director", "manager", "officer", "agent", "specialist", "protection", "security",
+        "cpo", "team lead", "analyst", "intelligence", "coordinator", "supervisor",
+        "consultant", "advisor", "operator", "driver", "medic", "paramedic",
+        "investigator", "instructor", "trainer", "escort", "guard", "warden",
+        "logistic", "risk", "compliance", "surveillance", "counter", "threat",
+    ]
+
     # Extract Title — look for "Title:" or first prominent line
     for line in lines:
         line = line.strip()
@@ -40,7 +49,7 @@ def parse_post(text):
             result["title"] = re.match(r'^Title:\s*(.+)', line, re.IGNORECASE).group(1).strip()
             break
         # Check for role-like first lines
-        if not result["title"] and len(line) > 5 and any(kw in line.lower() for kw in ["director", "manager", "officer", "agent", "specialist", "protection", "security", "cpo", "team lead"]):
+        if not result["title"] and len(line) > 5 and any(kw in line.lower() for kw in TITLE_KEYWORDS):
             result["title"] = line.strip()
 
     # Extract Location
@@ -99,14 +108,18 @@ def parse_post(text):
     if not result["company"]:
         result["company"] = "LinkedIn Post"
 
-    # Build notes from the full text (first 300 chars of description)
+    # Build notes — full description from source text
+    # Find where the description/requirements start
     desc_start = 0
     for i, line in enumerate(lines):
-        if line.strip().startswith(('We seek', 'We are', 'The Role', 'About', 'Key ', 'Responsibilities', 'Requirements', 'The successful')):
+        if line.strip().startswith(('We seek', 'We are', 'The Role', 'About', 'Key ', 'Responsibilities',
+                                    'Requirements', 'The successful', 'Duties', 'Qualifications',
+                                    'Overview', 'Description', 'Summary', 'Position', 'Role')):
             desc_start = i
             break
-    desc = ' '.join(lines[desc_start:]).strip()
-    result["notes"] = desc[:300] if desc else text[:300]
+    desc = '\n'.join(lines[desc_start:]).strip()
+    # Store as much as possible — notes is TEXT, no hard limit
+    result["notes"] = desc if desc else text.strip()
 
     return result
 
