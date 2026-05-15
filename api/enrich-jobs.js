@@ -238,11 +238,18 @@ export default async function handler(req, res) {
           report.details.push({ id: job.id, title: job.title, status: 'db_error', error: error.message });
         }
       } else {
-        // Mark as checked so we don't re-process
-        await supabase.from('job_listings').update({
-          notes: ((job.notes || '') + ' Enriched by Scout ' + new Date().toISOString().slice(0, 10)).slice(0, 500),
-        }).eq('id', job.id);
-        report.details.push({ id: job.id, title: job.title, status: 'already_complete' });
+        // Only mark as checked if job already has real notes (>50 chars)
+        const realNotes = (job.notes || '').replace(/Enriched by Scout[^\n]*/g, '').trim();
+        if (realNotes.length >= 50) {
+          await supabase.from('job_listings').update({
+            notes: (realNotes + '. Enriched by Scout ' + new Date().toISOString().slice(0, 10)).slice(0, 500),
+          }).eq('id', job.id);
+          report.details.push({ id: job.id, title: job.title, status: 'already_complete' });
+        } else {
+          // No real content and AI couldn't enrich — skip, don't stamp
+          report.jobs_failed++;
+          report.details.push({ id: job.id, title: job.title, status: 'no_content_found' });
+        }
       }
     } catch (e) {
       report.jobs_failed++;
