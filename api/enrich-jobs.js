@@ -37,7 +37,7 @@ async function getJobsToEnrich(limit) {
     .limit(100);
 
   const shortOnes = (shortNotes || []).filter(j =>
-    j.notes && j.notes.replace(/Enriched by Scout.*/g, '').trim().length < 50
+    j.notes && j.notes.replace(/Enriched by Scout.*/, '').trim().length < 50
   ).slice(0, limit);
 
   // Merge and dedupe
@@ -47,9 +47,9 @@ async function getJobsToEnrich(limit) {
     if (!ids.has(j.id)) { merged.push(j); ids.add(j.id); }
   }
 
-  // Filter out already enriched (but re-enrich if notes is ONLY the tag with no real content)
+  // Filter out already enriched (but re-enrich if notes is ONLY the tag)
   return merged.filter(j => {
-    const notes = (j.notes || '').replace(/Enriched by Scout.*/g, '').trim();
+    const notes = (j.notes || '').replace(/Enriched by Scout.*/, '').trim();
     return notes.length < 50;
   }).slice(0, limit);
 }
@@ -239,14 +239,13 @@ export default async function handler(req, res) {
         }
       } else {
         // Only mark as checked if job already has real notes (>50 chars)
-        const realNotes = (job.notes || '').replace(/Enriched by Scout.*/g, '').trim();
+        const realNotes = (job.notes || '').replace(/Enriched by Scout.*/, '').trim();
         if (realNotes.length >= 50) {
           await supabase.from('job_listings').update({
             notes: (realNotes + '. Enriched by Scout ' + new Date().toISOString().slice(0, 10)).slice(0, 500),
           }).eq('id', job.id);
           report.details.push({ id: job.id, title: job.title, status: 'already_complete' });
         } else {
-          // No real content and AI couldn't enrich — skip, don't stamp
           report.jobs_failed++;
           report.details.push({ id: job.id, title: job.title, status: 'no_content_found' });
         }
