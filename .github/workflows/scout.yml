@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Run Scout enrichment
         run: |
-          RESPONSE=$(curl -sf "https://cpoleads.com/api/enrich-jobs?secret=cpo-scout-2026&batch_size=20&email=true" || echo '{"error":"request failed"}')
+          RESPONSE=$(curl -sf "https://cpoleads.com/api/scout?secret=cpo-scout-2026&batch_size=20" || echo '{"error":"request failed"}')
           echo "$RESPONSE" | python3 -c "
           import json,sys
           try:
