@@ -44,23 +44,30 @@ async function authLogin() {
 }
 
 async function authSignup() {
-  hideAuthMsg();
-  const email = document.getElementById('signup-email').value.trim();
-  const pass = document.getElementById('signup-pass').value;
-  if(!email||!pass) return showAuthError('Enter email and password');
-  if(pass.length<6) return showAuthError('Password must be at least 6 characters');
-  const {data,error} = await sb.auth.signUp({email,password:pass});
-  if(error) return showAuthError(error.message);
-  if(data.user) {
-    // Auto-login after signup (email confirmation disabled in Supabase)
-    const {data:loginData, error:loginErr} = await sb.auth.signInWithPassword({email,password:pass});
-    if(loginErr) {
-      // If auto-login fails, still show success
-      showAuthSuccess('Account created! You can now log in.');
-      showLogin();
-      return;
+  // Check if user arrived via paid Stripe checkout
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('paid') === 'true') {
+    // Paid user — create account
+    hideAuthMsg();
+    const email = document.getElementById('signup-email').value.trim();
+    const pass = document.getElementById('signup-pass').value;
+    if(!email||!pass) return showAuthError('Enter email and password');
+    if(pass.length<6) return showAuthError('Password must be at least 6 characters');
+    const {data,error} = await sb.auth.signUp({email,password:pass});
+    if(error) return showAuthError(error.message);
+    if(data.user) {
+      const {data:loginData, error:loginErr} = await sb.auth.signInWithPassword({email,password:pass});
+      if(loginErr) {
+        showAuthSuccess('Account created! You can now log in.');
+        showLogin();
+        return;
+      }
+      window.history.replaceState({}, '', '/app.html');
+      onAuthSuccess(loginData.user);
     }
-    onAuthSuccess(loginData.user);
+  } else {
+    // Not paid — redirect to Stripe
+    window.location.href = STRIPE_MONTHLY;
   }
 }
 
@@ -395,6 +402,9 @@ let _authReady = false;
     if (params.includes('signup')) {
       showSignup();
       if (params.includes('paid=true')) {
+        // Show account creation form for paid users
+        document.getElementById('signup-paid-form').style.display = '';
+        document.getElementById('signup-stripe-redirect').style.display = 'none';
         showAuthSuccess('Payment confirmed! Create your account below to get started.');
         const urlEmail = new URLSearchParams(params).get('email');
         if (urlEmail) {

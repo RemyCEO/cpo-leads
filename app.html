@@ -1358,14 +1358,22 @@ body {
       </div>
     </div>
 
-    <!-- Signup (only accessible after Stripe payment redirect) -->
+    <!-- Signup — paid users get form, others get Stripe redirect -->
     <div id="auth-form-signup" style="display:none">
       <div class="login-form">
-        <input class="login-input" id="signup-email" type="email" placeholder="Email" autocomplete="email">
-        <input class="login-input" id="signup-pass" type="password" placeholder="Password (min 6 chars)" autocomplete="new-password">
-        <button class="login-btn" onclick="authSignup()">CREATE ACCOUNT</button>
-        <div style="text-align:center;font-size:0.8rem;color:var(--text-secondary);margin-top:8px">
-          <span onclick="showLogin()" style="color:var(--gold);cursor:pointer">Back to login</span>
+        <div id="signup-paid-form" style="display:none">
+          <input class="login-input" id="signup-email" type="email" placeholder="Email" autocomplete="email">
+          <input class="login-input" id="signup-pass" type="password" placeholder="Choose a password (min 6 chars)" autocomplete="new-password">
+          <button class="login-btn" onclick="authSignup()">CREATE ACCOUNT</button>
+        </div>
+        <div id="signup-stripe-redirect">
+          <p style="color:var(--text-secondary);font-size:0.9rem;text-align:center;margin-bottom:16px">Start your 3-day free trial to get access</p>
+          <button class="login-btn" onclick="authSignup()" style="background:linear-gradient(135deg,#C9A84C,#8B7635)">START FREE TRIAL — 3 DAYS FREE</button>
+          <p style="text-align:center;font-size:0.75rem;color:var(--text-secondary);margin-top:8px">$19.90/month after trial. Cancel anytime.</p>
+        </div>
+        <div style="text-align:center;font-size:0.8rem;color:var(--text-secondary);margin-top:12px">
+          <span>Already have an account? </span>
+          <span onclick="showLogin()" style="color:var(--gold);cursor:pointer">Log in</span>
         </div>
       </div>
     </div>
