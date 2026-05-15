@@ -2344,8 +2344,20 @@ function openDetailModal(id) {
 }
 
 // Override app.js openDetail/closeDetail for centered modal
-openDetail = openDetailModal;
-closeDetail = function() { document.getElementById('detail-bg').classList.remove('open'); };
+let _savedScrollPos = 0;
+openDetail = function(id) {
+  const main = document.querySelector('main') || document.getElementById('app-container');
+  _savedScrollPos = main ? main.scrollTop : window.scrollY;
+  openDetailModal(id);
+};
+closeDetail = function() {
+  document.getElementById('detail-bg').classList.remove('open');
+  requestAnimationFrame(() => {
+    const main = document.querySelector('main') || document.getElementById('app-container');
+    if (main && main.scrollTop !== undefined) main.scrollTop = _savedScrollPos;
+    else window.scrollTo(0, _savedScrollPos);
+  });
+};
 
 // Override switchTab for sidebar
 switchTab = function(tab) {
