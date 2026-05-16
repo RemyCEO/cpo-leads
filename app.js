@@ -1073,6 +1073,7 @@ function updateStatus(id, status) {
 function esc(s) { if(!s)return''; const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
 
 function openAdd() {
+  if (!_isAdmin) return;
   document.getElementById('modal-title').textContent = activeTab === 'jobs' ? 'New Job Listing' : 'New Company';
   document.getElementById('edit-id').value = '';
   ['f-company','f-contact','f-email','f-phone','f-website','f-location','f-notes'].forEach(id=>document.getElementById(id).value='');
@@ -1086,6 +1087,7 @@ function openAdd() {
 }
 
 function openEdit(id) {
+  if (!_isAdmin) return;
   const l = leads.find(x=>x.id===id);
   if(!l)return;
   if (isJob(l) && !_verifySub()) { showPaywall(); return; }
@@ -1180,10 +1182,10 @@ function openDetail(id) {
       ${l.location?`<div class="detail-row"><span class="detail-label">Location</span><span class="detail-value">${esc(l.location)}${l.country?' \u00b7 '+esc(l.country):''}</span></div>`:''}
       ${l.notes?`<div style="margin-top:16px"><div class="detail-label" style="margin-bottom:6px">Notes</div><div style="font-size:13px;color:var(--muted);line-height:1.5;white-space:pre-wrap">${esc(l.notes)}</div></div>`:''}
     </div>
-    <div style="display:flex;gap:8px;margin-top:24px">
+    ${_isAdmin ? `<div style="display:flex;gap:8px;margin-top:24px">
       <button class="btn btn-ghost" onclick="openEdit('${l.id}')" style="flex:1">Edit</button>
       <button class="btn btn-danger btn-sm" onclick="deleteLead('${l.id}')">Delete</button>
-    </div>
+    </div>` : ''}
     <div style="margin-top:16px;font-size:10px;color:var(--muted)">Added ${new Date(l.created_at).toLocaleDateString('en-GB')}</div>
   `;
   panel.classList.add('open');
@@ -1228,6 +1230,7 @@ async function saveInsiderReview(id) {
 }
 
 function deleteLead(id) {
+  if (!_isAdmin) return;
   if (!confirm('Delete this lead?')) return;
   leads = leads.filter(x=>x.id!==id);
   persist();
