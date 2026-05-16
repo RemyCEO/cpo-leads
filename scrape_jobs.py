@@ -796,24 +796,45 @@ def scrape_reed():
 
 
 def is_bad_title(title):
-    """Reject non-job titles: person names, raw URLs, vague posts"""
+    """Reject non-job titles: person names, raw URLs, vague posts, articles"""
     t = (title or '').lower().strip()
     if len(t) < 10: return True
     if any(x in t for x in ['https://', 'http://', '?src=', '/jobba-', 'candidates europe']):
         return True
     if t.startswith('post ') or t.startswith('hiring ') and len(t) < 30:
         return True
+    # Reject articles/guides
+    if any(x in t for x in ['how much', 'how to', 'what is', 'what are', 'guide to', 'tips for', 'please read before']):
+        return True
     # Reject if title is mostly numbers/IDs
     digits = sum(1 for c in t if c.isdigit())
     if digits > len(t) * 0.3 and len(t) > 15: return True
     return False
 
+
+def is_military_job(job):
+    """Reject military affiliation jobs (National Guard, USAF, etc.)"""
+    company = (job.get('company', '') or '').lower()
+    title = (job.get('title', '') or '').lower()
+    url = (job.get('source_url', '') or '').lower()
+    military_orgs = ['national guard', 'air force', 'navy', 'marine corps', 'usaf',
+                     'department of defense', 'army', 'naval facilities', 'air mobility command']
+    if any(org in company for org in military_orgs):
+        return True
+    if 'usajobs.gov' in url:
+        return True
+    if 'title 32' in title or 'title 32' in (job.get('notes', '') or '').lower():
+        return True
+    return False
+
 def deduplicate(jobs):
-    """Remove duplicates by title+company+source, filter bad titles"""
+    """Remove duplicates by title+company+source, filter bad titles and military jobs"""
     seen = set()
     unique = []
     for j in jobs:
         if not j["title"] or is_bad_title(j["title"]):
+            continue
+        if is_military_job(j):
             continue
         key = (j["title"].lower().strip(), j["company"].lower().strip(), j["source"])
         if key not in seen:
@@ -849,7 +870,7 @@ def ai_filter_jobs(jobs):
 
 Review these jobs and return ONLY the line numbers that are RELEVANT (close protection, executive protection, bodyguard, PSD, maritime security, security director/manager, protective intelligence, security consulting, travel security, risk management, investigations).
 
-REJECT: generic security guard, retail security, CCTV, fire alarm, data protection, IT security, cybersecurity, software, HR, marketing, admin, cleaning, catering, generic "security officer" at malls/hospitals/offices.
+REJECT: generic security guard, retail security, CCTV, fire alarm, data protection, IT security, cybersecurity, software, HR, marketing, admin, cleaning, catering, generic "security officer" at malls/hospitals/offices, military positions (National Guard, USAF, Army, Navy, Title 32, USAJOBS), news articles, guides, magazine posts, service pages without an actual job to apply for.
 
 Also flag any with bad titles (numbers only, URLs, warnings, job seeker posts).
 
@@ -1564,15 +1585,7 @@ def main():
         log(f"  SSR PERSONNEL FAILED: {e}")
         errors.append(f"SSR Personnel: {e}")
 
-    # USAJobs (Federal EP)
-    try:
-        log("Scraping USAJobs.gov...")
-        usajobs = scrape_usajobs()
-        log(f"  Found {len(usajobs)} jobs")
-        all_jobs.extend(usajobs)
-    except Exception as e:
-        log(f"  USAJOBS FAILED: {e}")
-        errors.append(f"USAJobs: {e}")
+    # USAJobs REMOVED — military affiliation jobs not relevant for CPO Leads users
 
     # Company Career Sites (GDBA, Global Guardian, Pinkerton, Crisis24)
     try:

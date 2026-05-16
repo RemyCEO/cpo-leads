@@ -1409,9 +1409,7 @@ function getContractBadges(l) {
   if(n.includes('full-time')||n.includes('full time')) badges.push('<span class="jbadge jbadge-fulltime">FULL-TIME</span>');
   else if(n.includes('rotation')) badges.push('<span class="jbadge jbadge-rotation">ROTATION</span>');
   else if(n.includes('contract')||n.includes('/day')) badges.push('<span class="jbadge jbadge-contract">CONTRACT</span>');
-  const age = (Date.now() - new Date(l.created_at).getTime())/(1000*60*60);
-  if(age < 24) badges.push('<span class="jbadge jbadge-new">JUST IN</span>');
-  else if(age < 72) badges.push('<span class="jbadge jbadge-new">NEW</span>');
+  // Freshness badges removed
   if(n.includes('active listing')) badges.push('<span class="jbadge jbadge-verified">VERIFIED</span>');
   return badges.join('');
 }
