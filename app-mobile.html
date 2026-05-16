@@ -572,24 +572,53 @@ body {
 
 /* ===== DETAIL MODAL (full screen slide-up) ===== */
 .detail-modal-bg {
-  position: fixed; inset: 0; background: rgba(6,8,13,0.75);
-  backdrop-filter: blur(8px); z-index: 300; display: none;
+  position: fixed; inset: 0; background: rgba(6,11,20,.85);
+  backdrop-filter: blur(12px); z-index: 300; display: none;
   align-items: flex-end; justify-content: center;
+  opacity: 0; transition: opacity .25s ease;
 }
-.detail-modal-bg.open { display: flex; }
+.detail-modal-bg.open { display: flex; opacity: 1; }
 .detail-modal {
-  background: rgba(10,14,26,0.98); border: 1px solid var(--card-border);
-  border-radius: 16px 16px 0 0; width: 100%; max-height: 92vh;
-  overflow-y: auto; padding: 24px 16px env(safe-area-inset-bottom, 16px);
-  animation: fadeInUp 0.25s ease; position: relative;
+  background: #0B1220; border: 1px solid #1A2438;
+  border-radius: 18px 18px 0 0; width: 100%; max-height: 92vh;
+  overflow-y: auto; padding: 0 0 env(safe-area-inset-bottom, 0);
+  box-shadow: 0 -12px 60px rgba(0,0,0,.5), 0 0 30px rgba(201,166,77,.03);
+  transform: translateY(40px); opacity: 0;
+  animation: dmodal-in .3s cubic-bezier(.16,1,.3,1) forwards;
+  position: relative;
 }
-.m-detail-close {
-  position: absolute; top: 12px; right: 12px;
-  width: 48px; height: 48px; border-radius: 50%;
-  background: rgba(201,168,76,0.08); border: 1px solid var(--card-border);
-  color: var(--text-primary); font-size: 22px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-}
+.detail-modal::-webkit-scrollbar { display: none; }
+@keyframes dmodal-in { to { transform: translateY(0); opacity: 1; } }
+.dm-header { padding: 24px 20px 0; position: relative; }
+.dm-close { position: absolute; top: 16px; right: 16px; width: 40px; height: 40px; border-radius: 12px; background: rgba(26,36,56,.6); border: 1px solid #1A2438; color: #8B95A7; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all .2s; min-height: 40px; }
+.dm-close:hover { background: rgba(201,166,77,.1); border-color: #C9A64D; color: #fff; }
+.dm-title { font-size: 1.2rem; font-weight: 800; color: #fff; line-height: 1.3; margin-bottom: 8px; padding-right: 52px; }
+.dm-company { font-size: 0.9rem; color: #C9A64D; font-weight: 600; margin-bottom: 4px; }
+.dm-location { font-size: 0.85rem; color: #8B95A7; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+.dm-salary { font-size: 1.3rem; font-weight: 900; color: #C9A64D; margin-bottom: 16px; text-shadow: 0 0 20px rgba(201,166,77,.2); }
+.dm-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.dm-badge { padding: 6px 14px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+.dm-badge-type { background: rgba(201,166,77,.08); color: #C9A64D; border: 1px solid rgba(201,166,77,.15); }
+.dm-badge-active { background: rgba(31,169,113,.08); color: #1FA971; border: 1px solid rgba(31,169,113,.15); }
+.dm-badge-risk { background: rgba(231,76,60,.08); color: #e74c3c; border: 1px solid rgba(231,76,60,.15); }
+.dm-divider { height: 1px; background: linear-gradient(90deg, transparent, #1A2438, transparent); margin: 20px 0; }
+.dm-body { padding: 0 20px; }
+.dm-section { margin-bottom: 20px; }
+.dm-section-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #C9A64D; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.dm-section-title::after { content: ''; flex: 1; height: 1px; background: rgba(201,166,77,.15); }
+.dm-desc { font-size: 0.88rem; color: #c5c8d0; line-height: 1.75; white-space: pre-wrap; }
+.dm-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dm-info-item { background: rgba(26,36,56,.3); border: 1px solid #1A2438; border-radius: 10px; padding: 12px; }
+.dm-info-label { font-size: 0.6rem; font-weight: 600; letter-spacing: 1px; color: #8B95A7; text-transform: uppercase; margin-bottom: 4px; }
+.dm-info-value { font-size: 0.85rem; font-weight: 600; color: #fff; }
+.dm-actions { padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0)); display: flex; gap: 10px; position: sticky; bottom: 0; background: linear-gradient(transparent, #0B1220 20%); }
+.dm-apply { flex: 1; text-align: center; padding: 16px 20px; background: linear-gradient(135deg, #C9A64D, #8B7635); color: #060B14; border-radius: 10px; font-weight: 800; font-size: 0.95rem; text-decoration: none; border: none; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; }
+.dm-apply:hover { box-shadow: 0 0 30px rgba(201,166,77,.35); }
+.dm-btn { padding: 16px; background: rgba(26,36,56,.4); border: 1px solid #1A2438; border-radius: 10px; color: #8B95A7; cursor: pointer; font-family: inherit; font-size: 0.9rem; transition: all .2s; display: flex; align-items: center; gap: 6px; min-height: 52px; }
+.dm-btn:hover { border-color: #C9A64D; color: #C9A64D; }
+.dm-btn.active { border-color: #1FA971; color: #1FA971; background: rgba(31,169,113,.06); }
+.dm-footer { padding: 8px 20px 20px; font-size: 0.65rem; color: #555d6e; }
+.m-detail-close { display: none; }
 
 /* ===== SAVED / GUIDE / STRATEGY / PROFILE / SETTINGS ===== */
 .m-empty {
@@ -1405,6 +1434,31 @@ function timeAgo(dateStr) {
 }
 
 // Mobile detail modal
+function detectRiskLevel(l) {
+  const h = [l.company,l.notes,l.location,l.country].filter(Boolean).join(' ').toLowerCase();
+  if (/iraq|syria|afghanistan|libya|yemen|somalia|sudan|congo|hostile|conflict|war zone|high.risk/i.test(h)) return 'HIGH RISK';
+  if (/nigeria|kenya|mozambique|mali|niger|maritime|anti.piracy|vessel/i.test(h)) return 'ELEVATED';
+  return '';
+}
+function parseJobSections(notes) {
+  if (!notes) return { description: '', responsibilities: '', requirements: '', rotation: '' };
+  const text = notes.trim();
+  const sections = { description: '', responsibilities: '', requirements: '', rotation: '' };
+  const respMatch = text.match(/(?:responsibilities|duties|key tasks)[:\s\-]*([\s\S]*?)(?=(?:requirements|qualifications|experience|rotation|contract|$))/i);
+  const reqMatch = text.match(/(?:requirements|qualifications|experience|skills)[:\s\-]*([\s\S]*?)(?=(?:rotation|contract|salary|benefits|$))/i);
+  const rotMatch = text.match(/(?:rotation|contract|deployment|duration)[:\s\-]*([\s\S]*?)(?=(?:salary|benefits|how to apply|$))/i);
+  if (respMatch) sections.responsibilities = respMatch[1].trim();
+  if (reqMatch) sections.requirements = reqMatch[1].trim();
+  if (rotMatch) sections.rotation = rotMatch[1].trim();
+  if (!sections.responsibilities && !sections.requirements) {
+    sections.description = text;
+  } else {
+    const firstSection = text.search(/(?:responsibilities|duties|requirements|qualifications)/i);
+    sections.description = firstSection > 0 ? text.substring(0, firstSection).trim() : text.split('\n')[0];
+  }
+  return sections;
+}
+
 function openDetailModal(id) {
   const l = leads.find(x=>x.id===id);
   if(!l) return;
@@ -1413,36 +1467,59 @@ function openDetailModal(id) {
   const url = l.website ? (l.website.startsWith('http') ? l.website : 'https://'+l.website) : '';
   const job = isJob(l);
   const jt = detectJobType(l);
+  const risk = detectRiskLevel(l);
   const cleanTitle = esc(l.company).replace(/^.*?\u2014\s*/, '');
   const companyName = esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : esc(l.company);
+  const displayCompany = companyName === 'Insider Source' || companyName === 'INSIDER SOURCE' ? '' : companyName;
+  const sections = parseJobSections(l.notes);
+  const posted = l.posted_at || l.created_at;
+  const postedStr = posted ? new Date(posted).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '';
   const cred = getCredibility(l.company);
+  const loc = l.location ? esc(l.location) + (l.country && l.country!=='UK' && l.country!=='USA' ? ' · ' + esc(l.country) : '') : (l.country || '');
+  const source = l.source || '';
+  const isApplied = l.status === 'applied' || l.status === 'interview' || l.status === 'offer';
 
-  const isInsider = l.source === 'INSIDER SOURCE';
   const panel = document.getElementById('detail');
   panel.innerHTML = `
-    <button class="m-detail-close" onclick="closeDetail()">&times;</button>
-    <div style="padding-right:52px;margin-bottom:16px">
-      <h2 style="font-size:1.25rem;font-weight:800;line-height:1.3;margin-bottom:8px">${cleanTitle || companyName}</h2>
-      <div style="font-size:1rem;color:#fff;margin-bottom:10px;font-weight:700;letter-spacing:0.3px">
-        ${job && esc(l.company).includes('\u2014') ? companyName + ' &middot; ' : ''}${l.location ? esc(l.location) + (l.country && l.country!=='UK' && l.country!=='USA' ? ' &middot; ' + esc(l.country) : '') : ''}
+    <div class="dm-header">
+      <button class="dm-close" onclick="closeDetail()">✕</button>
+      <div class="dm-title">${cleanTitle || companyName}</div>
+      ${displayCompany ? '<div class="dm-company">'+esc(displayCompany)+'</div>' : ''}
+      ${loc ? '<div class="dm-location"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> '+loc+'</div>' : ''}
+      ${salary ? '<div class="dm-salary">'+esc(salary)+'</div>' : ''}
+      <div class="dm-badges">
+        <span class="dm-badge dm-badge-type">${jt.icon} ${jt.label}</span>
+        <span class="dm-badge dm-badge-active">● ACTIVE</span>
+        ${risk ? '<span class="dm-badge dm-badge-risk">⚠ '+risk+'</span>' : ''}
       </div>
-      ${salary ? '<div style="font-size:1.4rem;font-weight:900;color:var(--gold-bright);margin-bottom:12px">'+esc(salary)+'</div>' : ''}
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <span style="padding:6px 12px;border-radius:6px;font-size:0.8rem;font-weight:600;background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.15)">${jt.icon} ${jt.label}</span>
-        <span style="padding:6px 10px;border-radius:6px;font-size:0.75rem;font-weight:600;background:rgba(62,207,142,.1);color:var(--green);border:1px solid rgba(62,207,142,.15)">ACTIVE</span>
-      </div>
-      ${cred ? '<div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;margin-top:8px">'+cred+'</div>' : ''}
+      ${cred ? '<div style="font-size:0.7rem;color:#8B95A7;font-style:italic;margin-top:8px">'+cred+'</div>' : ''}
     </div>
-    ${_isAdmin && isInsider ? '<div style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:12px;margin-bottom:16px"><div style="font-size:0.75rem;font-weight:700;color:#C9A84C;margin-bottom:8px">INSIDER JOB \u2014 REVIEW</div><div style="display:flex;flex-direction:column;gap:8px"><input id="review-title" value="'+esc(l._dbTitle||'')+'" placeholder="Job title" style="background:var(--surface);border:1px solid var(--card-border);border-radius:6px;padding:10px;color:var(--text);font-size:1rem"><input id="review-company" value="'+esc(l._dbCompany||'')+'" placeholder="Company" style="background:var(--surface);border:1px solid var(--card-border);border-radius:6px;padding:10px;color:var(--text);font-size:1rem"><div style="display:flex;gap:8px"><input id="review-location" value="'+esc(l.location||'')+'" placeholder="Location" style="flex:1;background:var(--surface);border:1px solid var(--card-border);border-radius:6px;padding:10px;color:var(--text);font-size:1rem"><input id="review-country" value="'+esc(l.country||'')+'" placeholder="Country" style="width:120px;background:var(--surface);border:1px solid var(--card-border);border-radius:6px;padding:10px;color:var(--text);font-size:1rem"></div><textarea id="review-notes" rows="3" placeholder="Description" style="background:var(--surface);border:1px solid var(--card-border);border-radius:6px;padding:10px;color:var(--text);font-size:1rem;resize:vertical">'+esc(l.notes||'')+'</textarea><button onclick="saveInsiderReview(\''+l.id+'\')" style="background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border:none;border-radius:8px;padding:14px;font-weight:700;font-size:1rem;cursor:pointer;min-height:48px">Save to Database</button></div></div>' : ''}
-    ${l.notes && !(_isAdmin && isInsider) ? '<div style="font-size:0.9rem;color:#c5c2bd;line-height:1.7;margin-bottom:24px">'+esc(l.notes)+'</div>' : ''}
-    <div style="display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid var(--card-border)">
-      ${url ? '<a href="'+url+'" target="_blank" '+(job?'onclick="if(!gateApply(event))return"':'')+' style="text-align:center;padding:16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border-radius:8px;font-weight:700;font-size:1rem;text-decoration:none;min-height:52px;display:flex;align-items:center;justify-content:center">'+(job?'APPLY NOW':'VISIT WEBSITE')+'</a>' : ''}
-      <div style="display:flex;gap:8px">
-        <button onclick="event.stopPropagation();toggleSaved('${l.id}');openDetailModal('${l.id}')" style="flex:1;padding:14px;background:none;border:1px solid var(--card-border);border-radius:8px;color:var(--gold);cursor:pointer;font-family:inherit;font-size:1rem;min-height:48px">${l.saved?'\u2605 Saved':'\u2606 Save'}</button>
-        ${_isAdmin ? '<button onclick="openEdit(\''+l.id+'\')" style="padding:14px 20px;background:none;border:1px solid var(--card-border);border-radius:8px;color:var(--text-secondary);cursor:pointer;font-family:inherit;font-size:0.875rem;min-height:48px">Edit</button>' : ''}
+    <div class="dm-divider"></div>
+    <div class="dm-body">
+      ${_isAdmin && l.source === 'INSIDER SOURCE' ? '<div style="background:rgba(201,166,77,.06);border:1px solid rgba(201,166,77,.2);border-radius:10px;padding:14px;margin-bottom:20px"><div style="font-size:0.7rem;font-weight:700;color:#C9A64D;margin-bottom:10px;letter-spacing:1px">INSIDER JOB — REVIEW & EDIT</div><div style="display:flex;flex-direction:column;gap:8px"><input id="review-title" value="'+esc(l._dbTitle||'')+'" placeholder="Job title" style="background:#0e1628;border:1px solid #1A2438;border-radius:8px;padding:12px;color:#fff;font-size:1rem"><input id="review-company" value="'+esc(l._dbCompany||'')+'" placeholder="Company" style="background:#0e1628;border:1px solid #1A2438;border-radius:8px;padding:12px;color:#fff;font-size:1rem"><div style="display:flex;gap:8px"><input id="review-location" value="'+esc(l.location||'')+'" placeholder="Location" style="flex:1;background:#0e1628;border:1px solid #1A2438;border-radius:8px;padding:12px;color:#fff;font-size:1rem"><input id="review-country" value="'+esc(l.country||'')+'" placeholder="Country" style="width:120px;background:#0e1628;border:1px solid #1A2438;border-radius:8px;padding:12px;color:#fff;font-size:1rem"></div><textarea id="review-notes" rows="3" placeholder="Description" style="background:#0e1628;border:1px solid #1A2438;border-radius:8px;padding:12px;color:#fff;font-size:1rem;resize:vertical">'+esc(l.notes||'')+'</textarea><button onclick="saveInsiderReview(\''+l.id+'\')" class="dm-apply" style="font-size:0.95rem">Save to Database</button></div></div>' : ''}
+      ${sections.description ? '<div class="dm-section"><div class="dm-section-title">Job Description</div><div class="dm-desc">'+esc(sections.description)+'</div></div>' : ''}
+      ${sections.responsibilities ? '<div class="dm-section"><div class="dm-section-title">Responsibilities</div><div class="dm-desc">'+esc(sections.responsibilities)+'</div></div>' : ''}
+      ${sections.requirements ? '<div class="dm-section"><div class="dm-section-title">Requirements</div><div class="dm-desc">'+esc(sections.requirements)+'</div></div>' : ''}
+      ${sections.rotation ? '<div class="dm-section"><div class="dm-section-title">Rotation / Contract</div><div class="dm-desc">'+esc(sections.rotation)+'</div></div>' : ''}
+      <div class="dm-section">
+        <div class="dm-section-title">Job Information</div>
+        <div class="dm-info-grid">
+          <div class="dm-info-item"><div class="dm-info-label">Category</div><div class="dm-info-value">${jt.label}</div></div>
+          <div class="dm-info-item"><div class="dm-info-label">Location</div><div class="dm-info-value">${loc || 'Undisclosed'}</div></div>
+          <div class="dm-info-item"><div class="dm-info-label">Source</div><div class="dm-info-value">${esc(source) || 'Direct'}</div></div>
+          <div class="dm-info-item"><div class="dm-info-label">Posted</div><div class="dm-info-value">${postedStr || 'Recently'}</div></div>
+          ${salary ? '<div class="dm-info-item"><div class="dm-info-label">Compensation</div><div class="dm-info-value" style="color:#C9A64D">'+esc(salary)+'</div></div>' : ''}
+          ${risk ? '<div class="dm-info-item"><div class="dm-info-label">Risk Level</div><div class="dm-info-value" style="color:#e74c3c">'+risk+'</div></div>' : ''}
+        </div>
       </div>
     </div>
-    <div style="margin-top:16px;font-size:0.75rem;color:var(--text-muted)">Added ${new Date(l.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
+    <div class="dm-actions">
+      ${url ? '<a href="'+url+'" target="_blank" '+(job?'onclick="if(!gateApply(event))return"':'')+' class="dm-apply"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> APPLY NOW</a>' : ''}
+      <button onclick="event.stopPropagation();toggleSaved('${l.id}');openDetailModal('${l.id}')" class="dm-btn${l.saved?' active':''}" title="${l.saved?'Unsave':'Save'}"><svg width="18" height="18" viewBox="0 0 24 24" fill="${l.saved?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <button onclick="event.stopPropagation();updateStatus('${l.id}','applied');openDetailModal('${l.id}')" class="dm-btn${isApplied?' active':''}" title="${isApplied?'Tracked':'Mark applied'}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
+      ${_isAdmin ? '<button onclick="openEdit(\''+l.id+'\')" class="dm-btn" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button onclick="deleteLead(\''+l.id+'\')" class="dm-btn" title="Delete" style="color:#e74c3c"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>' : ''}
+    </div>
+    <div class="dm-footer">Added ${new Date(l.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}${l.source ? ' · via '+esc(l.source) : ''}</div>
   `;
   document.getElementById('detail-bg').classList.add('open');
 }
