@@ -963,7 +963,10 @@ body {
 .dossier-row { display: flex; align-items: center; gap: 12px; }
 
 /* ===== PREMIUM JOB CARDS ===== */
-.jcard{background:var(--card-bg);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:8px;padding:16px 18px;transition:all .25s;cursor:pointer;position:relative;overflow:hidden}
+.jobs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.jobs-grid .date-group-header{grid-column:1/-1}
+@media(max-width:960px){.jobs-grid{grid-template-columns:1fr}}
+.jcard{background:var(--card-bg);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:8px;padding:16px 18px;transition:all .25s;cursor:pointer;position:relative;overflow:hidden;display:flex;flex-direction:column}
 .jcard:hover{border-color:var(--card-border-hover);transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,168,76,.08)}
 .jcard.tier1{border-left:3px solid var(--gold);background:linear-gradient(135deg,rgba(201,168,76,.04),transparent)}
 .jcard.tier1:hover{box-shadow:0 8px 32px rgba(201,168,76,.15)}
@@ -2212,7 +2215,7 @@ body {
 <!-- ============ SCRIPTS ============ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="seed_data.js"></script>
-<script src="app.js?v=20260516d"></script>
+<script src="app.js?v=20260516e"></script>
 <script>
 // === BRIDGE: sidebar nav → app.js ===
 
@@ -2648,12 +2651,13 @@ function renderJobList(list) {
     const groupColors = { 'NEW TODAY': 'var(--green)', 'YESTERDAY': 'var(--gold)', 'THIS WEEK': 'var(--blue)', 'OLDER': 'var(--text-muted)' };
     const groupIcons = { 'NEW TODAY': '\u{1F7E2}', 'YESTERDAY': '\u{1F7E1}', 'THIS WEEK': '\u{1F535}', 'OLDER': '\u26AA' };
 
+    html += '<div class="jobs-grid">';
     let lastGroup = '';
     visible.forEach(l => {
       const group = getDateGroup(l.posted_at || l.created_at);
       if (group !== lastGroup) {
         const count = visible.filter(j => getDateGroup(j.posted_at || j.created_at) === group).length;
-        html += `<div style="display:flex;align-items:center;gap:10px;padding:${lastGroup?'20px':'8px'} 0 10px">
+        html += `<div class="date-group-header" style="display:flex;align-items:center;gap:10px;padding:${lastGroup?'20px':'8px'} 0 10px">
           <span style="font-size:0.7rem;font-weight:800;letter-spacing:2px;color:${groupColors[group]}">${groupIcons[group]} ${group}</span>
           <span style="background:${groupColors[group]}22;color:${groupColors[group]};padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:700">${count}</span>
           <span style="flex:1;height:1px;background:${groupColors[group]}33"></span>
@@ -2662,6 +2666,7 @@ function renderJobList(list) {
       }
       html += renderJobCard(l, false);
     });
+    html += '</div>';
     // PAYWALL: blur teasers + unlock CTA for free users
     if (lockedCount > 0) {
       html += `<div style="position:relative;margin-top:12px">
@@ -2844,7 +2849,7 @@ if('serviceWorker' in navigator) {
     regs.forEach(r => r.unregister());
   }).then(() => {
     caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-    navigator.serviceWorker.register('/sw.js?v=20260516d');
+    navigator.serviceWorker.register('/sw.js?v=20260516e');
   });
 }
 
