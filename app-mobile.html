@@ -1218,7 +1218,7 @@ html, body { overflow-x: hidden; max-width: 100vw; }
 <!-- ============ SCRIPTS ============ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="seed_data.js"></script>
-<script src="app.js?v=20260516b"></script>
+<script src="app.js?v=20260516c"></script>
 <script>
 // ===== MOBILE BRIDGE =====
 
@@ -1267,7 +1267,7 @@ function mSwitchPage(pageId) {
   });
 
   // Trigger app.js data functions
-  if (pageId === 'jobs') { activeTab = 'jobs'; refresh(); }
+  if (pageId === 'jobs') { if (activeTab === 'jobs') return; activeTab = 'jobs'; refresh(); }
   else if (pageId === 'companies') { activeTab = 'companies'; renderCompaniesPage(); }
   else if (pageId === 'saved') renderSaved();
   else if (pageId === 'intel') renderIntel();
@@ -1521,7 +1521,7 @@ function renderJobCard(l) {
     </div>
     <div class="m-job-actions">
       ${url?'<a href="'+url+'" target="_blank" class="m-job-apply" onclick="event.stopPropagation();if(!gateApply(event))return">APPLY</a>':''}
-      <button class="m-job-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters()" style="opacity:${l.saved?'1':'.35'}">${l.saved?'\u2605':'\u2606'}</button>
+      <button class="m-job-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters(false)" style="opacity:${l.saved?'1':'.35'}">${l.saved?'\u2605':'\u2606'}</button>
     </div>
   </div>`;
 }
@@ -1534,7 +1534,8 @@ let currentFilteredJobs = [];
 function goToJobsPage(p) {
   currentJobsPage = p;
   renderJobListMobile(currentFilteredJobs);
-  document.getElementById('page-jobs').scrollIntoView({behavior:'smooth'});
+  const jobsList = document.getElementById('leads');
+  if (jobsList) jobsList.scrollIntoView({behavior:'smooth'});
 }
 
 function renderJobListMobile(list) {
@@ -2040,7 +2041,7 @@ if('serviceWorker' in navigator) {
     regs.forEach(r => r.unregister());
   }).then(() => {
     caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-    navigator.serviceWorker.register('/sw.js?v=20260516');
+    navigator.serviceWorker.register('/sw.js?v=20260516c');
   });
 }
 </script>

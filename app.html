@@ -2175,7 +2175,7 @@ body {
 <!-- ============ SCRIPTS ============ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="seed_data.js"></script>
-<script src="app.js?v=20260516b"></script>
+<script src="app.js?v=20260516c"></script>
 <script>
 // === BRIDGE: sidebar nav → app.js ===
 
@@ -2220,6 +2220,7 @@ function switchPage(pageId, el) {
   document.querySelector('.sidebar').classList.remove('open');
 
   if (pageId === 'jobs') {
+    if (activeTab === 'jobs') return; // already on jobs, don't reset
     activeTab = 'jobs';
     // Reset all filters
     const s = document.getElementById('search'); if(s) s.value = '';
@@ -2470,7 +2471,8 @@ function toggleJobView(mode) {
 function goToJobsPage(p) {
   currentJobsPage = p;
   renderJobList(currentFilteredJobs);
-  document.getElementById('page-jobs').scrollIntoView({behavior:'smooth'});
+  const jobsList = document.getElementById('leads');
+  if (jobsList) jobsList.scrollIntoView({behavior:'smooth'});
 }
 
 function renderCompactRow(l) {
@@ -2485,7 +2487,7 @@ function renderCompactRow(l) {
     '<div class="cr-salary">'+(salary?esc(salary):'')+'</div>'+
     '<div class="cr-date">'+ta+'</div>'+
     '<div style="color:'+(sColors[l.status]||'#52504d')+';font-size:0.65rem">'+(sLabels[l.status]||'New')+'</div>'+
-    '<button class="co-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters()" style="opacity:'+(l.saved?'1':'.35')+';font-size:14px;background:none;border:none;cursor:pointer" title="'+(l.saved?'Remove from saved':'Save to watchlist')+'">'+(l.saved?'\u2605':'\u2606')+'</button>'+
+    '<button class="co-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters(false)" style="opacity:'+(l.saved?'1':'.35')+';font-size:14px;background:none;border:none;cursor:pointer" title="'+(l.saved?'Remove from saved':'Save to watchlist')+'">'+(l.saved?'\u2605':'\u2606')+'</button>'+
   '</div>';
 }
 
@@ -2715,7 +2717,7 @@ function renderJobCard(l, featured) {
     </div>
     <div class="jcard-actions">
       ${url?'<a href="'+url+'" target="_blank" class="jcard-apply" onclick="if(!gateApply(event))return">APPLY</a>':''}
-      <button class="co-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters()" style="opacity:${l.saved?'1':'.35'};font-size:16px" title="${l.saved?'Remove from saved':'Save to watchlist'}">${l.saved?'\u2605':'\u2606'}</button>
+      <button class="co-star" onclick="event.stopPropagation();toggleSaved(\''+l.id+'\');applyFilters(false)" style="opacity:${l.saved?'1':'.35'};font-size:16px" title="${l.saved?'Remove from saved':'Save to watchlist'}">${l.saved?'\u2605':'\u2606'}</button>
       ${showSource?'<span style="font-size:0.6rem;color:var(--text-muted);margin-left:auto">via '+showSource+'</span>':''}
     </div>
   </div>`;
@@ -2754,7 +2756,7 @@ if('serviceWorker' in navigator) {
     regs.forEach(r => r.unregister());
   }).then(() => {
     caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-    navigator.serviceWorker.register('/sw.js?v=20260516');
+    navigator.serviceWorker.register('/sw.js?v=20260516c');
   });
 }
 
