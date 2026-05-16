@@ -2191,7 +2191,7 @@ function safeClick(fn) {
 function cardClick(id) {
   const sel = window.getSelection();
   if (sel && sel.toString().length > 0) return;
-  openDetailModal(id);
+  openDetail(id);
 }
 
 const badgeClass = {security:'co-badge-security',management:'co-badge-management',agency:'co-badge-agency'};
