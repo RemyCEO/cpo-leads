@@ -1337,7 +1337,7 @@ const sLabels = {ny:'New',kontaktet:'Contacted',applied:'Applied',interview:'Int
 function cardClick(id) {
   const sel = window.getSelection();
   if (sel && sel.toString().length > 0) return;
-  openDetailModal(id);
+  openDetail(id);
 }
 
 // Job type detection
@@ -1447,8 +1447,23 @@ function openDetailModal(id) {
   document.getElementById('detail-bg').classList.add('open');
 }
 
-openDetail = openDetailModal;
-closeDetail = function() { document.getElementById('detail-bg').classList.remove('open'); };
+let _savedScrollPos = 0;
+openDetail = function(id) {
+  _savedScrollPos = window.scrollY;
+  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.top = '-' + _savedScrollPos + 'px';
+  document.body.style.width = '100%';
+  openDetailModal(id);
+};
+closeDetail = function() {
+  document.getElementById('detail-bg').classList.remove('open');
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  window.scrollTo(0, _savedScrollPos);
+};
 
 // Mobile job card renderer
 // Region masking for free users
@@ -1511,13 +1526,14 @@ function renderJobCard(l) {
 }
 
 // Override renderList for mobile
-let jobsPerPage = 25;
-let jobsShown = 25;
+let jobsPerPage = 40;
+let currentJobsPage = 1;
 let currentFilteredJobs = [];
 
-function loadMoreJobs() {
-  jobsShown += jobsPerPage;
+function goToJobsPage(p) {
+  currentJobsPage = p;
   renderJobListMobile(currentFilteredJobs);
+  document.getElementById('page-jobs').scrollIntoView({behavior:'smooth'});
 }
 
 function renderJobListMobile(list) {
@@ -1552,8 +1568,11 @@ function renderJobListMobile(list) {
       </div>`;
     if(loadMoreWrap) loadMoreWrap.style.display = 'none';
   } else {
-    const visible = list.slice(0, jobsShown);
-    const remaining = list.length - visible.length;
+    const totalPages = Math.max(1, Math.ceil(list.length / jobsPerPage));
+    if (currentJobsPage > totalPages) currentJobsPage = totalPages;
+    if (currentJobsPage < 1) currentJobsPage = 1;
+    const pageStart = (currentJobsPage - 1) * jobsPerPage;
+    const visible = list.slice(pageStart, pageStart + jobsPerPage);
 
     // Group by date
     function getDateGroup(dateStr) {
@@ -1586,23 +1605,35 @@ function renderJobListMobile(list) {
       }
       html += renderJobCard(l);
     });
-    el.innerHTML = html;
 
-    if(loadMoreWrap) {
-      if(remaining > 0) {
-        loadMoreWrap.style.display = 'block';
-        document.getElementById('load-more-btn').textContent = 'SHOW MORE (' + remaining + ')';
-      } else {
-        loadMoreWrap.style.display = 'none';
+    // Pagination controls
+    if (totalPages > 1) {
+      const maxBtns = 5;
+      let startP = Math.max(1, currentJobsPage - Math.floor(maxBtns/2));
+      let endP = Math.min(totalPages, startP + maxBtns - 1);
+      if (endP - startP < maxBtns - 1) startP = Math.max(1, endP - maxBtns + 1);
+      let pgHtml = '';
+      for (let p = startP; p <= endP; p++) {
+        const act = p === currentJobsPage;
+        pgHtml += `<button onclick="goToJobsPage(${p})" style="width:36px;height:36px;border-radius:8px;border:1px solid ${act?'#C9A84C':'rgba(201,168,76,.2)'};background:${act?'linear-gradient(135deg,#C9A84C,#8B7635)':'rgba(201,168,76,.05)'};color:${act?'#06080d':'#C9A84C'};font-size:13px;font-weight:${act?'800':'600'};cursor:pointer;font-family:inherit">${p}</button>`;
       }
+      html += `<div style="display:flex;justify-content:center;align-items:center;gap:8px;padding:24px 16px 8px">
+        <button onclick="goToJobsPage(currentJobsPage-1)" ${currentJobsPage<=1?'disabled':''} style="width:36px;height:36px;border-radius:8px;border:1px solid ${currentJobsPage<=1?'rgba(201,168,76,.1)':'rgba(201,168,76,.3)'};background:${currentJobsPage<=1?'rgba(201,168,76,.05)':'rgba(201,168,76,.15)'};color:${currentJobsPage<=1?'rgba(201,168,76,.3)':'#C9A84C'};font-size:14px;font-weight:600;cursor:${currentJobsPage<=1?'default':'pointer'};font-family:inherit">&larr;</button>
+        ${pgHtml}
+        <button onclick="goToJobsPage(currentJobsPage+1)" ${currentJobsPage>=totalPages?'disabled':''} style="width:36px;height:36px;border-radius:8px;border:1px solid ${currentJobsPage>=totalPages?'rgba(201,168,76,.1)':'rgba(201,168,76,.3)'};background:${currentJobsPage>=totalPages?'rgba(201,168,76,.05)':'rgba(201,168,76,.15)'};color:${currentJobsPage>=totalPages?'rgba(201,168,76,.3)':'#C9A84C'};font-size:14px;font-weight:600;cursor:${currentJobsPage>=totalPages?'default':'pointer'};font-family:inherit">&rarr;</button>
+      </div>
+      <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);padding:4px 0 16px">Page ${currentJobsPage} of ${totalPages}</div>`;
     }
+
+    el.innerHTML = html;
+    if(loadMoreWrap) loadMoreWrap.style.display = 'none';
   }
 }
 
 const _origRenderList = renderList;
-renderList = function(list) {
+renderList = function(list, resetPage) {
   if (activeTab === 'jobs') {
-    jobsShown = jobsPerPage;
+    if (resetPage) currentJobsPage = 1;
     renderJobListMobile(list);
   } else {
     _origRenderList(list);
