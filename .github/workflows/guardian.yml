@@ -33,7 +33,9 @@ jobs:
             EMAIL_PARAM="&email=true"
           fi
 
-          RESPONSE=$(curl -sf "https://cpoleads.com/api/health?secret=${{ secrets.HEALTH_SECRET }}&autofix=true${EMAIL_PARAM}" || echo '{"status":"unreachable"}')
+          SECRET="${{ secrets.HEALTH_SECRET }}"
+          [ -z "$SECRET" ] && SECRET="cpo-guardian-2026"
+          RESPONSE=$(curl -s "https://cpoleads.com/api/health?secret=${SECRET}&autofix=true${EMAIL_PARAM}" || echo '{"status":"unreachable"}')
           echo "$RESPONSE" | python3 -m json.tool > health_report.json 2>/dev/null || echo "$RESPONSE" > health_report.json
 
           STATUS=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','unknown'))" 2>/dev/null || echo "unknown")
