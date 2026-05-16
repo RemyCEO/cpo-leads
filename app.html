@@ -1726,7 +1726,7 @@ body.modal-open{position:fixed;width:100%;overflow:hidden}
     <!-- Newest Jobs (dynamically populated) -->
     <div class="card" style="margin-top:16px">
       <div class="card-header">
-        <span class="card-title">NEWEST JOBS</span>
+        <span class="card-title">RECENT JOBS</span>
         <span style="font-size:0.65rem;color:var(--gold);cursor:pointer" onclick="switchPage('jobs',document.querySelector('.nav-item[data-page=jobs]'))">VIEW ALL</span>
       </div>
       <div id="dash-newest" style="display:flex;flex-direction:column"></div>
@@ -1744,7 +1744,7 @@ body.modal-open{position:fixed;width:100%;overflow:hidden}
         const locMasked = _isSubscribed ? (l.location ? esc(l.location) : '') : _maskRegion(l.location, l.country);
         const companyMasked = _isSubscribed ? (esc(l.company).includes('\u2014') ? esc(l.company).split('\u2014')[0].trim() : '') : '';
         return `<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(201,168,76,.06);cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(201,168,76,.03)'" onmouseout="this.style.background='transparent'" onclick="cardClick('${l.id}')">
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 2s infinite"></div>
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
           <div style="flex:1;min-width:0">
             <div style="font-size:0.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title||esc(l.company)}</div>
             <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px">${companyMasked?companyMasked+' &middot; ':''}${locMasked}</div>
