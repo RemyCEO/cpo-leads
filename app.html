@@ -2347,16 +2347,13 @@ function openDetailModal(id) {
 // Override app.js openDetail/closeDetail for centered modal
 let _savedScrollPos = 0;
 openDetail = function(id) {
-  const main = document.querySelector('main') || document.getElementById('app-container');
-  _savedScrollPos = main ? main.scrollTop : window.scrollY;
+  _savedScrollPos = window.scrollY;
   openDetailModal(id);
 };
 closeDetail = function() {
   document.getElementById('detail-bg').classList.remove('open');
   requestAnimationFrame(() => {
-    const main = document.querySelector('main') || document.getElementById('app-container');
-    if (main && main.scrollTop !== undefined) main.scrollTop = _savedScrollPos;
-    else window.scrollTo(0, _savedScrollPos);
+    window.scrollTo(0, _savedScrollPos);
   });
 };
 
