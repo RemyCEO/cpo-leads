@@ -2454,21 +2454,23 @@ function getProgressDots(status) {
 
 // Jobs view: premium cards with pagination
 let jobViewMode = 'card';
-let jobsPerPage = 25;
-let jobsShown = 25;
+let jobsPerPage = 40;
+let jobsShown = 40;
+let currentJobsPage = 1;
 let currentFilteredJobs = [];
 
 function toggleJobView(mode) {
   jobViewMode = mode;
   document.getElementById('view-card').classList.toggle('active', mode==='card');
   document.getElementById('view-compact').classList.toggle('active', mode==='compact');
-  jobsShown = jobsPerPage;
+  currentJobsPage = 1;
   applyFilters();
 }
 
-function loadMoreJobs() {
-  jobsShown += jobsPerPage;
+function goToJobsPage(p) {
+  currentJobsPage = p;
   renderJobList(currentFilteredJobs);
+  document.getElementById('page-jobs').scrollIntoView({behavior:'smooth'});
 }
 
 function renderCompactRow(l) {
@@ -2520,8 +2522,11 @@ function renderJobList(list) {
   const FREE_JOBS = 3;
   const gatedList = _isSubscribed ? list : list.slice(0, FREE_JOBS);
   const lockedCount = _isSubscribed ? 0 : Math.max(0, list.length - FREE_JOBS);
-  const visible = gatedList.slice(0, jobsShown);
-  const remaining = gatedList.length - visible.length;
+  const totalPages = Math.max(1, Math.ceil(gatedList.length / jobsPerPage));
+  if (currentJobsPage > totalPages) currentJobsPage = totalPages;
+  if (currentJobsPage < 1) currentJobsPage = 1;
+  const pageStart = (currentJobsPage - 1) * jobsPerPage;
+  const visible = gatedList.slice(pageStart, pageStart + jobsPerPage);
 
   if (jobViewMode === 'compact') {
     let html = '<div class="compact-header"><span>Job Title</span><span>Location</span><span style="text-align:right">Salary</span><span style="text-align:right">Posted</span><span>Status</span><span></span></div>';
@@ -2531,7 +2536,7 @@ function renderJobList(list) {
     // Top Picks (first 3 highest salary)
     const topPicks = [...list].sort((a,b)=>getSalaryNum(b.notes)-getSalaryNum(a.notes)).slice(0,3).filter(l=>getSalaryNum(l.notes)>0);
     let html = '';
-    if(topPicks.length && !document.getElementById('search').value && jobsShown <= jobsPerPage) {
+    if(topPicks.length && !document.getElementById('search').value && currentJobsPage === 1) {
       html += '<div class="top-pick-label">TOP PICKS FOR YOU</div><div class="top-picks">';
       html += topPicks.map(l => renderJobCard(l, true)).join('');
       html += '</div>';
@@ -2582,18 +2587,38 @@ function renderJobList(list) {
       </div>`;
     }
 
+    // Pagination controls for subscribers
+    if (_isSubscribed && totalPages > 1) {
+      const maxBtns = 7;
+      let startP = Math.max(1, currentJobsPage - Math.floor(maxBtns/2));
+      let endP = Math.min(totalPages, startP + maxBtns - 1);
+      if (endP - startP < maxBtns - 1) startP = Math.max(1, endP - maxBtns + 1);
+      let pgHtml = '';
+      if (startP > 1) {
+        pgHtml += `<button onclick="goToJobsPage(1)" style="width:34px;height:34px;border-radius:6px;border:1px solid rgba(201,168,76,.3);background:rgba(201,168,76,.1);color:#C9A84C;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">1</button>`;
+        if (startP > 2) pgHtml += '<span style="color:var(--text-muted);font-size:12px">...</span>';
+      }
+      for (let p = startP; p <= endP; p++) {
+        const act = p === currentJobsPage;
+        pgHtml += `<button onclick="goToJobsPage(${p})" style="width:34px;height:34px;border-radius:6px;border:1px solid ${act?'#C9A84C':'rgba(201,168,76,.2)'};background:${act?'linear-gradient(135deg,#C9A84C,#8B7635)':'rgba(201,168,76,.05)'};color:${act?'#06080d':'#C9A84C'};font-size:12px;font-weight:${act?'800':'600'};cursor:pointer;font-family:inherit">${p}</button>`;
+      }
+      if (endP < totalPages) {
+        if (endP < totalPages - 1) pgHtml += '<span style="color:var(--text-muted);font-size:12px">...</span>';
+        pgHtml += `<button onclick="goToJobsPage(${totalPages})" style="width:34px;height:34px;border-radius:6px;border:1px solid rgba(201,168,76,.3);background:rgba(201,168,76,.1);color:#C9A84C;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">${totalPages}</button>`;
+      }
+      html += `<div style="display:flex;justify-content:center;align-items:center;gap:8px;padding:28px 0 12px;flex-wrap:wrap">
+        <button onclick="goToJobsPage(currentJobsPage-1)" ${currentJobsPage<=1?'disabled':''} style="padding:8px 14px;background:${currentJobsPage<=1?'rgba(201,168,76,.05)':'rgba(201,168,76,.15)'};border:1px solid ${currentJobsPage<=1?'rgba(201,168,76,.1)':'rgba(201,168,76,.3)'};border-radius:6px;color:${currentJobsPage<=1?'rgba(201,168,76,.3)':'#C9A84C'};font-size:12px;font-weight:600;cursor:${currentJobsPage<=1?'default':'pointer'};font-family:inherit">&larr;</button>
+        ${pgHtml}
+        <button onclick="goToJobsPage(currentJobsPage+1)" ${currentJobsPage>=totalPages?'disabled':''} style="padding:8px 14px;background:${currentJobsPage>=totalPages?'rgba(201,168,76,.05)':'rgba(201,168,76,.15)'};border:1px solid ${currentJobsPage>=totalPages?'rgba(201,168,76,.1)':'rgba(201,168,76,.3)'};border-radius:6px;color:${currentJobsPage>=totalPages?'rgba(201,168,76,.3)':'#C9A84C'};font-size:12px;font-weight:600;cursor:${currentJobsPage>=totalPages?'default':'pointer'};font-family:inherit">&rarr;</button>
+      </div>
+      <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);padding-bottom:16px">Page ${currentJobsPage} of ${totalPages} &mdash; showing ${pageStart+1}&ndash;${Math.min(pageStart+jobsPerPage, gatedList.length)} of ${gatedList.length} jobs</div>`;
+    }
+
     el.innerHTML = html;
   }
 
-  // Show/hide load more
-  if(loadMoreWrap) {
-    if(remaining > 0) {
-      loadMoreWrap.style.display = 'block';
-      document.getElementById('load-more-btn').textContent = 'SHOW MORE (' + remaining + ' remaining)';
-    } else {
-      loadMoreWrap.style.display = 'none';
-    }
-  }
+  // Hide old load-more button
+  if(loadMoreWrap) loadMoreWrap.style.display = 'none';
 }
 
 const _origRenderList = renderList;
@@ -2601,7 +2626,7 @@ renderList = function(list, resetPage) {
   const el = document.getElementById('leads');
   if (!el) return;
   if (activeTab === 'jobs') {
-    if (resetPage) jobsShown = jobsPerPage;
+    if (resetPage) currentJobsPage = 1;
     renderJobList(list);
   } else {
     _origRenderList(list);
