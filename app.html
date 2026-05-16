@@ -2348,13 +2348,19 @@ function openDetailModal(id) {
 let _savedScrollPos = 0;
 openDetail = function(id) {
   _savedScrollPos = window.scrollY;
+  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.top = '-' + _savedScrollPos + 'px';
+  document.body.style.width = '100%';
   openDetailModal(id);
 };
 closeDetail = function() {
   document.getElementById('detail-bg').classList.remove('open');
-  requestAnimationFrame(() => {
-    window.scrollTo(0, _savedScrollPos);
-  });
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  window.scrollTo(0, _savedScrollPos);
 };
 
 // Override switchTab for sidebar
