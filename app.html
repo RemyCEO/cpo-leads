@@ -2218,7 +2218,7 @@ body.modal-open{position:fixed;width:100%;overflow:hidden}
 <!-- ============ SCRIPTS ============ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="seed_data.js"></script>
-<script src="app.js?v=20260516f"></script>
+<script src="app.js?v=20260516g"></script>
 <script>
 // === BRIDGE: sidebar nav → app.js ===
 
@@ -2597,7 +2597,7 @@ function renderJobList(list) {
 
   // Update "new today" counter
   const today = new Date(); today.setHours(0,0,0,0);
-  const newToday = list.filter(l => new Date(l.created_at) >= today).length;
+  const newToday = list.filter(l => new Date(l.posted_at || l.created_at) >= today).length;
   const newBadge = document.getElementById('new-today-count');
   if (newBadge) {
     if (newToday > 0) {
@@ -2789,7 +2789,8 @@ function renderJobCard(l, featured) {
   const showLocation = isFree ? '\u{1F30D} ' + _maskRegion(l.location, l.country) : (l.location ? esc(l.location)+(l.country&&l.country!=='UK'&&l.country!=='USA'?' \u00b7 '+esc(l.country):'') : '');
   const showSource = isFree ? '' : source;
 
-  const isNew = age < 24;
+  const postedAge = (Date.now()-new Date(l.posted_at||l.created_at).getTime())/(1000*60*60);
+  const isNew = postedAge < 6;
   const newGlow = isNew ? 'box-shadow:0 0 12px rgba(39,174,96,.15);border-color:rgba(39,174,96,.4)' : '';
   const newStripe = isNew ? 'background:var(--green)' : '';
 
@@ -2853,7 +2854,7 @@ if('serviceWorker' in navigator) {
     regs.forEach(r => r.unregister());
   }).then(() => {
     caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-    navigator.serviceWorker.register('/sw.js?v=20260516f');
+    navigator.serviceWorker.register('/sw.js?v=20260516g');
   });
 }
 
