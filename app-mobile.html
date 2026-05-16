@@ -1439,7 +1439,7 @@ function openDetailModal(id) {
       ${url ? '<a href="'+url+'" target="_blank" '+(job?'onclick="if(!gateApply(event))return"':'')+' style="text-align:center;padding:16px;background:linear-gradient(135deg,#C9A84C,#8B7635);color:#06080d;border-radius:8px;font-weight:700;font-size:1rem;text-decoration:none;min-height:52px;display:flex;align-items:center;justify-content:center">'+(job?'APPLY NOW':'VISIT WEBSITE')+'</a>' : ''}
       <div style="display:flex;gap:8px">
         <button onclick="event.stopPropagation();toggleSaved('${l.id}');openDetailModal('${l.id}')" style="flex:1;padding:14px;background:none;border:1px solid var(--card-border);border-radius:8px;color:var(--gold);cursor:pointer;font-family:inherit;font-size:1rem;min-height:48px">${l.saved?'\u2605 Saved':'\u2606 Save'}</button>
-        <button onclick="openEdit('${l.id}')" style="padding:14px 20px;background:none;border:1px solid var(--card-border);border-radius:8px;color:var(--text-secondary);cursor:pointer;font-family:inherit;font-size:0.875rem;min-height:48px">Edit</button>
+        ${_isAdmin ? '<button onclick="openEdit(\''+l.id+'\')" style="padding:14px 20px;background:none;border:1px solid var(--card-border);border-radius:8px;color:var(--text-secondary);cursor:pointer;font-family:inherit;font-size:0.875rem;min-height:48px">Edit</button>' : ''}
       </div>
     </div>
     <div style="margin-top:16px;font-size:0.75rem;color:var(--text-muted)">Added ${new Date(l.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
