@@ -2034,7 +2034,14 @@ function showMobileEventDetail(ev) {
 }
 
 // PWA
-if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  }).then(() => {
+    caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+    navigator.serviceWorker.register('/sw.js?v=20260516');
+  });
+}
 </script>
 <style>
 .m-monitor-filter {

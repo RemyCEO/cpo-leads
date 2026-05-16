@@ -2748,7 +2748,14 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => switchPage(hash), 100);
   }
 });
-if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  }).then(() => {
+    caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+    navigator.serviceWorker.register('/sw.js?v=20260516');
+  });
+}
 
 // === GLOBAL THREAT MONITOR ===
 (async function loadThreatMonitor() {
