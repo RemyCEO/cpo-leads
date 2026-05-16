@@ -6,7 +6,7 @@
 
 <!-- Primary SEO -->
 <title>Bodyguard Jobs & Close Protection Jobs Worldwide | CPO Leads</title>
-<meta name="description" content="Find bodyguard jobs, close protection officer jobs, and executive protection contracts worldwide. 385+ active listings from 30+ sources. The #1 job board for CPO, EP, and security professionals.">
+<meta name="description" content="Find bodyguard jobs, close protection officer jobs, and executive protection contracts worldwide. 180+ active listings from 30+ sources. The #1 job board for CPO, EP, and security professionals.">
 <meta name="keywords" content="bodyguard jobs, close protection jobs, CPO jobs, executive protection jobs, EP agent jobs, security contracts, close protection officer jobs, bodyguard employment, PSD jobs, maritime security jobs, RST jobs, hostile environment jobs, private security jobs, armed security jobs, celebrity bodyguard jobs, close protection operator">
 <meta name="robots" content="index, follow">
 <meta name="google-site-verification" content="9XtZ524ao1to2uGMgwbUN8lpPA_s_rqpnjIl-xBIen4" />
@@ -1859,7 +1859,7 @@ section {
     <img src="cpo_leads_hero_logo.png" alt="CPO Leads" style="width:320px;margin:0 auto 24px;display:block;filter:drop-shadow(0 2px 8px rgba(201,168,76,.25))">
     <h1>Bodyguard Jobs & Close Protection Jobs Worldwide</h1>
     <p class="hero-tagline" style="font-size:18px;font-weight:700;color:#C9A84C;letter-spacing:1.5px;margin:8px 0 16px;text-transform:uppercase">The #1 Job Board for CPO & EP Professionals</p>
-    <p class="hero-sub">We aggregate bodyguard jobs and executive protection contracts from 30+ sources — job boards, insider networks, and private channels. 385+ active listings updated daily. No more searching 15 different sites.</p>
+    <p class="hero-sub">We aggregate bodyguard jobs and executive protection contracts from 30+ sources — job boards, insider networks, and private channels. 180+ active listings updated daily. No more searching 15 different sites.</p>
     <div class="hero-buttons">
       <a href="#pricing" class="btn-gold">Find Jobs</a>
       <a href="#opportunities" class="btn-outline">See Live Contracts</a>
@@ -1925,18 +1925,23 @@ section {
       const link=document.getElementById('view-all-link');
       try{
         const [jobsRes,countRes]=await Promise.all([
-          fetch(`${SB_URL}/rest/v1/job_listings?select=title,location,country,salary&order=scraped_at.desc&limit=10`,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}),
+          fetch(`${SB_URL}/rest/v1/job_listings?select=title,company,location,country,salary&title=ilike.*protection*,title=ilike.*cpo*,title=ilike.*bodyguard*,title=ilike.*psd*,title=ilike.*close+protection*,title=ilike.*executive+protection*&order=scraped_at.desc&limit=30`,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}),
           fetch(`${SB_URL}/rest/v1/job_listings?select=id&limit=1`,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'count=exact','Range':'0-0'}})
         ]);
-        const jobs=await jobsRes.json();
-        const total=countRes.headers.get('content-range')?.split('/')?.[1]||'350+';
+        let jobs=await jobsRes.json();
+        const total=countRes.headers.get('content-range')?.split('/')?.[1]||'180+';
+        // Filter to best CPO/EP titles and pick 10
         if(jobs&&jobs.length){
-          el.innerHTML=jobs.map(j=>`<div class="opp-row">
-            <div><div class="opp-title">${j.title}</div></div>
+          jobs=jobs.filter(j=>/close protection|executive protection|cpo|bodyguard|psd|protective|ep\b|residential.*security|maritime security/i.test(j.title)).slice(0,10);
+          const cleanCompany=c=>(!c||c==='Insider Source'||c==='INSIDER SOURCE')?'':c;
+          el.innerHTML=jobs.map(j=>{
+            const co=cleanCompany(j.company);
+            return `<div class="opp-row">
+            <div><div class="opp-title">${j.title}</div>${co?'<div style="font-size:12px;color:#C9A84C;margin-top:2px">'+co+'</div>':''}</div>
             <div class="opp-location">${j.location||j.country||'International'}</div>
             <div class="opp-rate">${j.salary||'Competitive'}</div>
             <div><a href="#pricing" class="btn-gold opp-apply">Apply</a></div>
-          </div>`).join('');
+          </div>`;}).join('');
           if(link) link.textContent='View all '+total+' opportunities →';
         }
       }catch(e){el.innerHTML='<div class="opp-row" style="justify-content:center;padding:32px;color:var(--text-muted)">Unable to load contracts. Please refresh.</div>';}
@@ -1959,7 +1964,7 @@ section {
       <p style="color:var(--text-muted);font-size:14px;margin-bottom:32px">Or <strong style="color:var(--gold)">$199/year</strong> after trial — save $40 annually</p>
 
       <div style="text-align:left;display:flex;flex-direction:column;gap:12px;margin-bottom:32px">
-        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Full access to 350+ contract listings worldwide</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Full access to 180+ contract listings worldwide</span></div>
         <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">New verified contracts added daily across all regions</span></div>
         <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">89 verified CP/EP companies profiled</span></div>
         <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--gold);font-size:16px">&#10003;</span><span style="color:var(--text);font-size:14px">Industry intel feed with security news</span></div>
