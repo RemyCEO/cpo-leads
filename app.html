@@ -2212,7 +2212,7 @@ body {
 <!-- ============ SCRIPTS ============ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="seed_data.js"></script>
-<script src="app.js?v=20260516c"></script>
+<script src="app.js?v=20260516d"></script>
 <script>
 // === BRIDGE: sidebar nav → app.js ===
 
@@ -2441,19 +2441,15 @@ function openDetailModal(id) {
 let _savedScrollPos = 0;
 openDetail = function(id) {
   _savedScrollPos = window.scrollY;
+  document.documentElement.style.overflow = 'hidden';
   document.body.style.overflow = 'hidden';
-  document.body.style.position = 'fixed';
-  document.body.style.top = '-' + _savedScrollPos + 'px';
-  document.body.style.width = '100%';
   openDetailModal(id);
 };
 closeDetail = function() {
   document.getElementById('detail-bg').classList.remove('open');
+  document.documentElement.style.overflow = '';
   document.body.style.overflow = '';
-  document.body.style.position = '';
-  document.body.style.top = '';
-  document.body.style.width = '';
-  window.scrollTo(0, _savedScrollPos);
+  requestAnimationFrame(() => window.scrollTo(0, _savedScrollPos));
 };
 
 // Override switchTab for sidebar
@@ -2848,7 +2844,7 @@ if('serviceWorker' in navigator) {
     regs.forEach(r => r.unregister());
   }).then(() => {
     caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-    navigator.serviceWorker.register('/sw.js?v=20260516c');
+    navigator.serviceWorker.register('/sw.js?v=20260516d');
   });
 }
 
