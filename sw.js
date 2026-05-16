@@ -1,4 +1,4 @@
-const CACHE = 'cpo-leads-v9';
+const CACHE = 'cpo-leads-v10';
 
 self.addEventListener('install', e => {
   // Skip waiting — activate immediately so new code takes effect

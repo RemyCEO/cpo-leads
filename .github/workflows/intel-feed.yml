@@ -1,0 +1,68 @@
+name: Update Intel Feed
+on:
+  schedule:
+    - cron: '0 8 */2 * *'  # Every 2 days at 08:00 UTC
+  workflow_dispatch:
+
+jobs:
+  update-intel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch CP/EP/PMC articles from Google News RSS
+        run: |
+          node -e "
+          const feeds = [
+            'https://news.google.com/rss/search?q=%22close+protection%22+OR+%22executive+protection%22&hl=en&gl=US&ceid=US:en',
+            'https://news.google.com/rss/search?q=%22private+military+contractor%22+OR+%22PMC+security%22&hl=en&gl=US&ceid=US:en',
+            'https://news.google.com/rss/search?q=%22bodyguard+industry%22+OR+%22security+contract+awarded%22&hl=en&gl=US&ceid=US:en',
+            'https://news.google.com/rss/search?q=%22VIP+protection%22+OR+%22protective+intelligence%22&hl=en&gl=US&ceid=US:en',
+            'https://news.google.com/rss/search?q=%22close+protection+officer%22+OR+%22EP+agent%22&hl=en&gl=US&ceid=US:en',
+            'https://news.google.com/rss/search?q=%22private+security+company%22+%22contract%22&hl=en&gl=US&ceid=US:en',
+          ];
+
+          (async () => {
+            const articles = [];
+            for (const url of feeds) {
+              try {
+                const res = await fetch(url, {headers:{'User-Agent':'Mozilla/5.0'}});
+                const xml = await res.text();
+                const items = xml.match(/<item>([\s\S]*?)<\/item>/g) || [];
+                for (const item of items) {
+                  const title = (item.match(/<title>([\s\S]*?)<\/title>/)||[])[1]||'';
+                  const link = (item.match(/<link>([\s\S]*?)<\/link>/)||[])[1]||'';
+                  const pubDate = (item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)||[])[1]||'';
+                  const source = (item.match(/<source[^>]*>([\s\S]*?)<\/source>/)||[])[1]||'';
+                  if (title && link) {
+                    const cleanTitle = title.replace(/<[^>]+>/g,'').trim();
+                    articles.push({
+                      title: cleanTitle,
+                      url: link.trim(),
+                      source: source.replace(/<[^>]+>/g,'').trim(),
+                      published_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+                      category: /pmc|military|contractor/i.test(cleanTitle) ? 'PMC' : /bodyguard|close.protection|cpo/i.test(cleanTitle) ? 'Close Protection' : 'Executive Protection'
+                    });
+                  }
+                }
+              } catch(e) {}
+            }
+            const seen = new Set();
+            const unique = articles.filter(a => {
+              const key = a.title.substring(0,50).toLowerCase();
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            }).sort((a,b) => new Date(b.published_at) - new Date(a.published_at)).slice(0, 30);
+            require('fs').writeFileSync('intel_articles.json', JSON.stringify(unique, null, 2));
+            console.log('Intel articles updated:', unique.length);
+          })();
+          "
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "CPO Intel Bot"
+          git config user.email "bot@cpoleads.com"
+          git add intel_articles.json
+          git diff --cached --quiet || git commit -m "Auto-update intel feed $(date -u +%Y-%m-%d)"
+          git push || true

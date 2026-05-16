@@ -2929,35 +2929,10 @@ if('serviceWorker' in navigator) {
     });
   }
 
-  // === INDUSTRY INTEL FEED (live from GDELT) ===
+  // === INDUSTRY INTEL FEED (from curated JSON) ===
   try {
-    const intelQueries = [
-      '("security contract" OR "security firm" OR "protection company") (awarded OR hiring OR expansion) sourcelang:english',
-      '("executive protection" OR "close protection" OR "bodyguard") (market OR industry OR growth OR hiring) sourcelang:english',
-      '("private security" OR "security services") (contract OR deal OR billion OR million) sourcelang:english',
-    ];
-    const allIntel = [];
-    for (const q of intelQueries) {
-      try {
-        const iUrl = 'https://api.gdeltproject.org/api/v2/doc/doc?query=' + encodeURIComponent(q) + '&mode=artlist&maxrecords=16&format=json&sort=datedesc';
-        const iR = await fetch(iUrl);
-        const iData = await iR.json();
-        if (iData.articles) allIntel.push(...iData.articles);
-      } catch(e) {}
-      await new Promise(r => setTimeout(r, 500));
-    }
-
-    // Deduplicate by domain
-    const seen = new Set();
-    const uniqueIntel = allIntel.filter(a => {
-      if (!a.title || !a.url) return false;
-      const key = a.title.substring(0, 40);
-      if (seen.has(key)) return false;
-      seen.add(key);
-      // Filter English only
-      if (a.language && a.language !== 'English') return false;
-      return true;
-    }).slice(0, 16);
+    const iR = await fetch('/intel_articles.json?v=' + Date.now());
+    const uniqueIntel = await iR.json();
 
     // Store full list for intel page, show only 3 on dashboard
     window._allIntelArticles = uniqueIntel;
@@ -2968,8 +2943,8 @@ if('serviceWorker' in navigator) {
     if (intelFeed && dashIntel.length > 0) {
       const dots = ['red','gold','amber','blue','green','gold','red','amber'];
       intelFeed.innerHTML = dashIntel.map((a, i) => {
-        const domain = (a.domain || a.url || '').replace(/^www\./,'').split('/')[0];
-        const timeStr = a.seendate ? a.seendate.substring(6,8)+':'+a.seendate.substring(8,10)+' UTC' : '';
+        const domain = a.source || (a.url || '').replace(/^https?:\/\/(www\.)?/,'').split('/')[0];
+        const timeStr = a.published_at ? new Date(a.published_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
         return '<a href="'+a.url+'" target="_blank" style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(201,168,76,.06);text-decoration:none;transition:background .15s" onmouseover="this.style.background=\'rgba(201,168,76,.03)\'" onmouseout="this.style.background=\'transparent\'">' +
           '<div style="width:6px;height:6px;border-radius:50%;background:var(--'+dots[i%dots.length]+');margin-top:5px;flex-shrink:0'+(i===0?';animation:pulse 2s infinite':'')+'"></div>' +
           '<div style="flex:1">' +

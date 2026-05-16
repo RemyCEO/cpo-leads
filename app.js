@@ -603,8 +603,12 @@ let _intelFilter = 'all';
 async function fetchIntelNews() {
   if (_intelNews) return _intelNews;
   try {
-    const r = await fetch('intel_news.json?t=' + Date.now());
+    // Try curated articles first, fallback to old file
+    let r = await fetch('intel_articles.json?t=' + Date.now());
+    if (!r.ok) r = await fetch('intel_news.json?t=' + Date.now());
     _intelNews = await r.json();
+    // Normalize: ensure url field exists
+    _intelNews.forEach(n => { if (!n.url && n.source_url) n.url = n.source_url; if (!n.source_url && n.url) n.source_url = n.url; });
   } catch(e) { _intelNews = []; }
   return _intelNews;
 }
@@ -628,7 +632,7 @@ function stripHtml(str) {
 }
 
 function getCatColor(cat) {
-  return {'Contractor Intel':'#C9A84C','Security Updates':'#c0392b','World News':'#2980b9'}[cat] || 'var(--muted)';
+  return {'Close Protection':'#C9A84C','Executive Protection':'#27ae60','PMC':'#c0392b','Contractor Intel':'#C9A84C','Security Updates':'#c0392b','World News':'#2980b9'}[cat] || 'var(--muted)';
 }
 
 async function renderIntel() {
