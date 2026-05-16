@@ -1538,7 +1538,7 @@ function renderStrategy() {
   const el = document.getElementById('strategy-view');
   el.innerHTML = '<div style="max-width:900px">'
     +'<div style="margin-bottom:24px"><h1 style="font-size:26px;font-weight:800;margin:0 0 6px">Application Tracker</h1>'
-    +'<p style="color:var(--muted);font-size:13px;margin:0">Track your applications, follow-ups & pipeline</p></div>'
+    +'<p style="color:var(--muted);font-size:13px;margin:0;line-height:1.6">Jobs you mark as Applied appear here automatically. You can also log applications manually below.<br>Remove any application by clicking <strong style="color:#e74c3c">Remove</strong> on the card.</p></div>'
 
     // Pipeline overview
     +'<div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">'
@@ -1562,7 +1562,7 @@ function renderStrategy() {
 
     // Applications list
     +'<div style="display:flex;flex-direction:column;gap:10px">'
-    +(apps.length === 0 ? '<div style="text-align:center;padding:40px;color:var(--muted)">No applications tracked yet. Log your first one above.</div>' :
+    +(apps.length === 0 ? '<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:32px;margin-bottom:12px;opacity:.5">\u2705</div>No applications tracked yet.<br><span style="font-size:12px">Click the <strong style="color:var(--accent)">\u2714 Applied</strong> button on any job to track it here, or log one manually above.</span></div>' :
       apps.map(function(a) {
         var sc = stageColors[a.status]||'#52504d';
         var daysSince = Math.floor((Date.now()-new Date(a.applied_at))/(1000*60*60*24));

@@ -962,6 +962,9 @@ body {
 }
 .dossier-row { display: flex; align-items: center; gap: 12px; }
 
+/* Modal scroll lock */
+body.modal-open{position:fixed;width:100%;overflow:hidden}
+
 /* ===== PREMIUM JOB CARDS ===== */
 .jobs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .jobs-grid .date-group-header{grid-column:1/-1}
@@ -2215,7 +2218,7 @@ body {
 <!-- ============ SCRIPTS ============ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="seed_data.js"></script>
-<script src="app.js?v=20260516e"></script>
+<script src="app.js?v=20260516f"></script>
 <script>
 // === BRIDGE: sidebar nav → app.js ===
 
@@ -2444,15 +2447,16 @@ function openDetailModal(id) {
 let _savedScrollPos = 0;
 openDetail = function(id) {
   _savedScrollPos = window.scrollY;
-  document.documentElement.style.overflow = 'hidden';
-  document.body.style.overflow = 'hidden';
+  document.body.classList.add('modal-open');
+  document.body.style.top = '-' + _savedScrollPos + 'px';
   openDetailModal(id);
 };
 closeDetail = function() {
   document.getElementById('detail-bg').classList.remove('open');
-  document.documentElement.style.overflow = '';
-  document.body.style.overflow = '';
-  requestAnimationFrame(() => window.scrollTo(0, _savedScrollPos));
+  const scrollY = _savedScrollPos;
+  document.body.classList.remove('modal-open');
+  document.body.style.top = '';
+  window.scrollTo(0, scrollY);
 };
 
 // Override switchTab for sidebar
@@ -2849,7 +2853,7 @@ if('serviceWorker' in navigator) {
     regs.forEach(r => r.unregister());
   }).then(() => {
     caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-    navigator.serviceWorker.register('/sw.js?v=20260516e');
+    navigator.serviceWorker.register('/sw.js?v=20260516f');
   });
 }
 

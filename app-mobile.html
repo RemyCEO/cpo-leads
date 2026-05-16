@@ -721,6 +721,7 @@ body {
 
 /* Prevent horizontal scroll */
 html, body { overflow-x: hidden; max-width: 100vw; }
+body.modal-open { position: fixed; width: 100%; overflow: hidden; }
 </style>
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
@@ -1247,7 +1248,7 @@ html, body { overflow-x: hidden; max-width: 100vw; }
 <!-- ============ SCRIPTS ============ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="seed_data.js"></script>
-<script src="app.js?v=20260516d"></script>
+<script src="app.js?v=20260516f"></script>
 <script>
 // ===== MOBILE BRIDGE =====
 
@@ -1527,15 +1528,16 @@ function openDetailModal(id) {
 let _savedScrollPos = 0;
 openDetail = function(id) {
   _savedScrollPos = window.scrollY;
-  document.documentElement.style.overflow = 'hidden';
-  document.body.style.overflow = 'hidden';
+  document.body.classList.add('modal-open');
+  document.body.style.top = '-' + _savedScrollPos + 'px';
   openDetailModal(id);
 };
 closeDetail = function() {
   document.getElementById('detail-bg').classList.remove('open');
-  document.documentElement.style.overflow = '';
-  document.body.style.overflow = '';
-  requestAnimationFrame(() => window.scrollTo(0, _savedScrollPos));
+  const scrollY = _savedScrollPos;
+  document.body.classList.remove('modal-open');
+  document.body.style.top = '';
+  window.scrollTo(0, scrollY);
 };
 
 // Mobile job card renderer
@@ -2114,7 +2116,7 @@ if('serviceWorker' in navigator) {
     regs.forEach(r => r.unregister());
   }).then(() => {
     caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-    navigator.serviceWorker.register('/sw.js?v=20260516d');
+    navigator.serviceWorker.register('/sw.js?v=20260516f');
   });
 }
 </script>
