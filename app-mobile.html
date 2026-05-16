@@ -1499,7 +1499,8 @@ function renderJobCard(l) {
 
   // Mask for free users
   const isFree = !_verifySub();
-  const showCompany = isFree ? '\u{1F512} Verified Employer' : (companyName||'');
+  const rawCompany = companyName||'';
+  const showCompany = isFree ? '\u{1F512} Verified Employer' : (rawCompany === 'Insider Source' || rawCompany === 'INSIDER SOURCE' ? '' : rawCompany);
   const showCred = isFree ? '' : cred;
   const showLocation = isFree ? '\u{1F30D} ' + _maskRegion(l.location, l.country) : (l.location ? esc(l.location) : '');
 

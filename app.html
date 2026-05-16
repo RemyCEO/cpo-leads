@@ -2683,7 +2683,8 @@ function renderJobCard(l, featured) {
 
   // Mask details for free users
   const isFree = !_isSubscribed;
-  const showCompany = isFree ? '\u{1F512} Verified Employer' : (companyName||source||'');
+  const rawCompany = companyName||source||'';
+  const showCompany = isFree ? '\u{1F512} Verified Employer' : (rawCompany === 'Insider Source' || rawCompany === 'INSIDER SOURCE' ? '' : rawCompany);
   const showCred = isFree ? '' : cred;
   const showDesc = isFree ? '' : desc;
   const showLocation = isFree ? '\u{1F30D} ' + _maskRegion(l.location, l.country) : (l.location ? esc(l.location)+(l.country&&l.country!=='UK'&&l.country!=='USA'?' \u00b7 '+esc(l.country):'') : '');
